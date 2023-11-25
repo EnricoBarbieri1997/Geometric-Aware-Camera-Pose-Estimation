@@ -20,6 +20,6 @@ for i in 1:numberOfCylinders
 	conics[i] = cameraProjectionMatrix * cylinders[i][1] * cameraProjectionMatrix'
 	dualConics[i] = cameraProjectionMatrix * cylinders[i][2] * cameraProjectionMatrix'
 
-	display(Conic.ToFormula(conics[i]))
+	# display(Conic.ToFormula(conics[i]))
 end
 

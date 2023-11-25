@@ -2,12 +2,14 @@ module Cylinder
 	export StandardAndDual, Standard, Dual, StandardAndDualRandom, StandardRandom, RandomDual
 
 	using ..Space, ..Utils, LinearAlgebra, Random
-	
+
 	function StandardAndDual(
 		center::PointTuple = (0, 0, 0),
-		radius::Number = 1, rotation::Vec3Tuple = (0, 0, 0)
+		radius::Tuple{Number, Number} = (1, 1), rotation::Vec3Tuple = (0, 0, 0)
 	)
-		canonicalCylinder = diagm([1, 1, 0, -(radius^2)])
+		inverseRadiusSquareX = 1 / (radius[1]^2)
+		inverseRadiusSquareY = 1 / (radius[2]^2)
+		canonicalCylinder = diagm([inverseRadiusSquareX, inverseRadiusSquareY, 0, -1])
 		
 		transformMatrix = Transformation(center, rotation)
 
@@ -20,6 +22,13 @@ module Cylinder
 		
 		dualCylinder = dualTransformationMatrix' * dualCanonicalCylinder * dualTransformationMatrix
 		return cylinder, dualCylinder
+	end
+
+	function StandardAndDual(
+		center::PointTuple = (0, 0, 0),
+		radius::Number = 1, rotation::Vec3Tuple = (0, 0, 0)
+	)
+		return StandardAndDual(center, (radius, radius), rotation)
 	end
 
 	function Standard(
@@ -41,9 +50,9 @@ module Cylinder
 		radiusBoundaries::Tuple{Number, Number} = (1, 3),
 	)
 		center = randRange(collect(centerBoundaries))
-		radius = randRange(radiusBoundaries)
+		radius = randRange(radiusBoundaries, 2)
 		rotation = randRange((0, 360), 3)
-		return StandardAndDual((center[1], center[2], center[3]), radius, (rotation[1], rotation[2], rotation[3]))
+		return StandardAndDual((center[1], center[2], center[3]), (radius[1], radius[2]), (rotation[1], rotation[2], rotation[3]))
 	end
 
 	function StandardRandom(
