@@ -1,5 +1,7 @@
 module Space
-	export Vec3, Vec3Tuple, Point, PointTuple
+	export Vec3, Vec3Tuple, Point, PointTuple, Transformation
+
+	using LinearAlgebra, Rotations
 
 	struct Vec3
 		x::Number
@@ -10,4 +12,19 @@ module Space
 
 	const Point = Vec3
 	const PointTuple = Vec3Tuple
+
+	function Transformation(
+		translation::Vec3Tuple = (0, 0, 0),
+		rotation::Vec3Tuple = (0, 0, 0)
+	)
+		rotation = RotXYZ(deg2rad.(rotation)...)
+
+		r = zeros(4, 4)
+		r[1:3, 1:3] .= (rotation)
+		r[4, 4] = 1
+		t = diagm([1.0, 1.0, 1.0, 1.0])
+		t[1:3, 4] .= (translation .* -1)
+
+		return r * t
+	end
 end

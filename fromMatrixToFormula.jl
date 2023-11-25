@@ -22,3 +22,27 @@ module Quadric
 		return formula
 	end
 end
+
+module Conic
+	export ToFormula
+
+	indexToVariable = Dict{Int, String}()
+	indexToVariable[1] = "x"
+	indexToVariable[2] = "y"
+	indexToVariable[3] = ""
+
+	function ToFormula(conic::Matrix)
+		formula = ""
+		for i in 1:3
+			for j in i:3
+				coefficient = i == j ? conic[i, j] : (2 * conic[i, j])
+				variable1 = indexToVariable[i]
+				variable2 = indexToVariable[j]
+				variables = i == j ? (variable1 == "" ? variable1 : (variable1 * "^2")) : (variable1 * variable2)
+				formula = formula * "(" * string(coefficient) * ")" * (variables == "" ? variables : ("*" * variables )) * " + "
+			end
+		end
+		formula = formula[1:end-3] * " = 0"
+		return formula
+	end
+end

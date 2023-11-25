@@ -1,33 +1,62 @@
 module Cylinder
-	export FromTransform, Random
+	export StandardAndDual, Standard, Dual, StandardAndDualRandom, StandardRandom, RandomDual
 
-	using ..Space, ..Utils, LinearAlgebra, Random, Rotations
-
-	function FromTransform(center::PointTuple = (0, 0, 0), radius::Number = 1, rotation::Vec3Tuple = (0, 0, 0))
-		rotation = RotXYZ(deg2rad.(rotation)...)
+	using ..Space, ..Utils, LinearAlgebra, Random
+	
+	function StandardAndDual(
+		center::PointTuple = (0, 0, 0),
+		radius::Number = 1, rotation::Vec3Tuple = (0, 0, 0)
+	)
 		canonicalCylinder = diagm([1, 1, 0, -(radius^2)])
-
-		r = zeros(4, 4)
-		r[1:3, 1:3] .= (rotation)
-		r[4, 4] = 1
-		t = diagm([1.0, 1.0, 1.0, 1.0])
-		t[1:3, 4] .= (center .* -1)
 		
-		transformMatrix = r * t
+		transformMatrix = Transformation(center, rotation)
 
-		display(transformMatrix)
-		
 		cylinder = transformMatrix' * canonicalCylinder * transformMatrix
-		return cylinder
+
+		dualCanonicalCylinder = zeros(4, 4)
+		dualCanonicalCylinder[[1, 2, 4], [1, 2, 4]] .= inv(canonicalCylinder[[1, 2, 4], [1, 2, 4]])
+
+		dualTransformationMatrix = inv(transformMatrix)
+		
+		dualCylinder = dualTransformationMatrix' * dualCanonicalCylinder * dualTransformationMatrix
+		return cylinder, dualCylinder
 	end
 
-	function Random(
+	function Standard(
+		center::PointTuple = (0, 0, 0),
+		radius::Number = 1, rotation::Vec3Tuple = (0, 0, 0)
+	)
+		return StandardAndDual(center, radius, rotation)[1]
+	end
+
+	function Dual(
+		center::PointTuple = (0, 0, 0),
+		radius::Number = 1, rotation::Vec3Tuple = (0, 0, 0)
+	)
+		return StandardAndDual(center, radius, rotation)[2]
+	end
+
+	function StandardAndDualRandom(
 		centerBoundaries::Tuple{Tuple{Number, Number}, Tuple{Number, Number}, Tuple{Number, Number}} = ((-5, 5), (-5, 5), (-5, 5)),
 		radiusBoundaries::Tuple{Number, Number} = (1, 3),
 	)
-		center = (randRange(centerBoundaries[1]), randRange(centerBoundaries[2]), randRange(centerBoundaries[3]))
+		center = randRange(collect(centerBoundaries))
 		radius = randRange(radiusBoundaries)
-		rotation = (randRange((0, 360)), randRange((0, 360)), randRange((0, 360)))
-		return FromTransform(center, radius, rotation)
+		rotation = randRange((0, 360), 3)
+		return StandardAndDual((center[1], center[2], center[3]), radius, (rotation[1], rotation[2], rotation[3]))
+	end
+
+	function StandardRandom(
+		centerBoundaries::Tuple{Tuple{Number, Number}, Tuple{Number, Number}, Tuple{Number, Number}} = ((-5, 5), (-5, 5), (-5, 5)),
+		radiusBoundaries::Tuple{Number, Number} = (1, 3),
+	)
+		return StandardAndDualRandom(centerBoundaries, radiusBoundaries)[1]
+	end
+
+	function RandomDual(
+		centerBoundaries::Tuple{Tuple{Number, Number}, Tuple{Number, Number}, Tuple{Number, Number}} = ((-5, 5), (-5, 5), (-5, 5)),
+		radiusBoundaries::Tuple{Number, Number} = (1, 3),
+	)
+		return StandardAndDualRandom(centerBoundaries, radiusBoundaries)[2]
 	end
 end
