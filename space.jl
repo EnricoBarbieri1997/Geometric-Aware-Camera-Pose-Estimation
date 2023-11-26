@@ -1,7 +1,9 @@
 module Space
-	export Vec3, Vec3Tuple, Point, PointTuple, Transformation
+	export Vec3, Vec3Tuple, Point, PointTuple, Transformation, RandomTransformation
 
-	using LinearAlgebra, Rotations
+	using ..Utils
+	using LinearAlgebra
+	using Rotations
 
 	struct Vec3
 		x::Number
@@ -26,5 +28,14 @@ module Space
 		t[1:3, 4] .= (translation .* -1)
 
 		return r * t
+	end
+
+	function RandomTransformation(
+		centerBoundaries::Tuple{Tuple{Number, Number}, Tuple{Number, Number}, Tuple{Number, Number}} = ((-5, 5), (-5, 5), (-5, 5))
+	)
+		center = randRange(collect(centerBoundaries))
+		rotation = randRange((0, 360), 3)
+
+		return Transformation((center[1], center[2], center[3]), (rotation[1], rotation[2], rotation[3]))
 	end
 end

@@ -4,24 +4,28 @@ module Cylinder
 	using ..Space, ..Utils, LinearAlgebra, Random
 
 	function StandardAndDual(
-		center::PointTuple = (0, 0, 0),
-		radius::Tuple{Number, Number} = (1, 1), rotation::Vec3Tuple = (0, 0, 0)
+		transformMatrix::Matrix{Float64},
+		radius::Tuple{Number, Number} = (1, 1)
 	)
 		inverseRadiusSquareX = 1 / (radius[1]^2)
 		inverseRadiusSquareY = 1 / (radius[2]^2)
 		canonicalCylinder = diagm([inverseRadiusSquareX, inverseRadiusSquareY, 0, -1])
-		
-		transformMatrix = Transformation(center, rotation)
 
 		cylinder = transformMatrix' * canonicalCylinder * transformMatrix
 
 		dualCanonicalCylinder = zeros(4, 4)
 		dualCanonicalCylinder[[1, 2, 4], [1, 2, 4]] .= inv(canonicalCylinder[[1, 2, 4], [1, 2, 4]])
 
-		dualTransformationMatrix = inv(transformMatrix)
-		
-		dualCylinder = dualTransformationMatrix' * dualCanonicalCylinder * dualTransformationMatrix
+		dualCylinder = inv(transformMatrix) * dualCanonicalCylinder * inv(transformMatrix')
 		return cylinder, dualCylinder
+	end
+
+	function StandardAndDual(
+		center::PointTuple = (0, 0, 0),
+		radius::Tuple{Number, Number} = (1, 1), rotation::Vec3Tuple = (0, 0, 0)
+	)
+		transformMatrix = Transformation(center, rotation)
+		return StandardAndDual(transformMatrix, radius)
 	end
 
 	function StandardAndDual(
