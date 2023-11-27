@@ -46,3 +46,11 @@ module Conic
 		return formula
 	end
 end
+
+module PointFormulas
+	export ToFormula
+
+	function ToFormula(point::Vector)
+		return "(" * string(point[1]) * ", " * string(point[2]) * ", " * string(point[3]) * ")"
+	end
+end

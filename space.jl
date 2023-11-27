@@ -25,9 +25,9 @@ module Space
 		r[1:3, 1:3] .= (rotation)
 		r[4, 4] = 1
 		t = diagm([1.0, 1.0, 1.0, 1.0])
-		t[1:3, 4] .= (translation .* -1)
+		t[1:3, 4] .= (translation .* 1)
 
-		return r * t
+		return t * r
 	end
 
 	function RandomTransformation(
