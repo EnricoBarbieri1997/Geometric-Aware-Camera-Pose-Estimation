@@ -22,9 +22,9 @@ cameraTranslation = (2.0, 30.0, 5.0)
 cameraRotation = (-83.0, 0.0, 180.0)
 cameraMatrix = Transformation(cameraTranslation, cameraRotation)
 cameraMatrix = cameraMatrix ./ cameraMatrix[4, 4]
-testPoint = cameraMatrix * [0.0, 0.0, 0.0, 1.0]
-testPoint = testPoint ./ testPoint[4]
-display(PointFormulas.ToFormula(testPoint))
+cameraOrigin = cameraMatrix * [0.0, 0.0, 0.0, 1.0]
+cameraOrigin = cameraOrigin ./ cameraOrigin[4]
+# display(PointFormulas.ToFormula(cameraOrigin))
 cameraProjectionMatrix = cameraMatrix[1:3, :]
 
 conics = Array{Tuple{Matrix{Float64}, Matrix{Float64}}}(undef, numberOfCylinders)
@@ -89,14 +89,18 @@ function plot2D()
 
     function lines_from_conic(i)
         planes = []
+        # display(i)
         for angle in θ
             x = radiuses[i][1] * cos(angle)
             y = radiuses[i][2] * sin(angle)
             planeDirection = normalize([x, y, 0])
             plane = [planeDirection... (-sqrt(x^2 + y^2))]
             plane = transforms[i]' * plane'
-            distance = ([cameraTranslation... 1] * plane)[1]
-            if(distance < 10000) push!(planes, plane) end
+            distance = (cameraOrigin' * plane)[1]
+            if(abs(distance) <= 1)
+                # display(Plane.ToFormula(plane))
+                push!(planes, plane)
+            end
         end
         lines = [cameraProjectionMatrix * plane for plane in planes]
         return lines
@@ -107,7 +111,7 @@ function plot2D()
         y = function (x, l) return (-(l[1] * x + l[3]) / l[2]) end
         for line in lines
             y1 = function (x) return y(x, line) end
-            xs = -30:60:30
+            xs = -10:1:10
             ys1 = y1.(xs)
             lines!(ax2, xs, ys1, color = colors[i])
         end

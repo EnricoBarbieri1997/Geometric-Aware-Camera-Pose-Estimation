@@ -47,6 +47,14 @@ module Conic
 	end
 end
 
+module Plane 
+	export ToFormula
+
+	function ToFormula(plane::Array)
+		return string(plane[1]) * "x + " * string(plane[2]) * "y + " * string(plane[3]) * "z + " * string(plane[4]) * " = 0"
+	end
+end
+
 module PointFormulas
 	export ToFormula
 
