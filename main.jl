@@ -3,7 +3,7 @@ include("includes.jl")
 using .Space: Transformation, RandomTransformation
 using .Utils
 using LinearAlgebra: deg2rad, diagm, normalize, svd
-using GLMakie, GLMakie.FileIO, Polynomials, Rotations
+using GLMakie, GLMakie.FileIO, HomotopyContinuation, Polynomials, Rotations
 
 numberOfCylinders = 4
 cylinders = Array{Tuple{Matrix{Float64}, Matrix{Float64}}}(undef, numberOfCylinders)
@@ -85,24 +85,17 @@ plot3D()
 
 function plot2D()
     global colors, radiuses, transforms, cameraProjectionMatrix, numberOfCylinders, ax2
-    θ = LinRange(0, 2π, 100)
 
     function lines_from_conic(i)
-        planes = []
-        # display(i)
-        for angle in θ
-            x = radiuses[i][1] * cos(angle)
-            y = radiuses[i][2] * sin(angle)
-            planeDirection = normalize([x, y, 0])
-            plane = [planeDirection... (-sqrt(x^2 + y^2))]
-            plane = transforms[i]' * plane'
-            distance = (cameraOrigin' * plane)[1]
-            if(abs(distance) <= 1)
-                # display(Plane.ToFormula(plane))
-                push!(planes, plane)
-            end
-        end
-        lines = [cameraProjectionMatrix * plane for plane in planes]
+        @var x y z
+        quadric = cylinders[i][2]
+        f₁ = quadric[1] * x^2 + 2 * quadric[2] * x * y + 2 * quadric[3] * x * z + 2 * quadric[4] * x + quadric[6] * y^2 + 2 * quadric[7] * y * z + 2 * quadric[8] * y + quadric[11] * z^2 + 2 * quadric[12] * z + quadric[16]
+        f₂ = x * cameraOrigin[1] + y * cameraOrigin[2] + z * cameraOrigin[3] + cameraOrigin[4]
+        f₃ = z - 1
+        F = System([f₁, f₂, f₃])
+        result = solve(F)
+        planes = real_solutions(result)
+        lines = [cameraProjectionMatrix * [plane... 1]' for plane in planes]
         return lines
     end
 
