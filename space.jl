@@ -1,5 +1,5 @@
 module Space
-	export Vec3, Vec3Tuple, Point, PointTuple, Transformation, RandomTransformation
+	export Vec3, Vec3Tuple, Point, PointTuple, Transformation, IdentityTransformation, RandomTransformation
 
 	using ..Utils
 	using LinearAlgebra
@@ -37,5 +37,9 @@ module Space
 		rotation = randRange((0, 360), 3)
 
 		return Transformation((center[1], center[2], center[3]), (rotation[1], rotation[2], rotation[3]))
+	end
+
+	function IdentityTransformation()
+		return Transformation()
 	end
 end
