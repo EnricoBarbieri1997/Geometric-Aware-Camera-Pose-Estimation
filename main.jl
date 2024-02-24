@@ -43,6 +43,11 @@ end
 
 f = Figure(size=(1200, 800))
 ax3 = Axis3(f[1, 1], title = "Cylinders", aspect = :equal)
+scene = ax3.scene
+cam = Camera3D(scene)
+eyeposition = cam.eyeposition[]
+lookat = cam.lookat[]
+update_cam!(scene, cam, (eyeposition[1], eyeposition[2], eyeposition[3]), (lookat[1], lookat[2], lookat[3]), (0, 1, 0))
 ax2 = Axis(f[1, 2], title = "Conics", autolimitaspect = 1)
 
 colors = [:red, :green, :blue, :yellow, :purple, :orange, :pink, :brown]
