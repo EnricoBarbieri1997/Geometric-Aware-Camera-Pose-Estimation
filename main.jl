@@ -2,9 +2,11 @@ include("includes.jl")
 
 using .Space: Transformation, RandomTransformation, IdentityTransformation
 using .Camera: CameraMatrix
+using .Plotting: initFigure, plot2DPoints, Plot3DCameraInput, plot3DCamera, Plot3DCylindersInput, plot3DCylinders, plot2DCylinders
+using .Debug
 using .Utils
 using LinearAlgebra: deg2rad, diagm, dot, normalize, svd
-using GLMakie, GLMakie.FileIO, HomotopyContinuation, Polynomials, Rotations
+using HomotopyContinuation, Polynomials, Rotations
 
 numberOfCylinders = 4
 cylinders = Array{Tuple{Matrix{Float64}, Tuple{Matrix{Float64}, Vector{Float64}}}}(undef, numberOfCylinders)
@@ -16,15 +18,12 @@ for i in 1:numberOfCylinders
     radiuses[i] = (radius[1], radius[2])
 	cylinders[i] = Cylinder.StandardAndDual(transforms[i], radiuses[i])
 
-	display(Quadric.ToFormula(cylinders[i][1]))
-    display(PointFormulas.ToFormula(cylinders[i][2][2] ./ cylinders[i][2][2][4]))
+	# display(Quadric.ToFormula(cylinders[i][1]))
+    # display(PointFormulas.ToFormula(cylinders[i][2][2] ./ cylinders[i][2][2][4]))
 end
 
-# cameraTranslation = (2.0, 30.0, 5.0)
-# cameraRotation = (-83.0, 0.0, 180.0)
-cameraTranslation = (0.0, 30.0, 0.0)
-# cameraRotation = (90.0, 180.0, 0.0)
-cameraRotation = (0.0, 0.0, 0.0)
+cameraTranslation = (2.0, 30.0, 5.0)
+cameraRotation = (-83.0, 180.0, 0.0)
 cameraPositionMatrix = Transformation(cameraTranslation, cameraRotation)
 cameraPositionMatrix = cameraPositionMatrix ./ cameraPositionMatrix[4, 4]
 # cameraPositionMatrix = Transformation((0,0,0), (0, 90, 0)) * cameraPositionMatrix
@@ -41,115 +40,50 @@ for i in 1:numberOfCylinders
 	# display(Conic.ToFormula(conics[i][1]))
 end
 
-f = Figure(size=(1200, 800))
-ax3 = Axis3(f[1, 1], title = "Cylinders", aspect = :equal)
-scene = ax3.scene
-cam = Camera3D(scene)
-eyeposition = cam.eyeposition[]
-lookat = cam.lookat[]
-update_cam!(scene, cam, (eyeposition[1], eyeposition[2], eyeposition[3]), (lookat[1], lookat[2], lookat[3]), (0, 1, 0))
-ax2 = Axis(f[1, 2], title = "Conics", autolimitaspect = 1)
+singularPoints = Array{Tuple{Number, Number}}(undef, numberOfCylinders)
 
-colors = [:red, :green, :blue, :yellow, :purple, :orange, :pink, :brown]
-
-markers = [
-    [1, 0, 0],
-    [0, 1, 0],
-    [0, 0, 1],
-    [-1, 0, 0],
-    [0, -1, 0],
-    [0, 0, -1]
-]
-
-points3d = undef
-
-function plot3D()
-    global colors, cameraRotation, cameraTranslation, transforms, radiuses, numberOfCylinders, ax3
-
-    for (i, marker) in enumerate(markers)
-        scatter!(ax3, marker, color=colors[i])
-    end
-
-    # heightLevels = 100
-    # angles = 100
-
-    # z, θ = LinRange(-20, 20, heightLevels), LinRange(0, 2π, angles)
-    # x = cos.(θ)
-    # y = sin.(θ)
-
-    # for i in 1:numberOfCylinders
-    #     radius = radiuses[i]
-    #     X = radius[1] * x
-    #     Y = radius[2] * y
-
-    #     canonicPoints = []
-
-    #     for j in 1:heightLevels
-    #         canonicPoints = vcat(canonicPoints, [X Y (z[j] * ones(angles)) ones(angles)])
-    #     end
-    #     points = transpose(transforms[i] * canonicPoints')
-    #     points = points ./ points[:, 4]
-        
-    #     lines!(ax3, points[:, 1], points[:, 2], points[:, 3], color = colors[i])
-
-    #     points2D = [cameraProjectionMatrix * point for point in eachrow(points)]
-    #     points2D = [(point ./ point[3]) for point in points2D]
-    #     points2D = hcat(points2D...)'
-
-    #     lines!(ax2, points2D[:, 1], points2D[:, 2], color = colors[i])
-    # end
-
-    cameraModel = load("./camera.stl")
-    cameraMesh = mesh!(
-        ax3,
-        cameraModel,
-    )
-    cameraRotationRad = deg2rad.(cameraRotation)
-    cameraRotation = RotXYZ(cameraRotationRad...)
-    cameraRotationAxis = rotation_axis(cameraRotation)
-    cameraRotationAngle = rotation_angle(cameraRotation)
-    # rotate!(cameraMesh, cameraRotationAxis, cameraRotationAngle)
-    # translate!(cameraMesh, cameraTranslation)
+for i in 1:numberOfCylinders
+    singularPoint = conics[i][2][2]
+    singularPoint = singularPoint ./ singularPoint[3]
+    # singularPoint = singularPoint .* 500
+    singularPoint = (singularPoint[1], singularPoint[2])
+    singularPoints[i] = singularPoint
 end
-plot3D()
 
-function plot2D()
-    global colors, radiuses, transforms, cameraProjectionMatrix, numberOfCylinders, ax2
-
-    for (i, marker) in enumerate(markers)
-        scatter!(ax2, cameraProjectionMatrix * marker, color=colors[i])
-    end
-
-    function lines_from_conic(i)
-        @var x y z
-        line = [x, y, z]
-        conicSingularPoint = conics[i][2][2]
-        conicMatrix = conics[i][2][1]
-        f₁ = line' * conicSingularPoint
-        f₂ = line' * conicMatrix * line
-        f₃ = z - 1
-        F = System([f₁, f₂, f₃])
-        result = solve(F)
-        lines = result
-        return real_solutions(lines)
-    end
-
-    # for i in 1:numberOfCylinders
-    #     singularPoint = conics[i][2][2]
-    #     singularPoint = singularPoint ./ singularPoint[3]
-    #     # singularPoint = singularPoint .* 500
-    #     singularPoint = (singularPoint[1], singularPoint[2])
-    #     scatter!(singularPoint, color = colors[i])
-    #     # lines = lines_from_conic(i)
-    #     # y = function (x, l) return (-(l[1] * x + l[3]) / l[2]) end
-    #     # for line in lines
-    #     #     y1 = function (x) return y(x, line) end
-    #     #     xs = -10:1:10
-    #     #     ys1 = y1.(xs)
-    #     #     lines!(ax2, xs, ys1, color = colors[i])
-    #     # end
-    # end
+function lines_from_conic(i)
+    @var x y z
+    line = [x, y, z]
+    conicSingularPoint = conics[i][2][2]
+    conicMatrix = conics[i][2][1]
+    f₁ = line' * conicSingularPoint
+    f₂ = line' * conicMatrix * line
+    f₃ = z - 1
+    F = System([f₁, f₂, f₃])
+    result = solve(F)
+    lines = result
+    return real_solutions(lines)
 end
-plot2D()
 
+conicBorders = Array{Array{Vector{Float64}}}(undef, numberOfCylinders)
+for i in 1:numberOfCylinders
+    lines = lines_from_conic(i)
+    conicBorders[i] = Array{Vector{Float64}}(undef, length(lines))
+    for (j, line) in enumerate(lines)
+        conicBorders[i][j] = line
+    end
+end
+
+f = initFigure()
+plot3DCamera(Plot3DCameraInput(
+    cameraRotation,
+    cameraTranslation
+))
+plot3DCylinders(Plot3DCylindersInput(
+    transforms,
+    radiuses,
+    numberOfCylinders,
+    # cameraProjectionMatrix
+))
+plot2DPoints(singularPoints)
+plot2DCylinders(conicBorders)
 f
