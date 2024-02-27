@@ -17,27 +17,16 @@ for i in 1:numberOfCylinders
     radius = randRange((1, 3), 2)
     radiuses[i] = (radius[1], radius[2])
 	cylinders[i] = Cylinder.StandardAndDual(transforms[i], radiuses[i])
-
-	# display(Quadric.ToFormula(cylinders[i][1]))
-    # display(PointFormulas.ToFormula(cylinders[i][2][2] ./ cylinders[i][2][2][4]))
 end
 
 cameraTranslation = (2.0, 30.0, 5.0)
 cameraRotation = (-83.0, 180.0, 0.0)
 cameraPositionMatrix = Transformation(cameraTranslation, cameraRotation)
-cameraPositionMatrix = cameraPositionMatrix ./ cameraPositionMatrix[4, 4]
-# cameraPositionMatrix = Transformation((0,0,0), (0, 90, 0)) * cameraPositionMatrix
-cameraProjectionMatrix = CameraMatrix(cameraTranslation, cameraRotation, 72, 0.55)
-cameraOrigin = cameraPositionMatrix * [0.0, 0.0, 0.0, 1.0]
-cameraOrigin = cameraOrigin ./ cameraOrigin[4]
-# display(PointFormulas.ToFormula(cameraOrigin))
-relativeZero = 100
-cameraProjectionMatrix = floor.(cameraProjectionMatrix .* relativeZero) ./ relativeZero
+cameraProjectionMatrix = CameraMatrix(cameraTranslation, cameraRotation, 1, 1)
 
 conics = Array{Tuple{Matrix{Float64}, Tuple{Matrix{Float64}, Vector{Float64}}}}(undef, numberOfCylinders)
 for i in 1:numberOfCylinders
 	conics[i] = (cameraProjectionMatrix * cylinders[i][1] * cameraProjectionMatrix', (cameraProjectionMatrix * cylinders[i][2][1] * cameraProjectionMatrix', cameraProjectionMatrix * cylinders[i][2][2]))
-	# display(Conic.ToFormula(conics[i][1]))
 end
 
 singularPoints = Array{Tuple{Number, Number}}(undef, numberOfCylinders)
@@ -87,3 +76,17 @@ plot3DCylinders(Plot3DCylindersInput(
 plot2DPoints(singularPoints)
 plot2DCylinders(conicBorders)
 f
+
+# 3 line minimum to solve the pose
+lines = []
+for borders in conicBorders
+    for line in borders
+        push!(lines, line)
+        if(size(lines) == 3)
+            break
+        end
+    end
+    if(size(lines) == 3)
+        break
+    end
+end
