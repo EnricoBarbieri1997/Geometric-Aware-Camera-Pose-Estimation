@@ -62,31 +62,75 @@ for i in 1:numberOfCylinders
     end
 end
 
-f = initFigure()
-plot3DCamera(Plot3DCameraInput(
-    cameraRotation,
-    cameraTranslation
-))
-plot3DCylinders(Plot3DCylindersInput(
-    transforms,
-    radiuses,
-    numberOfCylinders,
-    # cameraProjectionMatrix
-))
-plot2DPoints(singularPoints)
-plot2DCylinders(conicBorders)
-f
+# f = initFigure()
+# plot3DCamera(Plot3DCameraInput(
+#     cameraRotation,
+#     cameraTranslation
+# ))
+# plot3DCylinders(Plot3DCylindersInput(
+#     transforms,
+#     radiuses,
+#     numberOfCylinders,
+#     # cameraProjectionMatrix
+# ))
+# plot2DPoints(singularPoints)
+# plot2DCylinders(conicBorders)
+# f
 
 # 3 line minimum to solve the pose
 lines = []
-for borders in conicBorders
+pointAtInfinityToUse = []
+dualQuadricToUse = []
+for (i, borders) in enumerate(conicBorders)
     for line in borders
         push!(lines, line)
-        if(size(lines) == 3)
+        push!(pointAtInfinityToUse, cylinders[i][2][2][1:3])
+        push!(dualQuadricToUse, cylinders[i][2][1])
+        if (size(lines)[1] == 3)
             break
         end
     end
-    if(size(lines) == 3)
+    if (size(lines)[1] == 3)
         break
     end
 end
+
+return
+@var α β γ
+Rx = [1 0 0; 0 cos(α) -sin(α); 0 sin(α) cos(α)]
+Ry = [cos(β) 0 sin(β); 0 1 0; -sin(β) 0 cos(β)]
+Rz = [cos(γ) -sin(γ) 0; sin(γ) cos(γ) 0; 0 0 1]
+
+R = Rx * Ry * Rz
+
+systemToSolve = []
+for i in 1:3
+    equation = lines[i]' * R * pointAtInfinityToUse[i]
+    display(equation)
+    display("\n")
+    push!(systemToSolve, equation)
+end
+
+F = System(systemToSolve)
+result = solve(F)
+# display(result)
+# solution = real_solutions(result)[1]
+# αₛ = solution[1]
+# βₛ = solution[2]
+# γₛ = solution[3]
+# Rx = [1 0 0; 0 cos(αₛ) -sin(αₛ); 0 sin(αₛ) cos(αₛ)]
+# Ry = [cos(βₛ) 0 sin(βₛ); 0 1 0; -sin(βₛ) 0 cos(βₛ)]
+# Rz = [cos(γₛ) -sin(γₛ) 0; sin(γₛ) cos(γₛ) 0; 0 0 1]
+# R = Rx * Ry * Rz
+
+# @var tx ty tz
+# P = [R [tx; ty; tz]; 0 0 0 1]
+
+# systemToSolve = []
+# for i in 1:3
+#     equation = lines[i]' * P * dualQuadricToUse[i] * P' * lines[i]
+#     push!(systemToSolve, equation)
+# end
+
+# F = System(systemToSolve)
+# result = solve(F)
