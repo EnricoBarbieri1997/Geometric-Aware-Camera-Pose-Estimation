@@ -96,41 +96,46 @@ for (i, borders) in enumerate(conicBorders)
 end
 
 return
-@var α β γ
-Rx = [1 0 0; 0 cos(α) -sin(α); 0 sin(α) cos(α)]
-Ry = [cos(β) 0 sin(β); 0 1 0; -sin(β) 0 cos(β)]
-Rz = [cos(γ) -sin(γ) 0; sin(γ) cos(γ) 0; 0 0 1]
-
-R = Rx * Ry * Rz
+@var x y z
+# R parametrized by x, y, z
+# https://en.wikipedia.org/wiki/Cayley_transform#Examples
+# 4.1.2 https://www.cv-foundation.org/openaccess/content_cvpr_2016/papers/Kukelova_Efficient_Intersection_of_CVPR_2016_paper.pdf
+k = 1 + x^2 + y^2 + z^2
+Rₚ = #= (1/k) * =# [
+    1 + x^2 - y^2 - z^2     2*x*y - 2*z        2*y + 2*x*z;
+    2*z + 2*x*y             1 - x^2 + y^2 - z^2  2*y*z - 2*x;
+    2*x*z - 2*y             2*x + 2*y*z        1 - x^2 - y^2 + z^2
+]
 
 systemToSolve = []
 for i in 1:3
-    equation = lines[i]' * R * pointAtInfinityToUse[i]
-    display(equation)
-    display("\n")
+    equation = lines[i]' * Rₚ * pointAtInfinityToUse[i]
     push!(systemToSolve, equation)
 end
 
 F = System(systemToSolve)
 result = solve(F)
-# display(result)
-# solution = real_solutions(result)[1]
-# αₛ = solution[1]
-# βₛ = solution[2]
-# γₛ = solution[3]
-# Rx = [1 0 0; 0 cos(αₛ) -sin(αₛ); 0 sin(αₛ) cos(αₛ)]
-# Ry = [cos(βₛ) 0 sin(βₛ); 0 1 0; -sin(βₛ) 0 cos(βₛ)]
-# Rz = [cos(γₛ) -sin(γₛ) 0; sin(γₛ) cos(γₛ) 0; 0 0 1]
-# R = Rx * Ry * Rz
+display(result)
+solution = real_solutions(result)[1]
+xₛ = solution[1]
+yₛ = solution[2]
+zₛ = solution[3]
+# Rotation as quaternion
+Rq = Rotations.QuatRotation(1, xₛ , yₛ, zₛ)
+display("Rotation angle: $(rotation_angle(Rq)), Rotation axis: $(rotation_axis(Rq))")
 
-# @var tx ty tz
-# P = [R [tx; ty; tz]; 0 0 0 1]
+@var tx ty tz
+P = [1 0 0 0;
+    0 1 0 0;
+    0 0 1 0] * [Rq [tx; ty; tz]; 0 0 0 1]
 
-# systemToSolve = []
-# for i in 1:3
-#     equation = lines[i]' * P * dualQuadricToUse[i] * P' * lines[i]
-#     push!(systemToSolve, equation)
-# end
+systemToSolve = []
+for i in 1:3
+    equation = lines[i]' * P * dualQuadricToUse[i] * P' * lines[i]
+    push!(systemToSolve, equation)
+end
 
-# F = System(systemToSolve)
-# result = solve(F)
+F = System(systemToSolve)
+result = solve(F)
+solution = real_solutions(result)[1]
+display("Translation: $(solution)")
