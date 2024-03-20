@@ -121,13 +121,13 @@ xₛ = solution[1]
 yₛ = solution[2]
 zₛ = solution[3]
 # Rotation as quaternion
-Rq = Rotations.QuatRotation(1, xₛ , yₛ, zₛ)
-display("Rotation angle: $(rotation_angle(Rq)), Rotation axis: $(rotation_axis(Rq))")
+rotationCalculated = Rotations.QuatRotation(1, xₛ , yₛ, zₛ)
+display("Rotation angle: $(rotation_angle(rotationCalculated)), Rotation axis: $(rotation_axis(rotationCalculated))")
 
 @var tx ty tz
 P = [1 0 0 0;
     0 1 0 0;
-    0 0 1 0] * [Rq [tx; ty; tz]; 0 0 0 1]
+    0 0 1 0] * [rotationCalculated [tx; ty; tz]; 0 0 0 1]
 
 systemToSolve = []
 for i in 1:3
@@ -138,4 +138,10 @@ end
 F = System(systemToSolve)
 result = solve(F)
 solution = real_solutions(result)[1]
-display("Translation: $(solution)")
+translationCalculated = solution
+display("Translation: $(translationCalculated)")
+
+calculatedCameraMatrix = CameraMatrix((translationCalculated[1], translationCalculated[2], translationCalculated[3]), (xₛ, yₛ, zₛ), 1, 1)
+
+display("Camera projection matrix: $(cameraProjectionMatrix ./ cameraProjectionMatrix[3, 4])")
+display("Calculated projection camera matrix: $(calculatedCameraMatrix ./ calculatedCameraMatrix[3, 4])")
