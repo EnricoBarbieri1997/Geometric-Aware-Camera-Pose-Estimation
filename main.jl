@@ -19,8 +19,10 @@ for i in 1:numberOfCylinders
 	cylinders[i] = Cylinder.StandardAndDual(transforms[i], radiuses[i])
 end
 
-cameraTranslation = (2.0, 30.0, 5.0)
-cameraRotation = (-83.0, 180.0, 0.0)
+# cameraTranslation = (2.0, 30.0, 5.0)
+# cameraRotation = (-83.0, 180.0, 0.0)
+cameraTranslation = (0.0, 0.0, 0.0)
+cameraRotation = (0.0, 0.0, 0.0)
 cameraPositionMatrix = Transformation(cameraTranslation, cameraRotation)
 cameraProjectionMatrix = CameraMatrix(cameraTranslation, cameraRotation, 1, 1)
 
@@ -62,6 +64,13 @@ for i in 1:numberOfCylinders
     end
 end
 
+display("Camera projection matrix: $(cameraProjectionMatrix)")
+println("Singular Points:")
+for i in 1:numberOfCylinders
+    println("Original Cylinder $i Vanishing Point: ", cylinders[i][2][2])
+    println("Cylinder $i: ", singularPoints[i])
+end
+
 # f = initFigure()
 # plot3DCamera(Plot3DCameraInput(
 #     cameraRotation,
@@ -78,70 +87,71 @@ end
 # f
 
 # 3 line minimum to solve the pose
-lines = []
-pointAtInfinityToUse = []
-dualQuadricToUse = []
-for (i, borders) in enumerate(conicBorders)
-    for line in borders
-        push!(lines, line)
-        push!(pointAtInfinityToUse, cylinders[i][2][2][1:3])
-        push!(dualQuadricToUse, cylinders[i][2][1])
-        if (size(lines)[1] == 3)
-            break
-        end
-    end
-    if (size(lines)[1] == 3)
-        break
-    end
-end
+# numberOfLinesToSolveFor = 3
+# lines = []
+# pointAtInfinityToUse = []
+# dualQuadricToUse = []
+# for (i, borders) in enumerate(conicBorders)
+#     for line in borders
+#         push!(lines, line)
+#         push!(pointAtInfinityToUse, cylinders[i][2][2][1:3])
+#         push!(dualQuadricToUse, cylinders[i][2][1])
+#         if (size(lines)[1] == numberOfLinesToSolveFor)
+#             break
+#         end
+#     end
+#     if (size(lines)[1] == numberOfLinesToSolveFor)
+#         break
+#     end
+# end
 
-return
-@var x y z
-# R parametrized by x, y, z
-# https://en.wikipedia.org/wiki/Cayley_transform#Examples
-# 4.1.2 https://www.cv-foundation.org/openaccess/content_cvpr_2016/papers/Kukelova_Efficient_Intersection_of_CVPR_2016_paper.pdf
-k = 1 + x^2 + y^2 + z^2
-Rₚ = #= (1/k) * =# [
-    1 + x^2 - y^2 - z^2     2*x*y - 2*z        2*y + 2*x*z;
-    2*z + 2*x*y             1 - x^2 + y^2 - z^2  2*y*z - 2*x;
-    2*x*z - 2*y             2*x + 2*y*z        1 - x^2 - y^2 + z^2
-]
+# return
+# @var x y z
+# # R parametrized by x, y, z
+# # https://en.wikipedia.org/wiki/Cayley_transform#Examples
+# # 4.1.2 https://www.cv-foundation.org/openaccess/content_cvpr_2016/papers/Kukelova_Efficient_Intersection_of_CVPR_2016_paper.pdf
+# k = 1 + x^2 + y^2 + z^2
+# Rₚ = #= (1/k) * =# [
+#     1 + x^2 - y^2 - z^2     2*x*y - 2*z        2*y + 2*x*z;
+#     2*z + 2*x*y             1 - x^2 + y^2 - z^2  2*y*z - 2*x;
+#     2*x*z - 2*y             2*x + 2*y*z        1 - x^2 - y^2 + z^2
+# ]
 
-systemToSolve = []
-for i in 1:3
-    equation = lines[i]' * Rₚ * pointAtInfinityToUse[i]
-    push!(systemToSolve, equation)
-end
+# systemToSolve = []
+# for i in 1:numberOfLinesToSolveFor
+#     equation = lines[i]' * Rₚ * pointAtInfinityToUse[i]
+#     push!(systemToSolve, equation)
+# end
 
-F = System(systemToSolve)
-result = solve(F)
-display(result)
-solution = real_solutions(result)[1]
-xₛ = solution[1]
-yₛ = solution[2]
-zₛ = solution[3]
-# Rotation as quaternion
-rotationCalculated = Rotations.QuatRotation(1, xₛ , yₛ, zₛ)
-display("Rotation angle: $(rotation_angle(rotationCalculated)), Rotation axis: $(rotation_axis(rotationCalculated))")
+# F = System(systemToSolve)
+# result = solve(F)
+# display(result)
+# solution = real_solutions(result)[1]
+# xₛ = solution[1]
+# yₛ = solution[2]
+# zₛ = solution[3]
+# # Rotation as quaternion
+# rotationCalculated = Rotations.QuatRotation(1, xₛ , yₛ, zₛ)
+# display("Rotation angle: $(rotation_angle(rotationCalculated)), Rotation axis: $(rotation_axis(rotationCalculated))")
 
-@var tx ty tz
-P = [1 0 0 0;
-    0 1 0 0;
-    0 0 1 0] * [rotationCalculated [tx; ty; tz]; 0 0 0 1]
+# @var tx ty tz
+# P = [1 0 0 0;
+#     0 1 0 0;
+#     0 0 1 0] * [rotationCalculated [tx; ty; tz]; 0 0 0 1]
 
-systemToSolve = []
-for i in 1:3
-    equation = lines[i]' * P * dualQuadricToUse[i] * P' * lines[i]
-    push!(systemToSolve, equation)
-end
+# systemToSolve = []
+# for i in 1:3
+#     equation = lines[i]' * P * dualQuadricToUse[i] * P' * lines[i]
+#     push!(systemToSolve, equation)
+# end
 
-F = System(systemToSolve)
-result = solve(F)
-solution = real_solutions(result)[1]
-translationCalculated = solution
-display("Translation: $(translationCalculated)")
+# F = System(systemToSolve)
+# result = solve(F)
+# solution = real_solutions(result)[1]
+# translationCalculated = solution
+# display("Translation: $(translationCalculated)")
 
-calculatedCameraMatrix = CameraMatrix((translationCalculated[1], translationCalculated[2], translationCalculated[3]), (xₛ, yₛ, zₛ), 1, 1)
+# calculatedCameraMatrix = CameraMatrix((translationCalculated[1], translationCalculated[2], translationCalculated[3]), (xₛ, yₛ, zₛ), 1, 1)
 
-display("Camera projection matrix: $(cameraProjectionMatrix ./ cameraProjectionMatrix[3, 4])")
-display("Calculated projection camera matrix: $(calculatedCameraMatrix ./ calculatedCameraMatrix[3, 4])")
+# display("Camera projection matrix: $(cameraProjectionMatrix ./ cameraProjectionMatrix[3, 4])")
+# display("Calculated projection camera matrix: $(calculatedCameraMatrix ./ calculatedCameraMatrix[3, 4])")
