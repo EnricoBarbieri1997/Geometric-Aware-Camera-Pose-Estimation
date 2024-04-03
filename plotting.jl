@@ -12,7 +12,7 @@ module Plotting
     function initFigure()
         global f, ax3, ax2
         f = Figure(size=(1200, 800))
-        ax3 = Axis3(f[1, 1], title = "Cylinders", aspect = :equal)
+        ax3 = Axis3(f[1, 1], title = "Cylinders", aspect = :data, perspectiveness = 1.0)
         ax2 = Axis(f[1, 2], title = "Conics", autolimitaspect = 1)
         return f
     end
