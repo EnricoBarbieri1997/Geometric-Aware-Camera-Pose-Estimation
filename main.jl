@@ -7,6 +7,9 @@ using .Debug
 using .Utils
 using LinearAlgebra: deg2rad, diagm, dot, normalize, svd
 using HomotopyContinuation, Polynomials, Rotations
+using Random
+
+Random.seed!(7)
 
 numberOfCylinders = 4
 cylinders = Array{Tuple{Matrix{Float64}, Tuple{Matrix{Float64}, Vector{Float64}}}}(undef, numberOfCylinders)
