@@ -6,8 +6,41 @@ module Utils
 	function almostEqual(x::Number, y::Number)
 		return abs(x - y) < 1e-6
 	end
+
+	function almostEqual(x::Matrix, y::Number)
+		if (size(x) == (1,1))
+			return almostEqual(x[1][1], y)
+		end
+		return false
+	end
+
+	function almostEqual(x::Number, y::Matrix)
+		if (size(y) == (1,1))
+			return almostEqual(x, y[1][1])
+		end
+		return false
+	end
+
+	function almostEqual(x::Matrix, y::Matrix)
+		if (size(x) == (1,1) && size(y) == (1,1))
+			return almostEqual(x[1][1], y[1][1])
+		end
+		return false
+	end
 	
 	function ≃(x::Number, y::Number)
+		return almostEqual(x, y)
+	end
+
+	function ≃(x::Matrix, y::Number)
+		return almostEqual(x, y)
+	end
+
+	function ≃(x::Number, y::Matrix)
+		return almostEqual(x, y)
+	end
+
+	function ≃(x::Matrix, y::Matrix)
 		return almostEqual(x, y)
 	end
 
