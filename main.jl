@@ -19,14 +19,14 @@ for i in 1:numberOfCylinders
     radiuses[i] = (radius[1], radius[2])
 	cylinders[i] = Cylinder.StandardAndDual(transforms[i], radiuses[i])
 
-    @assert cylinders[i][2][2]' * cylinders[i][1] * cylinders[i][2][2] ≈ 0 "(1) Singular point $(1) belongs to the cylinder $(1)"
+    @assert cylinders[i][2][2]' * cylinders[i][1] * cylinders[i][2][2] ≃ 0 "(1) Singular point $(1) belongs to the cylinder $(1)"
     dualSingularPlanes[i] = transforms[i] * [0 0 1 1]
-    @assert dualSingularPlanes[i]' * cylinders[i][2][1] * dualSingularPlanes[i] ≈ 0 "(2) Perpendicular plane $(1) belongs to the dual cylinder $(1)"
+    @assert dualSingularPlanes[i]' * cylinders[i][2][1] * dualSingularPlanes[i] ≃ 0 "(2) Perpendicular plane $(1) belongs to the dual cylinder $(1)"
 
-    @assert cylinders[i][1] * cylinders[i][2][1] ≈ 0 "(6) Singular point is right null space of cylinder matrix $(i)"
+    @assert cylinders[i][1] * cylinders[i][2][1] ≃ 0 "(6) Singular point is right null space of cylinder matrix $(i)"
 
-    @assert (dualSingularPlanes[i]' * cylinders[i][2][2] ≈ 0 && dualSingularPlanes[i]' * cylinders[i][2][1] * dualSingularPlanes[i] ≈ 0) "(7) Singular plane / point and dual quadric constraints $(i)"
-    @assert cylinders[i][2][2][4] ≈ 0 "(10) Singular point is at infinity $(i)"
+    @assert (dualSingularPlanes[i]' * cylinders[i][2][2] ≃ 0 && dualSingularPlanes[i]' * cylinders[i][2][1] * dualSingularPlanes[i] ≃ 0) "(7) Singular plane / point and dual quadric constraints $(i)"
+    @assert cylinders[i][2][2][4] ≃ 0 "(10) Singular point is at infinity $(i)"
 end
 
 # cameraTranslation = (2.0, 30.0, 5.0)
@@ -42,13 +42,13 @@ for i in 1:numberOfCylinders
 
     projectedPlane = cameraProjectionMatrix * dualSingularPlanes[i]
     lineOnDualConic = projectedPlane' * conics[i][2][1] * projectedPlane
-    @assert lineOnDualConic ≈ 0 "(3) Line of projected singular plane $(1) belongs to the dual conic $(1)"
+    @assert lineOnDualConic ≃ 0 "(3) Line of projected singular plane $(1) belongs to the dual conic $(1)"
     cylinderProjection = cameraProjectionMatrix * cylinders[i][2][1] * cameraProjectionMatrix'
-    @assert conics[i][2][1] ≈ cylinderProjection "(4) Dual conic $(1) is the transformation of the dual cylinder"
+    @assert conics[i][2][1] ≃ cylinderProjection "(4) Dual conic $(1) is the transformation of the dual cylinder"
     lineOnDualConic = lineOnDualConic ./ lineOnDualConic[3]
     lineOnCylinderProjection = projectedPlane' * cylinderProjection * projectedPlane
     lineOnCylinderProjection = lineOnCylinderProjection ./ lineOnCylinderProjection[3]
-    @assert lineOnDualConic ≈ lineOnCylinderProjection "(5) Line on dual conic $(1) is the same as the line on the cylinder projection"
+    @assert lineOnDualConic ≃ lineOnCylinderProjection "(5) Line on dual conic $(1) is the same as the line on the cylinder projection"
 end
 
 singularPoints = Array{Tuple{Number, Number}}(undef, numberOfCylinders)
@@ -82,8 +82,8 @@ for i in 1:numberOfCylinders
     for (j, line) in enumerate(lines)
         conicBorders[i][j] = line
 
-        @assert line' * cameraProjectionMatrix * cylinders[i][2][2] ≈ 0 "(8) Line $(j) of conic $(i) passes through the projected singular point"
-        @assert line' * cameraProjectionMatrix * cylinders[i][2][1] * cameraProjectionMatrix' * line ≈ 0 "(9) Line $(j) of conic $(i) is tangent to the projected cylinder"
+        @assert line' * cameraProjectionMatrix * cylinders[i][2][2] ≃ 0 "(8) Line $(j) of conic $(i) passes through the projected singular point"
+        @assert line' * cameraProjectionMatrix * cylinders[i][2][1] * cameraProjectionMatrix' * line ≃ 0 "(9) Line $(j) of conic $(i) is tangent to the projected cylinder"
     end
 end
 

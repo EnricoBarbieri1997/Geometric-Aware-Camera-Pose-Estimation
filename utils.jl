@@ -1,7 +1,15 @@
 module Utils
-	export randRange
+	export almostEqual, ≃, randRange
 
 	using Random
+
+	function almostEqual(x::Number, y::Number)
+		return abs(x - y) < 1e-6
+	end
+	
+	function ≃(x::Number, y::Number)
+		return almostEqual(x, y)
+	end
 
 	function randRange(a::Number, b::Number):: Float64
 		return rand(Float64) * (b - a) + a
