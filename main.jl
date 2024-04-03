@@ -23,8 +23,8 @@ for i in 1:numberOfCylinders
 	cylinders[i] = Cylinder.StandardAndDual(transforms[i], radiuses[i])
 
     @assert cylinders[i][2][2]' * cylinders[i][1] * cylinders[i][2][2] ≃ 0 "(1) Singular point $(1) belongs to the cylinder $(1)"
-    dualSingularPlanes[i] = transforms[i] * [0 0 1 1]
-    @assert dualSingularPlanes[i]' * cylinders[i][2][1] * dualSingularPlanes[i] ≃ 0 "(2) Perpendicular plane $(1) belongs to the dual cylinder $(1)"
+    dualSingularPlanes[i] = inv(transforms[i]') * reshape([1, 0, 0, -radiuses[i][1]], :, 1)
+    @assert (dualSingularPlanes[i]' * cylinders[i][2][1] * dualSingularPlanes[i]) ≃ 0 "(2) Perpendicular plane $(1) belongs to the dual cylinder $(1)"
 
     @assert cylinders[i][1] * cylinders[i][2][1] ≃ 0 "(6) Singular point is right null space of cylinder matrix $(i)"
 
