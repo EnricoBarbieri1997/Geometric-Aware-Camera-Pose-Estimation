@@ -22,7 +22,6 @@ module Utils
 	end
 
 	function almostEqual(x::Matrix, y::Matrix)
-		display("Sizes $(size(x)) $(size(y))")
 		if (size(x) == (1,1) && size(y) == (1,1))
 			return almostEqual(x[1][1], y[1][1])
 		end
@@ -30,7 +29,6 @@ module Utils
 			return false
 		end
 		for i in eachindex(x)
-			display("Comparing $(x[i]) $(y[i])")
 			if (!almostEqual(x[i], y[i]))
 				return false
 			end
