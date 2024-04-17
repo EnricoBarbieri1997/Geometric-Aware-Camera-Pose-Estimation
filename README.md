@@ -1,7 +1,7 @@
 # Project structure
 
 ## main.jl
-This is the file that should be run to the the experiment. It is divided into:
+This is the file that should be run to the the experiment. No console parameters are required. It is divided into:
 
 - A synthetic data generation step at the start where cylinder of random transform (or identity for testing) and radiuses are generated
 - Then a fictitious camera is created
