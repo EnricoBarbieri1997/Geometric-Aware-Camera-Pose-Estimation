@@ -22,10 +22,46 @@ module Utils
 	end
 
 	function almostEqual(x::Matrix, y::Matrix)
+		display("Sizes $(size(x)) $(size(y))")
 		if (size(x) == (1,1) && size(y) == (1,1))
 			return almostEqual(x[1][1], y[1][1])
 		end
+		if (!(size(x) == size(y)))
+			return false
+		end
+		for i in eachindex(x)
+			display("Comparing $(x[i]) $(y[i])")
+			if (!almostEqual(x[i], y[i]))
+				return false
+			end
+		end
+		return true
+	end
+
+	function almostEqual(x::Vector, y::Number)
+		if (size(x) == (1,))
+			return almostEqual(x[1], y)
+		end
 		return false
+	end
+
+	function almostEqual(x::Number, y::Vector)
+		if (size(y) == (1,))
+			return almostEqual(x, y[1])
+		end
+		return false
+	end
+
+	function almostEqual(x::Vector, y::Vector)
+		if length(x) != length(y)
+			return false
+		end
+		for i in eachindex(x)
+			if !almostEqual(x[i], y[i])
+				return false
+			end
+		end
+		return true
 	end
 	
 	function ≃(x::Number, y::Number)
@@ -41,6 +77,18 @@ module Utils
 	end
 
 	function ≃(x::Matrix, y::Matrix)
+		return almostEqual(x, y)
+	end
+
+	function ≃(x::Vector, y::Number)
+		return almostEqual(x, y)
+	end
+
+	function ≃(x::Number, y::Vector)
+		return almostEqual(x, y)
+	end
+
+	function ≃(x::Vector, y::Vector)
 		return almostEqual(x, y)
 	end
 

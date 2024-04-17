@@ -26,9 +26,9 @@ for i in 1:numberOfCylinders
     dualSingularPlanes[i] = inv(transforms[i]') * reshape([1, 0, 0, -radiuses[i][1]], :, 1)
     @assert (dualSingularPlanes[i]' * cylinders[i][2][1] * dualSingularPlanes[i]) ≃ 0 "(2) Perpendicular plane $(1) belongs to the dual cylinder $(1)"
 
-    @assert cylinders[i][1] * cylinders[i][2][1] ≃ 0 "(6) Singular point is right null space of cylinder matrix $(i)"
+    @assert (cylinders[i][1] * cylinders[i][2][2]) ≃ [0, 0, 0, 0] "(6) Singular point is right null space of cylinder matrix $(i)"
 
-    @assert (dualSingularPlanes[i]' * cylinders[i][2][2] ≃ 0 && dualSingularPlanes[i]' * cylinders[i][2][1] * dualSingularPlanes[i] ≃ 0) "(7) Singular plane / point and dual quadric constraints $(i)"
+    @assert ((dualSingularPlanes[i]' * cylinders[i][2][2]) ≃ 0 && (dualSingularPlanes[i]' * cylinders[i][2][1] * dualSingularPlanes[i]) ≃ 0) "(7) Singular plane / point and dual quadric constraints $(i)"
     @assert cylinders[i][2][2][4] ≃ 0 "(10) Singular point is at infinity $(i)"
 end
 
@@ -43,6 +43,9 @@ conics = Array{Tuple{Matrix{Float64}, Tuple{Matrix{Float64}, Vector{Float64}}}}(
 for i in 1:numberOfCylinders
 	conics[i] = (cameraProjectionMatrix * cylinders[i][1] * cameraProjectionMatrix', (cameraProjectionMatrix * cylinders[i][2][1] * cameraProjectionMatrix', cameraProjectionMatrix * cylinders[i][2][2]))
 
+    # assertions
+    # intersect plane and conic start
+    
     projectedPlane = cameraProjectionMatrix * dualSingularPlanes[i]
     lineOnDualConic = projectedPlane' * conics[i][2][1] * projectedPlane
     @assert lineOnDualConic ≃ 0 "(3) Line of projected singular plane $(1) belongs to the dual conic $(1)"
@@ -59,7 +62,6 @@ singularPoints = Array{Tuple{Number, Number}}(undef, numberOfCylinders)
 for i in 1:numberOfCylinders
     singularPoint = conics[i][2][2]
     singularPoint = singularPoint ./ singularPoint[3]
-    # singularPoint = singularPoint .* 500
     singularPoint = (singularPoint[1], singularPoint[2])
     singularPoints[i] = singularPoint
 end
