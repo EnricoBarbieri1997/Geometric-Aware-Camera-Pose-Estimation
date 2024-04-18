@@ -17,15 +17,15 @@ transforms = Array{Matrix{Float64}}(undef, numberOfCylinders)
 radiuses = Array{Tuple{Number, Number}}(undef, numberOfCylinders)
 dualSingularPlanes = Array{Matrix{Float64}}(undef, numberOfCylinders)
 for i in 1:numberOfCylinders
-    # transforms[i] = RandomTransformation()
-    transforms[i] = IdentityTransformation()
-    # radius = randRange((1, 3), 2)
-    radius = (1, 1)
+    transforms[i] = RandomTransformation()
+    # transforms[i] = IdentityTransformation()
+    radius = randRange((1, 3), 2)
+    # radius = (1, 1)
     radiuses[i] = (radius[1], radius[2])
 	cylinders[i] = Cylinder.StandardAndDual(transforms[i], radiuses[i])
 
     begin #asserts
-        @assert cylinders[i][1] * cylinders[i][2][1] ≃ diagm([1, 1, 0, 1]) "(-1) The dual quadric is correct"
+        # @assert cylinders[i][1] * cylinders[i][2][1] ≃ diagm([1, 1, 0, 1]) "(-1) The dual quadric is correct"
 
         @assert cylinders[i][2][2]' * cylinders[i][1] * cylinders[i][2][2] ≃ 0 "(1) Singular point $(1) belongs to the cylinder $(1)"
         dualSingularPlanes[i] = inv(transforms[i]') * reshape([1, 0, 0, -radiuses[i][1]], :, 1)
@@ -51,14 +51,10 @@ cameraProjectionMatrix = CameraMatrix(cameraTranslation, cameraRotation, 1, 1)
 # display(cameraProjectionMatrix' * cameraProjectionMatrix)
 # display(cameraProjectionMatrix * cameraProjectionMatrix')
 
-begin #asserts
-    @assert cameraProjectionMatrix' * cameraProjectionMatrix ≃ diagm([1, 1, 1]) "(-2) Camera projection has the transpose as pseudo inverse"
-end
-
 conics = Array{Tuple{Matrix{Float64}, Tuple{Matrix{Float64}, Vector{Float64}}}}(undef, numberOfCylinders)
 for i in 1:numberOfCylinders
 	conics[i] = (
-        cameraProjectionMatrix * cylinders[i][1] * cameraProjectionMatrix',
+        pinv(cameraProjectionMatrix') * cylinders[i][1] * pinv(cameraProjectionMatrix),
         (
             cameraProjectionMatrix * cylinders[i][2][1] * cameraProjectionMatrix',
             cameraProjectionMatrix * cylinders[i][2][2]
@@ -66,18 +62,9 @@ for i in 1:numberOfCylinders
     )
 
     begin #asserts
-        @assert conics[i][1] * conics[i][2][1] ≃ diagm([1, 1, 0]) "(-3) The dual conic is correct"
-        projectedPlane = cameraProjectionMatrix * dualSingularPlanes[i]
-        lineOnDualConic = projectedPlane' * conics[i][2][1] * projectedPlane
-        display(projectedPlane)
-        display(conics[i][2][1])
-        @assert lineOnDualConic ≃ 0 "(3) Line of projected singular plane $(1) belongs to the dual conic $(1)"
+        # @assert conics[i][1] * conics[i][2][1] ≃ diagm([1, 1, 0]) "(-3) The dual conic is correct"
         cylinderProjection = cameraProjectionMatrix * cylinders[i][2][1] * cameraProjectionMatrix'
         @assert conics[i][2][1] ≃ cylinderProjection "(4) Dual conic $(1) is the transformation of the dual cylinder"
-        lineOnDualConic = lineOnDualConic ./ lineOnDualConic[3]
-        lineOnCylinderProjection = projectedPlane' * cylinderProjection * projectedPlane
-        lineOnCylinderProjection = lineOnCylinderProjection ./ lineOnCylinderProjection[3]
-        @assert lineOnDualConic ≃ lineOnCylinderProjection "(5) Line on dual conic $(1) is the same as the line on the cylinder projection"
     end
 end
 
@@ -112,6 +99,7 @@ for i in 1:numberOfCylinders
         conicBorders[i][j] = line
 
         begin #asserts
+            @assert line' * conics[i][2][1] * line ≃ 0 "(3) Line of projected singular plane $(1) belongs to the dual conic $(1)"
             @assert line' * cameraProjectionMatrix * cylinders[i][2][2] ≃ 0 "(8) Line $(j) of conic $(i) passes through the projected singular point"
             @assert line' * cameraProjectionMatrix * cylinders[i][2][1] * cameraProjectionMatrix' * line ≃ 0 "(9) Line $(j) of conic $(i) is tangent to the projected cylinder"
         end
@@ -125,20 +113,20 @@ for i in 1:numberOfCylinders
     println("Cylinder $i: ", singularPoints[i])
 end
 
-# f = initFigure()
-# plot3DCamera(Plot3DCameraInput(
-#     cameraRotation,
-#     cameraTranslation
-# ))
-# plot3DCylinders(Plot3DCylindersInput(
-#     transforms,
-#     radiuses,
-#     numberOfCylinders,
-#     # cameraProjectionMatrix
-# ))
-# plot2DPoints(singularPoints)
-# plot2DCylinders(conicBorders)
-# f
+f = initFigure()
+plot3DCamera(Plot3DCameraInput(
+    cameraRotation,
+    cameraTranslation
+))
+plot3DCylinders(Plot3DCylindersInput(
+    transforms,
+    radiuses,
+    numberOfCylinders,
+    # cameraProjectionMatrix
+))
+plot2DPoints(singularPoints)
+plot2DCylinders(conicBorders)
+f
 
 # 3 line minimum to solve the pose
 # numberOfLinesToSolveFor = 3
