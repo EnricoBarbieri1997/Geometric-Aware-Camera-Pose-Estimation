@@ -125,12 +125,14 @@ lines = []
 pointAtInfinityToUse = []
 dualQuadricToUse = []
 possiblePicks = 1:(numberOfCylinders*2)
+pickedLines = []
 for _ in (1:numberOfLinesToSolveFor)
     global possiblePicks
     lineIndex = rand(possiblePicks)
     possiblePicks = filter(x -> x != lineIndex, possiblePicks)
     i = ceil(Int, lineIndex / 2)
     j = (lineIndex - 1) % 2 + 1
+    push!(pickedLines, (i, j))
     borders = conicBorders[i]
     line = borders[j]
     push!(lines, line)
@@ -244,7 +246,7 @@ display(result)
 solutions = real_solutions(result)
 translationSolutionError = Inf
 translationCalculated = nothing
-for (i, solution) in enumerate(solutions)
+for (solutionIndex, solution) in enumerate(solutions)
     txₛ = solution[1]
     tyₛ = solution[2]
     tzₛ = solution[3]
@@ -256,7 +258,10 @@ for (i, solution) in enumerate(solutions)
         for (j, line) in enumerate(conicBorder)
             eq = line' * Pₛ * cylinders[i][2][1] * Pₛ' * line
             currentError += abs(eq)
-            # display("Solution $(i): $(eq)")
+            # display("Solution $(i): $(eq))")
+            # if ((i, j) in pickedLines)
+            #     display("Solution $(solutionIndex): $(eq ≃ 0)")
+            # end
             if (!(eq ≃ 0))
                 # display("Line $(j) of conic $(i) does not satisfy the constraints")
                 acceptable = false
