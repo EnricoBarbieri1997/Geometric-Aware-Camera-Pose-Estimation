@@ -68,15 +68,6 @@ for i in 1:numberOfCylinders
     end
 end
 
-singularPoints = Array{Tuple{Number, Number}}(undef, numberOfCylinders)
-
-for i in 1:numberOfCylinders
-    singularPoint = conics[i][2][2]
-    singularPoint = singularPoint ./ singularPoint[3]
-    singularPoint = (singularPoint[1], singularPoint[2])
-    singularPoints[i] = singularPoint
-end
-
 function lines_from_conic(i)
     @var x y z
     line = [x, y, z]
@@ -106,75 +97,103 @@ for i in 1:numberOfCylinders
     end
 end
 
-display("Camera projection matrix: $(cameraProjectionMatrix)")
-println("Singular Points:")
-for i in 1:numberOfCylinders
-    println("Original Cylinder $i Vanishing Point: ", cylinders[i][2][2])
-    println("Cylinder $i: ", singularPoints[i])
-end
-
-f = initFigure()
-plot3DCamera(Plot3DCameraInput(
-    cameraRotation,
-    cameraTranslation
-))
-plot3DCylinders(Plot3DCylindersInput(
-    transforms,
-    radiuses,
-    numberOfCylinders,
-    # cameraProjectionMatrix
-))
-plot2DPoints(singularPoints)
-plot2DCylinders(conicBorders)
-f
+# f = initFigure()
+# plot3DCamera(Plot3DCameraInput(
+#     cameraRotation,
+#     cameraTranslation
+# ))
+# plot3DCylinders(Plot3DCylindersInput(
+#     transforms,
+#     radiuses,
+#     numberOfCylinders,
+#     # cameraProjectionMatrix
+# ))
+# plot2DPoints(singularPoints)
+# plot2DCylinders(conicBorders)
+# f
 
 # 3 line minimum to solve the pose
-# numberOfLinesToSolveFor = 3
-# lines = []
-# pointAtInfinityToUse = []
-# dualQuadricToUse = []
-# for (i, borders) in enumerate(conicBorders)
-#     for line in borders
-#         push!(lines, line)
-#         push!(pointAtInfinityToUse, cylinders[i][2][2][1:3])
-#         push!(dualQuadricToUse, cylinders[i][2][1])
-#         if (size(lines)[1] == numberOfLinesToSolveFor)
-#             break
-#         end
-#     end
-#     if (size(lines)[1] == numberOfLinesToSolveFor)
-#         break
-#     end
-# end
+numberOfLinesToSolveFor = 3
+lines = []
+pointAtInfinityToUse = []
+dualQuadricToUse = []
+for (i, borders) in enumerate(conicBorders)
+    for line in borders
+        push!(lines, line)
+        push!(pointAtInfinityToUse, cylinders[i][2][2][1:3])
+        push!(dualQuadricToUse, cylinders[i][2][1])
+        if (size(lines)[1] == numberOfLinesToSolveFor)
+            break
+        end
+    end
+    if (size(lines)[1] == numberOfLinesToSolveFor)
+        break
+    end
+end
 
-# return
-# @var x y z
-# # R parametrized by x, y, z
-# # https://en.wikipedia.org/wiki/Cayley_transform#Examples
-# # 4.1.2 https://www.cv-foundation.org/openaccess/content_cvpr_2016/papers/Kukelova_Efficient_Intersection_of_CVPR_2016_paper.pdf
-# k = 1 + x^2 + y^2 + z^2
-# Rₚ = #= (1/k) * =# [
-#     1 + x^2 - y^2 - z^2     2*x*y - 2*z        2*y + 2*x*z;
-#     2*z + 2*x*y             1 - x^2 + y^2 - z^2  2*y*z - 2*x;
-#     2*x*z - 2*y             2*x + 2*y*z        1 - x^2 - y^2 + z^2
-# ]
+return
 
-# systemToSolve = []
-# for i in 1:numberOfLinesToSolveFor
-#     equation = lines[i]' * Rₚ * pointAtInfinityToUse[i]
-#     push!(systemToSolve, equation)
-# end
+function buildRotationMatrix(x, y, z, includeNormalziation = false)
+    # R parametrized by x, y, z
+    # https://en.wikipedia.org/wiki/Cayley_transform#Examples
+    # 4.1.2 https://www.cv-foundation.org/openaccess/content_cvpr_2016/papers/Kukelova_Efficient_Intersection_of_CVPR_2016_paper.pdf
+    k = 1 + x^2 + y^2 + z^2
+    Rₚ = [
+        1 + x^2 - y^2 - z^2     2*x*y - 2*z        2*y + 2*x*z;
+        2*z + 2*x*y             1 - x^2 + y^2 - z^2  2*y*z - 2*x;
+        2*x*z - 2*y             2*x + 2*y*z        1 - x^2 - y^2 + z^2
+    ]
 
-# F = System(systemToSolve)
-# result = solve(F)
-# display(result)
-# solution = real_solutions(result)[1]
-# xₛ = solution[1]
-# yₛ = solution[2]
-# zₛ = solution[3]
-# # Rotation as quaternion
-# rotationCalculated = Rotations.QuatRotation(1, xₛ , yₛ, zₛ)
-# display("Rotation angle: $(rotation_angle(rotationCalculated)), Rotation axis: $(rotation_axis(rotationCalculated))")
+    if (includeNormalziation)
+        Rₚ = (1 / k) * Rₚ
+    end
+
+    return Rₚ
+end
+@var x y z
+Rₚ = buildRotationMatrix(x, y, z)
+
+systemToSolve = []
+for i in 1:numberOfLinesToSolveFor
+    equation = lines[i]' * Rₚ * pointAtInfinityToUse[i]
+    push!(systemToSolve, equation)
+end
+
+F = System(systemToSolve)
+result = solve(F)
+display(result)
+rotationCalculated = nothing
+for solution in real_solutions(result)
+    xₛ = solution[1]
+    yₛ = solution[2]
+    zₛ = solution[3]
+    # Rotation as quaternion
+    display("Rotation: $(xₛ) $(yₛ) $(zₛ)")
+    rotation = Rotations.QuatRotation(1, xₛ , yₛ, zₛ)
+    # rotation = buildRotationMatrix(xₛ, yₛ, zₛ, true)
+    # display("Rotation angle: $(rotation_angle(rotation)), Rotation axis: $(rotation_axis(rotation))")
+    acceptable = true
+    for (i, border) in enumerate(conicBorders)
+        for line in border
+            if (!(line' * rotation * conics[i][2][2][1:3] ≃ 0))
+                display("Line $(i) of conic $(i) does not satisfy the constraints")
+                acceptable = false
+                break
+            end
+        end
+        if (!acceptable)
+            break
+        end
+    end
+    if (acceptable)
+        rotationCalculated = solution
+        break
+    end
+end
+
+begin #asserts
+    @assert rotationCalculated isa Matrix{Float64} "(11) Found rotation satisfies constraints"
+end
 
 # @var tx ty tz
 # P = [1 0 0 0;
