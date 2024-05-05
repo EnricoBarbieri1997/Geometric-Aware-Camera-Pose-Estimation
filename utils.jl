@@ -121,4 +121,17 @@ module Utils
 	function randRange(range::Vector{Tuple{Int64, Int64}}):: Array{Float64}
 		return randRange(map(r -> (Float64(r[1]), Float64(r[2])), range))
 	end
+
+	function bestSolution(solutions::Vector{Float64}, tester::Function):: [Int64, Float64]
+		best = 1
+		currentBestError = Inf
+		for (i, s) in enumerate(solutions)
+			error = tester(s)
+			if error < currentBestError
+				best = i
+				currentBestError = error
+			end
+		end
+		return best
+	end
 end

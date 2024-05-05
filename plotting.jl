@@ -84,14 +84,14 @@ module Plotting
         end
     end
 
-    function plot2DCylinders(conicBorders)
+    function plot2DCylinders(conicBorders; linestyle = :solid)
         y = function (x, l) return (-(l[1] * x + l[3]) / l[2]) end
         for (i, conicBorder) in enumerate(conicBorders)
             for line in conicBorder
                 y1 = function (x) return y(x, line) end
                 xs = -50:1:50
                 ys1 = y1.(xs)
-                lines!(ax2, xs, -ys1, color = colors[i])
+                lines!(ax2, xs, -ys1, color = colors[i], linestyle=linestyle)
             end
         end
     end
