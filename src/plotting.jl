@@ -22,7 +22,7 @@ module Plotting
         cameraTranslation::Tuple{Float64, Float64, Float64}
     end
     function plot3DCamera(info::Plot3DCameraInput)    
-        cameraModel = load("./camera.stl")
+        cameraModel = load("../assets/camera.stl")
         cameraMesh = mesh!(
             ax3,
             cameraModel,

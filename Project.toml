@@ -1,2 +1,13 @@
+name = "CylindersBasedCameraResectioning"
+uuid = "a3a267f4-571d-477b-991c-29ad7441503c"
+authors = ["Enrico Barbieri"]
+version = "0.1.0"
+
 [deps]
+GLMakie = "e9467ef8-e4e7-5192-8a1a-b1aee30e663a"
+HomotopyContinuation = "f213a82b-91d6-5c5d-acf7-10f1c761b327"
+LinearAlgebra = "37e2e46d-f89d-539d-b4ee-838fcccc9c8e"
 Polynomials = "f27b6e38-b328-58d1-80ce-0feddd5e7a45"
+Random = "9a3f8284-a2c9-5f02-9a11-845980a1fd5c"
+Revise = "295af30f-e4ad-537b-8983-00126c2a3abe"
+Rotations = "6038ab10-8711-5258-84ad-4b1120ba62dc"

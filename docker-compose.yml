@@ -1,10 +1,25 @@
 version: '3'
 services:
   julia-app:
-    image: library/julia
+    build: .
     volumes:
-      - .:/app
+      - ./src:/app/src
+      - ./assets:/app/assets
+      - \\wsl.localhost\Ubuntu-18.04\tmp\.X11-unix:/tmp/.X11-unix
+      - \\wsl.localhost\Ubuntu-18.04\mnt\wslg:/mnt/wslg
+    environment:
+      DISPLAY: 0
+      WAYLAND_DISPLAY: "wayland-0"
+      XDG_RUNTIME_DIR: "/mnt/wslg/runtime-dir"
+      PULSE_SERVER: "/mnt/wslg/PulseServer"
     working_dir: /app
     command: julia
     stdin_open: true
     tty: true
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
