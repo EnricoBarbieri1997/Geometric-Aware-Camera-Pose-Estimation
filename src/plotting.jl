@@ -22,7 +22,7 @@ module Plotting
         cameraTranslation::Tuple{Float64, Float64, Float64}
     end
     function plot3DCamera(info::Plot3DCameraInput)    
-        cameraModel = load("../assets/camera.stl")
+        cameraModel = load("./assets/camera.stl")
         cameraMesh = mesh!(
             ax3,
             cameraModel,
@@ -48,19 +48,33 @@ module Plotting
     function plot3DCylinders(cylindersInfo::Plot3DCylindersInput)    
         heightLevels = 100
         angles = 100
-    
+
         z, θ = LinRange(-20, 20, heightLevels), LinRange(0, 2π, angles)
         x = cos.(θ)
         y = sin.(θ)
-    
+
         for i in 1:cylindersInfo.numberOfCylinders
             radius = cylindersInfo.radiuses[i]
             X = radius[1] * x
             Y = radius[2] * y
-    
-            canonicPoints = []
-    
+
+            canonicPoints = Array{Float64}(undef, 0, 4)
+
             for j in 1:heightLevels
+                # a = canonicPoints
+                # b = [X Y (z[j] * ones(angles)) ones(angles)]
+                # sa = size(a)
+                # sb = size(b)
+                # if (a != b)
+                #     display(sa)
+                #     display(sb)
+                #     display(a)
+                #     display(X)
+                #     display(Y)
+                #     display(z[j] * ones(angles))
+                #     display(ones(angles))
+                #     return
+                # end
                 canonicPoints = vcat(canonicPoints, [X Y (z[j] * ones(angles)) ones(angles)])
             end
             points = transpose(cylindersInfo.transforms[i] * canonicPoints')

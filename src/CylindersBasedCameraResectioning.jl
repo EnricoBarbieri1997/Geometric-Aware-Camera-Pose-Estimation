@@ -129,7 +129,6 @@ module CylindersBasedCameraResectioning
         possiblePicks = 1:(numberOfCylinders*2)
         pickedLines = []
         for _ in (1:numberOfLinesToSolveFor)
-            global possiblePicks
             lineIndex = rand(possiblePicks)
             possiblePicks = filter(x -> x != lineIndex, possiblePicks)
             i = ceil(Int, lineIndex / 2)
@@ -216,14 +215,14 @@ module CylindersBasedCameraResectioning
                 end
             end
             if (acceptable)
-                # global rotationCalculated = solution
+                # rotationCalculated = solution
                 display("Solution $(solutionIndex) is acceptable")
                 break
             end
             if (currentError < rotationSolutionError)
-                global rotationSolutionError = currentError
-                global rotationCalculated = rotation
-                global focalLengthCalculated = fₛ
+                rotationSolutionError = currentError
+                rotationCalculated = rotation
+                focalLengthCalculated = fₛ
             end
         end
 
@@ -280,8 +279,8 @@ module CylindersBasedCameraResectioning
                         acceptable = false
                     end
                     if (currentError < translationSolutionError)
-                        global translationSolutionError = currentError
-                        global translationCalculated = translation
+                        translationSolutionError = currentError
+                        translationCalculated = translation
                     end
                 end
                 if (!acceptable)
