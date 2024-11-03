@@ -8,9 +8,9 @@ module Geometry
 		y::Number
 	end
 	struct Circle
-		center::Vecotr{Number}
+		center::Vector{Number}
 		radius::Number
-		axis::Union{Vecotr{Number}, Nothing}
+		axis::Union{Vector{Number}, Nothing}
 	end
 	struct Plane
 		origin::Vector{Number}

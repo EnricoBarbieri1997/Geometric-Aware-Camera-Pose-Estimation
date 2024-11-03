@@ -1,5 +1,6 @@
 include("utils.jl")
 include("space.jl")
+include("Geometry.jl")
 include("Camera.jl")
 include("EquationSystems.jl")
 include("fromMatrixToFormula.jl")

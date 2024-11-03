@@ -2,6 +2,8 @@ module EquationSystems
 	using ..Camera: build_camera_matrix
 	using ..Space: build_rotation_matrix
 
+	using HomotopyContinuation
+
 	function build_intrinsic_rotation_conic_system(lines_values, points_at_infinity_values)
 		lines_count = length(lines_values)
 		@var x y z f

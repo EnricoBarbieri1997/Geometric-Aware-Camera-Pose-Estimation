@@ -4,6 +4,12 @@ module Cylinder
 	using ..Geometry: Plane, get_tangentpoints_circle_point, project_point_into_plane
 	using ..Space, ..Utils, LinearAlgebra, Random
 
+	struct CylinderAxisCenterRadius
+		center::Vector{Number}
+		axis::Vector{Number}
+		radius::Number
+	end
+
 	function StandardAndDual(
 		transformMatrix::Matrix{Float64},
 		radius::Tuple{Number, Number} = (1, 1)
@@ -77,11 +83,7 @@ module Cylinder
 		return StandardAndDualRandom(centerBoundaries, radiusBoundaries)[2]
 	end
 
-	function tangentpoints_from_viewer(cylinder::{
-		center::Point,
-		axis::Vec3,
-		radius::Number,
-	}, viewer::Point)
+	function tangentpoints_from_viewer(cylinder::CylinderAxisCenterRadius, viewer::Point)
 		cylindercenter_from_viewer = project_point_into_plane(
 			cylinder.center,
 			Plane(viewer, cylinder.axis)
