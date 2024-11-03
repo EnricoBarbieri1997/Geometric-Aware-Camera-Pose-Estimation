@@ -6,4 +6,4 @@ WORKDIR /app
 RUN julia -e 'using Pkg; Pkg.add("Revise");'
 RUN julia -e 'using Pkg; Pkg.activate("./"); Pkg.instantiate();'
 
-CMD ["julia", "-e", "using CylindersBasedCameraResectioning; main()"]
+CMD ["julia", "--project", "/app", "-e", "using CylindersBasedCameraResectioning; main()"]
