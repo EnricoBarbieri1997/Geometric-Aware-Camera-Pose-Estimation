@@ -1,7 +1,7 @@
 module CylindersBasedCameraResectioning
     include("includes.jl")
 
-    using .Space: Transformation, RandomTransformation, IdentityTransformation
+    using .Space: Transformation, RandomTransformation, IdentityTransformation, build_rotation_matrix
     using .Camera: CameraMatrix
     using .Plotting: initFigure, plot2DPoints, Plot3DCameraInput, plot3DCamera, Plot3DCylindersInput, plot3DCylinders, plot2DCylinders
     using .Debug
@@ -141,25 +141,8 @@ module CylindersBasedCameraResectioning
             push!(dualQuadricToUse, cylinders[i][2][1])
         end
 
-        function buildRotationMatrix(x, y, z, includeNormalziation = false)
-            # R parametrized by x, y, z
-            # https://en.wikipedia.org/wiki/Cayley_transform#Examples
-            # 4.1.2 https://www.cv-foundation.org/openaccess/content_cvpr_2016/papers/Kukelova_Efficient_Intersection_of_CVPR_2016_paper.pdf
-            k = 1 + x^2 + y^2 + z^2
-            Rₚ = [
-                1 + x^2 - y^2 - z^2     2*x*y - 2*z        2*y + 2*x*z;
-                2*z + 2*x*y             1 - x^2 + y^2 - z^2  2*y*z - 2*x;
-                2*x*z - 2*y             2*x + 2*y*z        1 - x^2 - y^2 + z^2
-            ]
-
-            if (includeNormalziation)
-                Rₚ = (1 / k) * Rₚ
-            end
-
-            return Rₚ
-        end
         @var x y z f
-        Rₚ = buildRotationMatrix(x, y, z)
+        Rₚ = build_rotation_matrix(x, y, z)
 
         systemToSolve = []
         for i in 1:numberOfLinesToSolveFor
@@ -314,6 +297,10 @@ module CylindersBasedCameraResectioning
 
         plot2DCylinders(reconstructedBorders; linestyle=:dash)
         figure
+    end
+
+    function generate_monodromy_solutions()
+        
     end
 
     export main
