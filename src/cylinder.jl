@@ -1,6 +1,7 @@
 module Cylinder
 	export StandardAndDual, Standard, Dual, StandardAndDualRandom, StandardRandom, RandomDual
 
+	using ..Geometry: Plane, get_tangentpoints_circle_point, project_point_into_plane
 	using ..Space, ..Utils, LinearAlgebra, Random
 
 	function StandardAndDual(
@@ -74,5 +75,22 @@ module Cylinder
 		radiusBoundaries::Tuple{Number, Number} = (1, 3),
 	)
 		return StandardAndDualRandom(centerBoundaries, radiusBoundaries)[2]
+	end
+
+	function tangentpoints_from_viewer(cylinder::{
+		center::Point,
+		axis::Vec3,
+		radius::Number,
+	}, viewer::Point)
+		cylindercenter_from_viewer = project_point_into_plane(
+			cylinder.center,
+			Plane(viewer, cylinder.axis)
+		)
+		tangentpoints = get_tangentpoints_circle_point(
+			Circle(cylindercenter_from_viewer, cylinder.radius, cylinder.axis),
+			viewer
+		)
+
+		return tangentpoints
 	end
 end

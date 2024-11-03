@@ -1,5 +1,5 @@
 module Camera
-	export CameraMatrix
+	export CameraMatrix, build_intrinsic_matrix, build_camera_matrix
 
 	using Rotations
 	using LinearAlgebra
@@ -50,5 +50,15 @@ module Camera
 		P[4, 4] = 1
 
 		return K * P
+	end
+
+	function build_intrinsic_matrix(focalLength::Number)
+		return [focalLengthCalculated 0 0 0;
+		0 focalLengthCalculated 0 0;
+		0 0 focalLengthCalculated 0]
+	end
+
+	function build_camera_matrix(intrinsic, rotation, translation)
+		return intrinsic * vcat(hcat(rotation, translation), [0 0 0 1])
 	end
 end
