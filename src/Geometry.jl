@@ -1,27 +1,29 @@
 module Geometry
-	export get_tangentline_circle_point
+	export Circle, Plane, Point, get_tangentpoints_circle_point, project_point_into_plane
 
 	using ..Utils
+	using LinearAlgebra: cross, dot, norm, normalize
 
 	struct Point
 		x::Number
 		y::Number
 	end
 	struct Circle
-		center::Vector{Number}
+		center::Vector{<:Number}
 		radius::Number
-		axis::Union{Vector{Number}, Nothing}
+		axis::Union{Vector{<:Number}, Nothing}
 	end
 	struct Plane
-		origin::Vector{Number}
-		normal::Vector{Number}
+		origin::Vector{<:Number}
+		normal::Vector{<:Number}
 	end
 
-	function get_tangentpoints_circle_point(circle::Circle, point::Vector{Number})
+	function get_tangentpoints_circle_point(circle::Circle, point::Vector{<:Number})
 		variation = point - circle.center
 		orthogonal_variation = variation
-		if !isnothing(circle.axis)
-			orthogonal_variation = cross(circle.axis, variation)
+		axis = normalize(circle.axis)
+		if !isnothing(axis)
+			orthogonal_variation = cross(axis, variation)
 		else
 			orthogonal_variation = variation .* [1, -1]
 		end
@@ -45,7 +47,7 @@ module Geometry
 		throw(ArgumentError("No tangent line possible"))
 	end
 
-	function project_point_into_plane(point::Vector{Number}, plane::Plane)
+	function project_point_into_plane(point::Vector{<:Number}, plane::Plane)
 		normal = plane.normal
 		origin = plane.origin
 		v = point - origin

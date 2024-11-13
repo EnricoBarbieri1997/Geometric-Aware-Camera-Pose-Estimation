@@ -5,4 +5,7 @@ using Test
 	@testset "Utils" begin
 		include("utils_tests.jl")
 	end
+	@testset "Geometry" begin
+		include("geometry_tests.jl")
+	end
 end
