@@ -32,3 +32,26 @@ end
 	@test (tangentpoint₁ == correctpoint₁ && tangentpoint₂ == correctpoint₂) ||
 		(tangentpoint₂ == correctpoint₁ && tangentpoint₁ == correctpoint₂)
 end
+
+@testset "get_cylinder_contours" begin
+	cylinder = Cylinder([-8.80334, 2.31298, 6.82885], 1, ([-7.30743, 2.1323, 10.412] - [-9.44826, 0.687196, 3.35754]))
+	camera_center = [5.53885, -8.8741, 8.41645]
+	camera_matrix = [
+		903.3969 2682.6814 -140.7333 19987.0645;
+		-314.6865 179.3203 -2285.3701 22569.0098;
+		-0.7827 0.6172 -0.0801 10.4866
+	]
+	camera_matrix = camera_matrix ./ camera_matrix[3, 4]
+	contour₁, contour₂ = get_cylinder_contours(cylinder, camera_center, camera_matrix)
+	@info contour₁
+	@info contour₂
+
+	point₁₁ = [-10.3515, 0.769649, 3.61477]
+	point₁₂ = [-8.18179, 2.18732, 10.663]
+	point₂₁ = [-9.13133, 2.1864, 2.96598]
+	point₂₂ = [-6.9397, 3.58753, 9.99881]
+	target_contour₁ = Line(point₁₁, point₁₂ - point₁₁)
+	target_contour₂ = Line(point₂₁, point₂₂ - point₂₁)
+	@test issame_line(contour₁, target_contour₁)
+	@test issame_line(contour₂, target_contour₂)
+end

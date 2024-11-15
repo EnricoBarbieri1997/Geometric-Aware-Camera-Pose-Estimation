@@ -21,6 +21,7 @@ module Geometry
 		radius::Number
 		axis::Union{Vector{<:Number}, Nothing}
 	end
+	Cylinder = Circle
 
 	function issame_line(line₁::Line, line₂::Line)
 		direction_factors = line₁.direction ./ line₂.direction
@@ -77,11 +78,18 @@ module Geometry
 		throw(ArgumentError("No tangent line possible"))
 	end
 
-	function project_point_into_plane(point::Vector{<:Number}, plane::Plane)
-		normal = plane.normal
-		origin = plane.origin
-		v = point - origin
-		d = dot(v, normal)
-		return point - d * normal
+	function get_cylinder_contours(cylinder::Cylinder, point::Vector{<:Number}, cameraMatrix::Matrix{<:Number})
+		circlecenter = project_point_into_line(point, Line(cylinder.center, cylinder.axis))
+		tangentpoint₁, tangentpoint₂ = get_tangentpoints_circle_point(
+			Circle(circlecenter, cylinder.radius, cylinder.axis),
+			point
+		)
+		projected_tangentpoint₁ = cameraMatrix * [tangentpoint₁; 1]
+		projected_tangentpoint₂ = cameraMatrix * [tangentpoint₂; 1]
+		projected_cylinderaxis = cameraMatrix * [cylinder.axis; 0]
+		contour₁ = Line(projected_tangentpoint₁, projected_cylinderaxis - projected_tangentpoint₁)
+		contour₂ = Line(projected_tangentpoint₂, projected_cylinderaxis - projected_tangentpoint₂)
+
+		return (contour₁, contour₂)
 	end
 end
