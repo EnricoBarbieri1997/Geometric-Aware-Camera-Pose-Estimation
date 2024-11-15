@@ -2,6 +2,7 @@ FROM julia
 COPY ./Project.toml /app/Project.toml
 COPY ./Manifest.toml /app/Manifest.toml
 COPY ./src /app/src
+COPY ./test /app/test
 
 WORKDIR /app
 
