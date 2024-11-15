@@ -1,5 +1,7 @@
 module Plotting
-    export initFigure, plot2DPoints, Plot3DCameraInput, plot3DCamera, Plot3DCylindersInput, plot3DCylinders, plot2DCylinders
+    export initFigure, plot2DPoints, plot_line_2D, Plot3DCameraInput, plot3DCamera, Plot3DCylindersInput, plot_cylinders_contours, plot3DCylinders, plot2DCylinders
+
+    using ..Geometry: Line
 
     using LinearAlgebra: deg2rad
     using Rotations
@@ -8,6 +10,10 @@ module Plotting
     # f, ax3, ax2
 
     colors = [:red, :green, :blue, :yellow, :purple, :orange, :pink, :brown]
+    linestyles = Dict(
+        "dash" => :dash,
+        "solid" => :solid,
+    )
 
     function initFigure()
         global f, ax3, ax2
@@ -95,6 +101,24 @@ module Plotting
     function plot2DPoints(singularPoints)
         for (i, singularPoint) in enumerate(singularPoints)
             scatter!(ax2, (singularPoint[1], -singularPoint[2]), color = colors[i])
+        end
+    end
+
+    function plot_line_2D(line:: Line; color = :black, linestyle = :solid)
+        slope = line.direction[2] / line.direction[1]
+        intercept = line.origin[2] - slope * line.origin[1]
+
+        y = function (x) return slope * x + intercept end
+        xs = -50:1:50
+        ys = y.(xs)
+        lines!(ax2, xs, ys, color = color, linestyle=linestyle)
+    end
+
+    function plot_cylinders_contours(contours::Vector{Vector{Line}}; linestyle = :solid)
+        for (i, contour) in enumerate(contours)
+            for line in contour
+                plot_line_2D(line, color = colors[i], linestyle = linestyle)
+            end
         end
     end
 

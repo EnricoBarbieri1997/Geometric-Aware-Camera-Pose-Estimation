@@ -43,15 +43,30 @@ end
 	]
 	camera_matrix = camera_matrix ./ camera_matrix[3, 4]
 	contour₁, contour₂ = get_cylinder_contours(cylinder, camera_center, camera_matrix)
-	@info contour₁
-	@info contour₂
 
 	point₁₁ = [-10.3515, 0.769649, 3.61477]
 	point₁₂ = [-8.18179, 2.18732, 10.663]
 	point₂₁ = [-9.13133, 2.1864, 2.96598]
 	point₂₂ = [-6.9397, 3.58753, 9.99881]
-	target_contour₁ = Line(point₁₁, point₁₂ - point₁₁)
-	target_contour₂ = Line(point₂₁, point₂₂ - point₂₁)
-	@test issame_line(contour₁, target_contour₁)
-	@test issame_line(contour₂, target_contour₂)
+
+	projected_point₁₁ = camera_matrix * [point₁₁; 1]
+	projected_point₁₂ = camera_matrix * [point₁₂; 1]
+	projected_point₂₁ = camera_matrix * [point₂₁; 1]
+	projected_point₂₂ = camera_matrix * [point₂₂; 1]
+
+	projected_point₁₁ = projected_point₁₁ ./ projected_point₁₁[3]
+	projected_point₁₂ = projected_point₁₂ ./ projected_point₁₂[3]
+	projected_point₂₁ = projected_point₂₁ ./ projected_point₂₁[3]
+	projected_point₂₂ = projected_point₂₂ ./ projected_point₂₂[3]
+
+	projected_point₁₁ = projected_point₁₁[1:2]
+	projected_point₁₂ = projected_point₁₂[1:2]
+	projected_point₂₁ = projected_point₂₁[1:2]
+	projected_point₂₂ = projected_point₂₂[1:2]
+
+	target_contour₁ = Line(projected_point₁₁, projected_point₁₂ - projected_point₁₁)
+	target_contour₂ = Line(projected_point₂₁, projected_point₂₂ - projected_point₂₁)
+
+	@test issame_line(contour₁, target_contour₁, 1)
+	@test issame_line(contour₂, target_contour₂, 1)
 end

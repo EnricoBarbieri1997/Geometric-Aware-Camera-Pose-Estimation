@@ -1,12 +1,13 @@
 module CylindersBasedCameraResectioning
     include("includes.jl")
 
+    using .Geometry: Line, Cylinder as CylinderType, get_cylinder_contours
     using .Space: Transformation, RandomTransformation, IdentityTransformation, build_rotation_matrix
     using .Camera: CameraMatrix
-    using .Plotting: initFigure, plot2DPoints, Plot3DCameraInput, plot3DCamera, Plot3DCylindersInput, plot3DCylinders, plot2DCylinders
+    using .Plotting: initFigure, plot2DPoints, plot_line_2D, Plot3DCameraInput, plot3DCamera, Plot3DCylindersInput, plot_cylinders_contours, plot3DCylinders, plot2DCylinders
     using .Debug
     using .Utils
-    using LinearAlgebra: deg2rad, diagm, dot, normalize, svd, pinv
+    using LinearAlgebra: cross, deg2rad, diagm, dot, normalize, svd, pinv
     using HomotopyContinuation, Polynomials, Rotations
     using Random
 
@@ -15,14 +16,27 @@ module CylindersBasedCameraResectioning
 
         numberOfCylinders = 4
         cylinders = Array{Tuple{Matrix{Float64}, Tuple{Matrix{Float64}, Vector{Float64}}}}(undef, numberOfCylinders)
+        cylinders_geometry = Array{CylinderType}(undef, numberOfCylinders)
         transforms = Array{Matrix{Float64}}(undef, numberOfCylinders)
         radiuses = Array{Tuple{Number, Number}}(undef, numberOfCylinders)
         dualSingularPlanes = Array{Matrix{Float64}}(undef, numberOfCylinders)
         for i in 1:numberOfCylinders
-            transforms[i] = RandomTransformation()
-            # transforms[i] = IdentityTransformation()
+            center = randRange(collect(((-5, 5), (-5, 5), (-5, 5))))
+            rotation = randRange((0, 40), 3)
+
+            transforms[i] = Transformation((center[1], center[2], center[3]), (rotation[1], rotation[2], rotation[3]))
             radius = randRange((1, 3), 2)
-            # radius = (1, 1)
+            radius = [radius[1], radius[1]]
+
+            axis = transforms[i] * [0; 0; 1; 0]
+            axis = axis ./ axis[3]
+            axis = axis[1:3]
+            cylinders_geometry[i] = CylinderType(
+                center,
+                radius[1],
+                axis,
+            )
+
             radiuses[i] = (radius[1], radius[2])
             cylinders[i] = Cylinder.StandardAndDual(transforms[i], radiuses[i])
 
@@ -42,16 +56,8 @@ module CylindersBasedCameraResectioning
 
         cameraTranslation = (2.0, 30.0, 5.0)
         cameraRotation = (-83.0, 180.0, 0.0)
-        # cameraTranslation = (0.0, 0.0, 0.0)
-        # cameraRotation = (0.0, 0.0, 0.0)
         cameraPositionMatrix = Transformation(cameraTranslation, cameraRotation)
         cameraProjectionMatrix = CameraMatrix(cameraTranslation, cameraRotation, 2, 1)
-
-        # display(cameraProjectionMatrix)
-        # display(pinv(cameraProjectionMatrix))
-        # display(pinv(cameraProjectionMatrix) * cameraProjectionMatrix)
-        # display(cameraProjectionMatrix' * cameraProjectionMatrix)
-        # display(cameraProjectionMatrix * cameraProjectionMatrix')
 
         conics = Array{Tuple{Matrix{Float64}, Tuple{Matrix{Float64}, Vector{Float64}}}}(undef, numberOfCylinders)
         for i in 1:numberOfCylinders
@@ -85,9 +91,17 @@ module CylindersBasedCameraResectioning
         end
 
         conicBorders = Array{Array{Vector{Float64}}}(undef, numberOfCylinders)
+        # conicBordersTest = Vector{Vector{Line}}(undef, numberOfCylinders)
+        conicBordersTest = Array{Array{Vector{Float64}}}(undef, numberOfCylinders)
         for i in 1:numberOfCylinders
             lines = lines_from_conic(conics[i])
+            lines_test = get_cylinder_contours(
+                cylinders_geometry[i],
+                collect(cameraTranslation),
+                cameraProjectionMatrix
+            )
             conicBorders[i] = Array{Vector{Float64}}(undef, length(lines))
+            conicBordersTest[i] = Vector{Line}(undef, length(lines_test))
             for (j, line) in enumerate(lines)
                 conicBorders[i][j] = line
 
@@ -96,6 +110,12 @@ module CylindersBasedCameraResectioning
                     @assert line' * cameraProjectionMatrix * cylinders[i][2][2] ≃ 0 "(8) Line $(j) of conic $(i) passes through the projected singular point"
                     @assert line' * cameraProjectionMatrix * cylinders[i][2][1] * cameraProjectionMatrix' * line ≃ 0 "(9) Line $(j) of conic $(i) is tangent to the projected cylinder"
                 end
+            end
+
+            for (j, line) in enumerate(lines_test)
+                # conicBordersTest[i][j] = line
+                conicBordersTest[i][j] = cross([line.origin; 1], [line.origin; 1] + [line.direction*10; 0])
+                # conicBordersTest[i][j][3] *= -1
             end
         end
 
@@ -120,183 +140,186 @@ module CylindersBasedCameraResectioning
         ))
         plot2DPoints(singularPoints)
         plot2DCylinders(conicBorders)
+        plot2DCylinders(conicBordersTest, linestyle=:dash)
 
-        # 3 line minimum to solve the pose
-        numberOfLinesToSolveFor = 4
-        lines = []
-        pointAtInfinityToUse = []
-        dualQuadricToUse = []
-        possiblePicks = 1:(numberOfCylinders*2)
-        pickedLines = []
-        for _ in (1:numberOfLinesToSolveFor)
-            lineIndex = rand(possiblePicks)
-            possiblePicks = filter(x -> x != lineIndex, possiblePicks)
-            i = ceil(Int, lineIndex / 2)
-            j = (lineIndex - 1) % 2 + 1
-            push!(pickedLines, (i, j))
-            borders = conicBorders[i]
-            line = borders[j]
-            push!(lines, line)
-            push!(pointAtInfinityToUse, cylinders[i][2][2][1:3])
-            push!(dualQuadricToUse, cylinders[i][2][1])
-        end
+        figure
 
-        @var x y z f
-        Rₚ = build_rotation_matrix(x, y, z)
+        # # 3 line minimum to solve the pose
+        # numberOfLinesToSolveFor = 4
+        # lines = []
+        # pointAtInfinityToUse = []
+        # dualQuadricToUse = []
+        # possiblePicks = 1:(numberOfCylinders*2)
+        # pickedLines = []
+        # for _ in (1:numberOfLinesToSolveFor)
+        #     lineIndex = rand(possiblePicks)
+        #     possiblePicks = filter(x -> x != lineIndex, possiblePicks)
+        #     i = ceil(Int, lineIndex / 2)
+        #     j = (lineIndex - 1) % 2 + 1
+        #     push!(pickedLines, (i, j))
+        #     borders = conicBorders[i]
+        #     line = borders[j]
+        #     push!(lines, line)
+        #     push!(pointAtInfinityToUse, cylinders[i][2][2][1:3])
+        #     push!(dualQuadricToUse, cylinders[i][2][1])
+        # end
 
-        systemToSolve = []
-        for i in 1:numberOfLinesToSolveFor
-            equation = lines[i]' * [
-                f 0 0;
-                0 f 0;
-                0 0 1
-            ] * Rₚ * pointAtInfinityToUse[i]
-            push!(systemToSolve, equation)
-        end
+        # @var x y z f
+        # Rₚ = build_rotation_matrix(x, y, z)
 
-        F = System(systemToSolve, variables=[x, y, z, f])
-        result = solve(F)
-        display(result)
+        # systemToSolve = []
+        # for i in 1:numberOfLinesToSolveFor
+        #     equation = lines[i]' * [
+        #         f 0 0;
+        #         0 f 0;
+        #         0 0 1
+        #     ] * Rₚ * pointAtInfinityToUse[i]
+        #     push!(systemToSolve, equation)
+        # end
 
-        # for solution in real_solutions(result)
-        #     r = Rotations.QuatRotation(1, solution[1], solution[2], solution[3])
-        #     for i in 1:numberOfLinesToSolveFor
-        #         display((lines[i]' * r * pointAtInfinityToUse[i]) ≃ 0)
+        # F = System(systemToSolve, variables=[x, y, z, f])
+        # result = solve(F)
+        # display(result)
+
+        # # for solution in real_solutions(result)
+        # #     r = Rotations.QuatRotation(1, solution[1], solution[2], solution[3])
+        # #     for i in 1:numberOfLinesToSolveFor
+        # #         display((lines[i]' * r * pointAtInfinityToUse[i]) ≃ 0)
+        # #     end
+        # # end
+
+        # rotationCalculated = nothing
+        # focalLengthCalculated = nothing
+        # rotationSolutionError = Inf
+        # for (solutionIndex, solution) in enumerate(real_solutions(result))
+        #     display("Trying solution $(solutionIndex)")
+        #     xₛ = solution[1]
+        #     yₛ = solution[2]
+        #     zₛ = solution[3]
+        #     fₛ = solution[4]
+        #     rotation = Rotations.QuatRotation(1, xₛ , yₛ, zₛ)
+        #     # rotation = buildRotationMatrix(xₛ, yₛ, zₛ, true)
+        #     # display("Rotation angle: $(rotation_angle(rotation)), Rotation axis: $(rotation_axis(rotation))")
+        #     acceptable = true
+        #     currentError = 0
+        #     for (i, border) in enumerate(conicBorders)
+        #         for (j, line) in enumerate(border)
+        #             eq = line' * [
+        #                 fₛ 0 0;
+        #                 0 fₛ 0;
+        #                 0 0 1
+        #             ] *rotation * cylinders[i][2][2][1:3]
+        #             currentError += abs(eq)
+        #             # display("Solution $(solutionIndex): $(eq)")
+        #             if (!(eq ≃ 0))
+        #                 # display("Line $(j) of conic $(i) does not satisfy the constraints")
+        #                 acceptable = false
+        #             end
+        #         end
+        #         if (!acceptable)
+        #             # break
+        #         end
+        #     end
+        #     if (acceptable)
+        #         # rotationCalculated = solution
+        #         display("Solution $(solutionIndex) is acceptable")
+        #         break
+        #     end
+        #     if (currentError < rotationSolutionError)
+        #         rotationSolutionError = currentError
+        #         rotationCalculated = rotation
+        #         focalLengthCalculated = fₛ
         #     end
         # end
 
-        rotationCalculated = nothing
-        focalLengthCalculated = nothing
-        rotationSolutionError = Inf
-        for (solutionIndex, solution) in enumerate(real_solutions(result))
-            display("Trying solution $(solutionIndex)")
-            xₛ = solution[1]
-            yₛ = solution[2]
-            zₛ = solution[3]
-            fₛ = solution[4]
-            rotation = Rotations.QuatRotation(1, xₛ , yₛ, zₛ)
-            # rotation = buildRotationMatrix(xₛ, yₛ, zₛ, true)
-            # display("Rotation angle: $(rotation_angle(rotation)), Rotation axis: $(rotation_axis(rotation))")
-            acceptable = true
-            currentError = 0
-            for (i, border) in enumerate(conicBorders)
-                for (j, line) in enumerate(border)
-                    eq = line' * [
-                        fₛ 0 0;
-                        0 fₛ 0;
-                        0 0 1
-                    ] *rotation * cylinders[i][2][2][1:3]
-                    currentError += abs(eq)
-                    # display("Solution $(solutionIndex): $(eq)")
-                    if (!(eq ≃ 0))
-                        # display("Line $(j) of conic $(i) does not satisfy the constraints")
-                        acceptable = false
-                    end
-                end
-                if (!acceptable)
-                    # break
-                end
-            end
-            if (acceptable)
-                # rotationCalculated = solution
-                display("Solution $(solutionIndex) is acceptable")
-                break
-            end
-            if (currentError < rotationSolutionError)
-                rotationSolutionError = currentError
-                rotationCalculated = rotation
-                focalLengthCalculated = fₛ
-            end
-        end
+        # begin #asserts
+        #     @assert rotationCalculated isa QuatRotation{Float64} "(11) Found rotation satisfies constraints"
+        # end
 
-        begin #asserts
-            @assert rotationCalculated isa QuatRotation{Float64} "(11) Found rotation satisfies constraints"
-        end
+        # # rot = deg2rad.(cameraRotation)
+        # # rotationCalculated = QuatRotation(RotXYZ(rot[1], rot[2], rot[3]))
 
-        # rot = deg2rad.(cameraRotation)
-        # rotationCalculated = QuatRotation(RotXYZ(rot[1], rot[2], rot[3]))
+        # display("Error of the best rotation solution: $(rotationSolutionError)")
+        # display("Best solution for rotation: $(rad2deg.(Rotations.params(RotXYZ(rotationCalculated))))")
+        # display("Actual rotation: $(Rotations.params(RotXYZ(cameraRotation[1], cameraRotation[2], cameraRotation[3])))")
 
-        display("Error of the best rotation solution: $(rotationSolutionError)")
-        display("Best solution for rotation: $(rad2deg.(Rotations.params(RotXYZ(rotationCalculated))))")
-        display("Actual rotation: $(Rotations.params(RotXYZ(cameraRotation[1], cameraRotation[2], cameraRotation[3])))")
+        # function buildCameraMatrixForSolving(rotation, translation)
+        #     return [focalLengthCalculated 0 0 0;
+        #         0 focalLengthCalculated 0 0;
+        #         0 0 focalLengthCalculated 0] * vcat(hcat(rotation, translation), [0 0 0 1])
+        # end
 
-        function buildCameraMatrixForSolving(rotation, translation)
-            return [focalLengthCalculated 0 0 0;
-                0 focalLengthCalculated 0 0;
-                0 0 focalLengthCalculated 0] * vcat(hcat(rotation, translation), [0 0 0 1])
-        end
+        # @var tx ty tz
+        # P = buildCameraMatrixForSolving(rotationCalculated, [tx; ty; tz])
 
-        @var tx ty tz
-        P = buildCameraMatrixForSolving(rotationCalculated, [tx; ty; tz])
+        # systemToSolve = []
+        # for i in 1:3
+        #     equation = lines[i]' * P * dualQuadricToUse[i] * P' * lines[i]
+        #     push!(systemToSolve, equation)
+        # end
 
-        systemToSolve = []
-        for i in 1:3
-            equation = lines[i]' * P * dualQuadricToUse[i] * P' * lines[i]
-            push!(systemToSolve, equation)
-        end
+        # F = System(systemToSolve, variables=[tx, ty, tz])
+        # result = solve(F)
+        # display(result)
+        # solutions = real_solutions(result)
+        # translationSolutionError = Inf
+        # translationCalculated = nothing
+        # for (solutionIndex, solution) in enumerate(solutions)
+        #     txₛ = solution[1]
+        #     tyₛ = solution[2]
+        #     tzₛ = solution[3]
+        #     translation = [txₛ, tyₛ, tzₛ]
+        #     acceptable = true
+        #     currentError = 0
+        #     Pₛ = buildCameraMatrixForSolving(rotationCalculated, translation)
+        #     for (i, conicBorder) in enumerate(conicBorders)
+        #         for (j, line) in enumerate(conicBorder)
+        #             eq = line' * Pₛ * cylinders[i][2][1] * Pₛ' * line
+        #             currentError += abs(eq)
+        #             # display("Solution $(i): $(eq))")
+        #             # if ((i, j) in pickedLines)
+        #             #     display("Solution $(solutionIndex): $(eq ≃ 0)")
+        #             # end
+        #             if (!(eq ≃ 0))
+        #                 # display("Line $(j) of conic $(i) does not satisfy the constraints")
+        #                 acceptable = false
+        #             end
+        #             if (currentError < translationSolutionError)
+        #                 translationSolutionError = currentError
+        #                 translationCalculated = translation
+        #             end
+        #         end
+        #         if (!acceptable)
+        #             # break
+        #         end
+        #     end
+        # end
 
-        F = System(systemToSolve, variables=[tx, ty, tz])
-        result = solve(F)
-        display(result)
-        solutions = real_solutions(result)
-        translationSolutionError = Inf
-        translationCalculated = nothing
-        for (solutionIndex, solution) in enumerate(solutions)
-            txₛ = solution[1]
-            tyₛ = solution[2]
-            tzₛ = solution[3]
-            translation = [txₛ, tyₛ, tzₛ]
-            acceptable = true
-            currentError = 0
-            Pₛ = buildCameraMatrixForSolving(rotationCalculated, translation)
-            for (i, conicBorder) in enumerate(conicBorders)
-                for (j, line) in enumerate(conicBorder)
-                    eq = line' * Pₛ * cylinders[i][2][1] * Pₛ' * line
-                    currentError += abs(eq)
-                    # display("Solution $(i): $(eq))")
-                    # if ((i, j) in pickedLines)
-                    #     display("Solution $(solutionIndex): $(eq ≃ 0)")
-                    # end
-                    if (!(eq ≃ 0))
-                        # display("Line $(j) of conic $(i) does not satisfy the constraints")
-                        acceptable = false
-                    end
-                    if (currentError < translationSolutionError)
-                        translationSolutionError = currentError
-                        translationCalculated = translation
-                    end
-                end
-                if (!acceptable)
-                    # break
-                end
-            end
-        end
+        # display("Translation: $(translationCalculated)")
 
-        display("Translation: $(translationCalculated)")
+        # calculatedCameraMatrix = buildCameraMatrixForSolving(rotationCalculated, translationCalculated)
 
-        calculatedCameraMatrix = buildCameraMatrixForSolving(rotationCalculated, translationCalculated)
+        # display("Camera projection matrix: $(cameraProjectionMatrix ./ cameraProjectionMatrix[3, 4])")
+        # display("Calculated projection camera matrix: $(calculatedCameraMatrix ./ calculatedCameraMatrix[3, 4])")
 
-        display("Camera projection matrix: $(cameraProjectionMatrix ./ cameraProjectionMatrix[3, 4])")
-        display("Calculated projection camera matrix: $(calculatedCameraMatrix ./ calculatedCameraMatrix[3, 4])")
+        # reconstructedBorders = Array{Array{Vector{Float64}}}(undef, numberOfCylinders)
+        # for i in 1:numberOfCylinders
+        #     reconstructedConic = (
+        #         pinv(calculatedCameraMatrix') * cylinders[i][1] * pinv(calculatedCameraMatrix),
+        #         (
+        #             calculatedCameraMatrix * cylinders[i][2][1] * calculatedCameraMatrix',
+        #             calculatedCameraMatrix * cylinders[i][2][2]
+        #         )
+        #     )
+        #     local lines = lines_from_conic(reconstructedConic)
+        #     reconstructedBorders[i] = Array{Vector{Float64}}(undef, length(lines))
+        #     for (j, line) in enumerate(lines)
+        #         reconstructedBorders[i][j] = line
+        #     end
+        # end
 
-        reconstructedBorders = Array{Array{Vector{Float64}}}(undef, numberOfCylinders)
-        for i in 1:numberOfCylinders
-            reconstructedConic = (
-                pinv(calculatedCameraMatrix') * cylinders[i][1] * pinv(calculatedCameraMatrix),
-                (
-                    calculatedCameraMatrix * cylinders[i][2][1] * calculatedCameraMatrix',
-                    calculatedCameraMatrix * cylinders[i][2][2]
-                )
-            )
-            local lines = lines_from_conic(reconstructedConic)
-            reconstructedBorders[i] = Array{Vector{Float64}}(undef, length(lines))
-            for (j, line) in enumerate(lines)
-                reconstructedBorders[i][j] = line
-            end
-        end
-
-        plot2DCylinders(reconstructedBorders; linestyle=:dash)
-        figure
+        # plot2DCylinders(reconstructedBorders)
+        # figure
     end
 
     function generate_monodromy_solutions()

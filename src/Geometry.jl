@@ -23,14 +23,18 @@ module Geometry
 	end
 	Cylinder = Circle
 
-	function issame_line(line₁::Line, line₂::Line)
+	function issame_line(line₁::Line, line₂::Line, digits=6)
 		direction_factors = line₁.direction ./ line₂.direction
+		direction_factors = normalize(direction_factors)
+		direction_factors = round.(direction_factors; digits=digits)
 		issame_direction = allequal(direction_factors)
 		if !issame_direction
 			return false
 		end
 
 		origin_factors = (line₁.origin - line₂.origin) ./ line₁.direction
+		origin_factors = normalize(origin_factors)
+		origin_factors = round.(origin_factors; digits=digits)
 		return allequal(origin_factors)
 	end
 
@@ -87,8 +91,17 @@ module Geometry
 		projected_tangentpoint₁ = cameraMatrix * [tangentpoint₁; 1]
 		projected_tangentpoint₂ = cameraMatrix * [tangentpoint₂; 1]
 		projected_cylinderaxis = cameraMatrix * [cylinder.axis; 0]
-		contour₁ = Line(projected_tangentpoint₁, projected_cylinderaxis - projected_tangentpoint₁)
-		contour₂ = Line(projected_tangentpoint₂, projected_cylinderaxis - projected_tangentpoint₂)
+
+		projected_tangentpoint₁ = projected_tangentpoint₁ ./ projected_tangentpoint₁[3]
+		projected_tangentpoint₂ = projected_tangentpoint₂ ./ projected_tangentpoint₂[3]
+		projected_cylinderaxis = projected_cylinderaxis ./ projected_cylinderaxis[3]
+
+		projected_tangentpoint₁ = projected_tangentpoint₁[1:2]
+		projected_tangentpoint₂ = projected_tangentpoint₂[1:2]
+		projected_cylinderaxis = projected_cylinderaxis[1:2]
+
+		contour₁ = Line(projected_cylinderaxis, projected_tangentpoint₁ - projected_cylinderaxis)
+		contour₂ = Line(projected_cylinderaxis, projected_tangentpoint₂ - projected_cylinderaxis)
 
 		return (contour₁, contour₂)
 	end
