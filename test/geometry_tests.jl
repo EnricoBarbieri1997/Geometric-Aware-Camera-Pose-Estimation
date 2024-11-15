@@ -1,5 +1,18 @@
 using CylindersBasedCameraResectioning.Geometry
 
+@testset "issame_line" begin
+	line₁ = Line([0, 0, 0], [1, 1, 1])
+	line₂ = Line([1, 1, 1], [2, 2, 2])
+	@test issame_line(line₁, line₂)
+end
+
+@testset "project_point_into_line" begin
+	point = [1, 1, 1]
+	line = Line([0, 0, 0], [0, 0, 1])
+	projected_point = project_point_into_line(point, line)
+	@test projected_point ≈ [0, 0, 1]
+end
+
 @testset "project_point_into_plane" begin
 	point = [1, 1, 1]
 	plane = Plane([0, 0, 0], [0, 0, 1])

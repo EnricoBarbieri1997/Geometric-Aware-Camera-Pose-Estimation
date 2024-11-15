@@ -1,5 +1,5 @@
 module Geometry
-	export Circle, Plane, Point, get_tangentpoints_circle_point, project_point_into_plane
+	export Plane, Line, Point, Circle, Cylinder, issame_line, project_point_into_line, project_point_into_plane, get_tangentpoints_circle_point, get_cylinder_contours
 
 	using ..Utils
 	using LinearAlgebra: cross, dot, norm, normalize
@@ -8,14 +8,44 @@ module Geometry
 		x::Number
 		y::Number
 	end
+	struct Line
+		origin::Vector{<:Number}
+		direction::Vector{<:Number}
+	end
+	struct Plane
+		origin::Vector{<:Number}
+		normal::Vector{<:Number}
+	end
 	struct Circle
 		center::Vector{<:Number}
 		radius::Number
 		axis::Union{Vector{<:Number}, Nothing}
 	end
-	struct Plane
-		origin::Vector{<:Number}
-		normal::Vector{<:Number}
+
+	function issame_line(line₁::Line, line₂::Line)
+		direction_factors = line₁.direction ./ line₂.direction
+		issame_direction = allequal(direction_factors)
+		if !issame_direction
+			return false
+		end
+
+		origin_factors = (line₁.origin - line₂.origin) ./ line₁.direction
+		return allequal(origin_factors)
+	end
+
+	function project_point_into_line(point::Vector{<:Number}, line::Line)
+		direction = line.direction
+		origin = line.origin
+		v = point - origin
+		return origin + dot(v, direction) / dot(direction, direction) * direction
+	end
+
+	function project_point_into_plane(point::Vector{<:Number}, plane::Plane)
+		normal = plane.normal
+		origin = plane.origin
+		v = point - origin
+		d = dot(v, normal)
+		return point - d * normal
 	end
 
 	function get_tangentpoints_circle_point(circle::Circle, point::Vector{<:Number})
