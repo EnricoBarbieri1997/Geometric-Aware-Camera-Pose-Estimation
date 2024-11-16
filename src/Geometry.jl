@@ -1,5 +1,5 @@
 module Geometry
-	export Plane, Line, Point, Circle, Cylinder, issame_line, project_point_into_line, project_point_into_plane, get_tangentpoints_circle_point, get_cylinder_contours
+	export Plane, Line, Point, Circle, Cylinder, issame_line, line_to_homogenous, project_point_into_line, project_point_into_plane, get_tangentpoints_circle_point, get_cylinder_contours
 
 	using ..Utils
 	using LinearAlgebra: cross, dot, norm, normalize
@@ -36,6 +36,10 @@ module Geometry
 		origin_factors = normalize(origin_factors)
 		origin_factors = round.(origin_factors; digits=digits)
 		return allequal(origin_factors)
+	end
+
+	function line_to_homogenous(line::Line)
+		return cross([line.origin; 1], [line.origin; 1] + [line.direction*10; 0])
 	end
 
 	function project_point_into_line(point::Vector{<:Number}, line::Line)

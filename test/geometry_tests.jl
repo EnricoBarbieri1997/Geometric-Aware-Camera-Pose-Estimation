@@ -1,4 +1,5 @@
 using CylindersBasedCameraResectioning.Geometry
+using CylindersBasedCameraResectioning: sample_camera
 
 @testset "issame_line" begin
 	line₁ = Line([0, 0, 0], [1, 1, 1])
@@ -35,12 +36,8 @@ end
 
 @testset "get_cylinder_contours" begin
 	cylinder = Cylinder([-8.80334, 2.31298, 6.82885], 1, ([-7.30743, 2.1323, 10.412] - [-9.44826, 0.687196, 3.35754]))
-	camera_center = [5.53885, -8.8741, 8.41645]
-	camera_matrix = [
-		903.3969 2682.6814 -140.7333 19987.0645;
-		-314.6865 179.3203 -2285.3701 22569.0098;
-		-0.7827 0.6172 -0.0801 10.4866
-	]
+	camera_center = sample_camera.position
+	camera_matrix = sample_camera.matrix
 	camera_matrix = camera_matrix ./ camera_matrix[3, 4]
 	contour₁, contour₂ = get_cylinder_contours(cylinder, camera_center, camera_matrix)
 

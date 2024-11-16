@@ -1,6 +1,7 @@
 module Utils
-	export almostequal, ≃, randRange
+	export almostequal, ≃, randRange, quat_from_rotmatrix
 
+	using Rotations
 	using Random
 
 	function almostequal(x::Number, y::Number)
@@ -133,5 +134,12 @@ module Utils
 			end
 		end
 		return best
+	end
+
+	function quat_from_rotmatrix(dcm::AbstractMatrix{T}) where {T<:Real}
+    a2 = 1 + dcm[1,1] + dcm[2,2] + dcm[3,3]
+    a = sqrt(a2)/2
+    b,c,d = (dcm[3,2]-dcm[2,3])/4a, (dcm[1,3]-dcm[3,1])/4a, (dcm[2,1]-dcm[1,2])/4a
+    return QuatRotation(a,b,c,d)
 	end
 end
