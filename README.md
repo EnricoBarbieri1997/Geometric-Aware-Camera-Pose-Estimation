@@ -7,7 +7,7 @@ This is the file that should be run to the the experiment. No console parameters
 - Then a fictitious camera is created
 - The relative quadrics, dual quadrics, singular points, planes, points are projected into conics, dual conics, etc
 - A function to find a cylinder silhouette is declared and is used to find the lines defining it for each cylinder. Those are used both for visualization and for solving the problem
-- A visualization step where the 3D scene is show on the left and the projected scene seen throug the camera is shown on the right
+- A visualization step where the 3d scene is show on the left and the projected scene seen throug the camera is shown on the right
 - The solver part:
 	- We pick 3 lines (the minimum) from the ones that we found for the silhouettes
 	- A parametrization of the rotation matrix using only linear equations in R is defined and solved for using (11)
@@ -22,7 +22,7 @@ Definitions of factory methods for quadrics creation from full parameter definit
 Factory methods to generate camera matrices
 
 ## space.jl
-Type definitions and factory methods for low level primitives related to 3D objects
+Type definitions and factory methods for low level primitives related to 3d objects
 
 ## plotting.jl
 Functions to plot points, lines, cylinders, conics onto the figure of Makie.jl

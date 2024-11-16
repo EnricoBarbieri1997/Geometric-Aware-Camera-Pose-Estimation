@@ -1,5 +1,5 @@
 module Space
-	export Vec3, Vec3Tuple, Point, PointTuple, Transformation, IdentityTransformation, RandomTransformation, build_rotation_matrix
+	export Vec3, Vec3Tuple, Point, PointTuple, transformation, identity_transformation, random_transformation, build_rotation_matrix
 
 	using ..Utils
 	using LinearAlgebra
@@ -15,9 +15,9 @@ module Space
 	const Point = Vec3
 	const PointTuple = Vec3Tuple
 
-	function Transformation(
-		translation::Vec3Tuple = (0, 0, 0),
-		rotation::Vec3Tuple = (0, 0, 0)
+	function transformation(
+		translation::Union{Array{<:Number, 1}, Vector{<:Number}} = [0, 0, 0],
+		rotation::Union{Array{<:Number, 1}, Vector{<:Number}} = [0, 0, 0]
 	)
 		rotation = RotXYZ(deg2rad.(rotation)...)
 
@@ -30,17 +30,17 @@ module Space
 		return t * r
 	end
 
-	function RandomTransformation(
-		centerBoundaries::Tuple{Tuple{Number, Number}, Tuple{Number, Number}, Tuple{Number, Number}} = ((-5, 5), (-5, 5), (-5, 5))
+	function random_transformation(
+		centerBoundaries::Array{<:Number, 2} = [[-5, 5], [-5, 5], [-5, 5]]
 	)
-		center = randRange(collect(centerBoundaries))
-		rotation = randRange((0, 40), 3)
+		center = rand_in_range(collect(centerBoundaries))
+		rotation = rand_in_range((0, 40), 3)
 
-		return Transformation((center[1], center[2], center[3]), (rotation[1], rotation[2], rotation[3]))
+		return transformation((center[1], center[2], center[3]), (rotation[1], rotation[2], rotation[3]))
 	end
 
-	function IdentityTransformation()
-		return Transformation()
+	function identity_transformation()
+		return transformation()
 	end
 
 	function build_rotation_matrix(x, y, z, include_normalization = false)

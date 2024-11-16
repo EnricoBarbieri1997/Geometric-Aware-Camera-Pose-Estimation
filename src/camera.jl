@@ -5,14 +5,17 @@ module Camera
 	using LinearAlgebra
 	using ..Space: Vec3Tuple
 
-	struct CameraProperties
-		position::Vector{Number}
-		matrix::Matrix{Number}
+	@kwdef mutable struct CameraProperties
+		position::Vector{Number} = [0, 0, 0]
+		euler_rotation::Vector{Number} = [0, 0, 0]
+		quaternion_rotation::QuatRotation{Float64} = one(QuatRotation)
+		focal_length::Number = 1
+		matrix::Matrix{<:Number} = Matrix(I, 3, 4)
 	end
 
 	function build_camera_matrix(
-		translation::Vec3Tuple = (0, 0, 0),
-		rotation::Matrix{Float64} = Matrix{Float64}(I, 3, 3),
+		translation::Union{Array{<:Number}, Vector{<:Number}} = [0, 0, 0],
+		rotation::Matrix{<:Number} = Matrix(I, 3, 3),
 		focalLength::Number = 1,
 		pixelSize::Number = 1
 	)
@@ -34,7 +37,7 @@ module Camera
 	end
 
 	function build_camera_matrix(
-		translation::Vec3Tuple = (0, 0, 0),
+		translation::Union{Array{<:Number}, Vector{<:Number}} = [0, 0, 0],
 		rotation::QuatRotation{Float64} = QuatRotation(1, 0, 0, 0),
 		focal_length::Number = 1,
 		pixel_size::Number = 1
@@ -56,8 +59,8 @@ module Camera
 	end
 
 	function build_camera_matrix(
-		translation::Vec3Tuple = (0, 0, 0),
-		rotation::Vec3Tuple = (0, 0, 0),
+		translation::Union{Array{<:Number}, Vector{<:Number}} = [0, 0, 0],
+		rotation::Union{Array{<:Number}, Vector{<:Number}} = [0, 0, 0],
 		focal_length::Number = 1,
 		pixel_size::Number = 1
 	)

@@ -1,5 +1,5 @@
 module Plotting
-    export initFigure, plot2DPoints, plot_line_2D, Plot3DCameraInput, plot3DCamera, Plot3DCylindersInput, plot_cylinders_contours, plot3DCylinders, plot2DCylinders
+    export initfigure, plot_2dpoints, plot_line_2d, Plot3dCameraInput, plot_3dcamera, Plot3dCylindersInput, plot_cylinders_contours, plot_3dcylinders, plot_2dcylinders
 
     using ..Geometry: Line
 
@@ -15,7 +15,7 @@ module Plotting
         "solid" => :solid,
     )
 
-    function initFigure()
+    function initfigure()
         global f, ax3, ax2
         f = Figure(size=(1200, 800))
         ax3 = Axis3(f[1, 1], title = "Cylinders", aspect = :data, perspectiveness = 1.0)
@@ -23,11 +23,11 @@ module Plotting
         return f
     end
 
-    struct Plot3DCameraInput
-        cameraRotation::Tuple{Float64, Float64, Float64}
-        cameraTranslation::Tuple{Float64, Float64, Float64}
+    struct Plot3dCameraInput
+        cameraRotation::Vector{<:Number}
+        cameraTranslation::Vector{<:Number}
     end
-    function plot3DCamera(info::Plot3DCameraInput)    
+    function plot_3dcamera(info::Plot3dCameraInput)    
         cameraModel = load("./assets/camera.stl")
         cameraMesh = mesh!(
             ax3,
@@ -38,20 +38,26 @@ module Plotting
         cameraRotationAxis = rotation_axis(cameraRotation)
         cameraRotationAngle = rotation_angle(cameraRotation)
         rotate!(cameraMesh, cameraRotationAxis, cameraRotationAngle)
-        translate!(cameraMesh, info.cameraTranslation)
+        translate!(cameraMesh,
+            (
+                info.cameraTranslation[1],
+                info.cameraTranslation[2],
+                info.cameraTranslation[3],
+            )
+        )
     end
 
-    struct Plot3DCylindersInput
-        transforms::Array{Matrix{Float64}}
-        radiuses::Array{Tuple{Number, Number}}
+    struct Plot3dCylindersInput
+        transforms::Vector{Matrix{Float64}}
+        radiuses::Vector{Vector{Float64}}
         numberOfCylinders::Int
-        cameraProjectionMatrix::Union{Matrix{Float64}, UndefInitializer}
+        cameraProjectionMatrix::Union{Matrix{<:Number}, UndefInitializer}
 
-        function Plot3DCylindersInput(transforms::Array{Matrix{Float64}}, radiuses::Array{Tuple{Number, Number}}, numberOfCylinders::Int, cameraProjectionMatrix::Union{Matrix{Float64}, UndefInitializer} = undef)
+        function Plot3dCylindersInput(transforms::Vector{Matrix{Float64}}, radiuses::Vector{Vector{Float64}}, numberOfCylinders::Int, cameraProjectionMatrix::Union{Matrix{<:Number}, UndefInitializer} = undef)
             new(transforms, radiuses, numberOfCylinders, cameraProjectionMatrix)
         end
     end
-    function plot3DCylinders(cylindersInfo::Plot3DCylindersInput)    
+    function plot_3dcylinders(cylindersInfo::Plot3dCylindersInput)    
         heightLevels = 100
         angles = 100
 
@@ -89,22 +95,22 @@ module Plotting
             lines!(ax3, points[:, 1], points[:, 2], points[:, 3], color = colors[i])
 
             if (cylindersInfo.cameraProjectionMatrix != undef)
-                points2D = [cylindersInfo.cameraProjectionMatrix * point for point in eachrow(points)]
-                points2D = [(point ./ point[3]) for point in points2D]
-                points2D = hcat(points2D...)'
+                points2d = [cylindersInfo.cameraProjectionMatrix * point for point in eachrow(points)]
+                points2d = [(point ./ point[3]) for point in points2d]
+                points2d = hcat(points2d...)'
 
-                lines!(ax2, points2D[:, 1], -points2D[:, 2], color = colors[i])
+                lines!(ax2, points2d[:, 1], -points2d[:, 2], color = colors[i])
             end
         end
     end
 
-    function plot2DPoints(singularPoints)
+    function plot_2dpoints(singularPoints)
         for (i, singularPoint) in enumerate(singularPoints)
             scatter!(ax2, (singularPoint[1], -singularPoint[2]), color = colors[i])
         end
     end
 
-    function plot_line_2D(line:: Line; color = :black, linestyle = :solid)
+    function plot_line_2d(line:: Line; color = :black, linestyle = :solid)
         slope = line.direction[2] / line.direction[1]
         intercept = line.origin[2] - slope * line.origin[1]
 
@@ -117,15 +123,16 @@ module Plotting
     function plot_cylinders_contours(contours::Vector{Vector{Line}}; linestyle = :solid)
         for (i, contour) in enumerate(contours)
             for line in contour
-                plot_line_2D(line, color = colors[i], linestyle = linestyle)
+                plot_line_2d(line, color = colors[i], linestyle = linestyle)
             end
         end
     end
 
-    function plot2DCylinders(conicBorders; linestyle = :solid)
+    function plot_2dcylinders(conic_borders; linestyle = :solid)
         y = function (x, l) return (-(l[1] * x + l[3]) / l[2]) end
-        for (i, conicBorder) in enumerate(conicBorders)
-            for line in conicBorder
+        for i in 1:(size(conic_borders)[1])
+            for j in 1:(size(conic_borders)[2])
+                line = conic_borders[i, j, :]
                 y1 = function (x) return y(x, line) end
                 xs = -50:1:50
                 ys1 = y1.(xs)

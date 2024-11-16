@@ -10,13 +10,13 @@ module Debug
 
     markers = [[(marker * 2)..., 1] + [0, 0, 10, 0] for marker in markers]
 
-    function plot3DMarkers()
+    function plot3dMarkers()
         for (i, marker) in enumerate(markers)
             scatter!(ax3, (marker[1], marker[2], marker[3]), color=colors[i])
         end
     end
 
-    function plot2DMarkers()
+    function plot2dMarkers()
 #     for (i, marker) in enumerate(markers)
 #         projectedMarker = cameraProjectionMatrix * marker
 #         projectedMarker = projectedMarker ./ projectedMarker[3]

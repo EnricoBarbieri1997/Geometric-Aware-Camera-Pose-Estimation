@@ -1,12 +1,12 @@
 module EquationSystems
-	export stack_intrinsic_rotation_conic_parameters, build_intrinsic_rotation_conic_system, build_intrinsic_rotation_translation_conic_system
+	export stack_homotopy_parameters, build_intrinsic_rotation_conic_system, build_intrinsic_rotation_translation_conic_system
 
 	using ..Camera: build_camera_matrix
 	using ..Space: build_rotation_matrix
 
 	using HomotopyContinuation
 
-	function stack_intrinsic_rotation_conic_parameters(lines, points_at_infinity)
+	function stack_homotopy_parameters(lines, points_at_infinity)
 		return vcat(vec(lines), vec(points_at_infinity))
 	end
 
@@ -25,7 +25,7 @@ module EquationSystems
 			] * Rₚ * points_at_infinity[line_index, :]
 			push!(system_to_solve, equation)
 		end
-		parameters = stack_intrinsic_rotation_conic_parameters(lines, points_at_infinity)
+		parameters = stack_homotopy_parameters(lines, points_at_infinity)
 		return System(system_to_solve, variables = [x, y, z, f], parameters = parameters)
 	end
 
@@ -40,7 +40,7 @@ module EquationSystems
 				equation = lines[i, :]' * P * dual_quadrics[i, :, :] * P' * lines[i, :]
 				push!(system_to_solve, equation)
 		end
-		parameters = stack_intrinsic_rotation_conic_parameters(lines, dual_quadrics)
+		parameters = stack_homotopy_parameters(lines, dual_quadrics)
 		return System(system_to_solve, variables=[tx, ty, tz], parameters=parameters)
 	end
 end

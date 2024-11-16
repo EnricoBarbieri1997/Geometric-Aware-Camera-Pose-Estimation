@@ -1,5 +1,5 @@
 module Utils
-	export almostequal, ≃, randRange, quat_from_rotmatrix
+	export almostequal, ≃, rand_in_range, quat_from_rotmatrix
 
 	using Rotations
 	using Random
@@ -91,36 +91,36 @@ module Utils
 		return almostequal(x, y)
 	end
 
-	function randRange(a::Number, b::Number):: Float64
+	function rand_in_range(a::Number, b::Number):: Float64
 		return rand(Float64) * (b - a) + a
 	end
 	
-	function randRange(range::Tuple{Number, Number}):: Float64
-		return randRange(range...)
+	function rand_in_range(range::Tuple{Number, Number}):: Float64
+		return rand_in_range(range...)
 	end
 
-	function randRange(a, b, n):: Array{Float64}
+	function rand_in_range(a, b, n):: Array{Float64}
 		rands = []
 		for i in 1:n
-			push!(rands, randRange(a, b))
+			push!(rands, rand_in_range(a, b))
 		end
 		return rands
 	end
 
-	function randRange(range::Tuple{Number, Number}, n):: Array{Float64}
-		return randRange(range..., n)
+	function rand_in_range(range::Tuple{Number, Number}, n):: Array{Float64}
+		return rand_in_range(range..., n)
 	end
 
-	function randRange(range::Vector{Tuple{Float64, Float64}}):: Array{Float64}
+	function rand_in_range(range::Vector{Tuple{Float64, Float64}}):: Array{Float64}
 		rands = []
 		for r in range
-			push!(rands, randRange(r))
+			push!(rands, rand_in_range(r))
 		end
 		return rands
 	end
 
-	function randRange(range::Vector{Tuple{Int64, Int64}}):: Array{Float64}
-		return randRange(map(r -> (Float64(r[1]), Float64(r[2])), range))
+	function rand_in_range(range::Vector{Tuple{Int64, Int64}}):: Array{Float64}
+		return rand_in_range(map(r -> (Float64(r[1]), Float64(r[2])), range))
 	end
 
 	function bestSolution(solutions::Vector{Float64}, tester::Function):: [Int64, Float64]

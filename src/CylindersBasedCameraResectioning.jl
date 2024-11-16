@@ -2,10 +2,10 @@ module CylindersBasedCameraResectioning
     include("includes.jl")
 
     using .Geometry: Line, Cylinder as CylinderType, line_to_homogenous, get_cylinder_contours
-    using .Space: Transformation, RandomTransformation, IdentityTransformation, build_rotation_matrix
-    using .Camera: build_intrinsic_matrix, build_camera_matrix, lookat_rotation
-    using .Plotting: initFigure, plot2DPoints, plot_line_2D, Plot3DCameraInput, plot3DCamera, Plot3DCylindersInput, plot_cylinders_contours, plot3DCylinders, plot2DCylinders
-    using .EquationSystems: stack_intrinsic_rotation_conic_parameters, build_intrinsic_rotation_conic_system, build_intrinsic_rotation_translation_conic_system
+    using .Space: transformation, random_transformation, identity_transformation, build_rotation_matrix
+    using .Camera: CameraProperties, build_intrinsic_matrix, build_camera_matrix, lookat_rotation
+    using .Plotting: initfigure, plot_2dpoints, plot_line_2d, Plot3dCameraInput, plot_3dcamera, Plot3dCylindersInput, plot_cylinders_contours, plot_3dcylinders, plot_2dcylinders
+    using .EquationSystems: stack_homotopy_parameters, build_intrinsic_rotation_conic_system, build_intrinsic_rotation_translation_conic_system
     using .Debug
     using .Utils
     using LinearAlgebra: deg2rad, diagm, dot, normalize, svd, pinv
@@ -13,7 +13,7 @@ module CylindersBasedCameraResectioning
     using Random
     using Serialization
 
-    struct MonodromyParametersSolutionPair
+    struct MonodromyParametersSolutionsPair
         start_parameters::Vector{Float64}
         solutions::Vector{Vector{ComplexF64}}
     end
@@ -21,288 +21,260 @@ module CylindersBasedCameraResectioning
     function main()
         Random.seed!(7)
 
-        numberOfCylinders = 4
-        cylinders = Array{Tuple{Matrix{Float64}, Tuple{Matrix{Float64}, Vector{Float64}}}}(undef, numberOfCylinders)
-        cylinders_geometry = Array{CylinderType}(undef, numberOfCylinders)
-        transforms = Array{Matrix{Float64}}(undef, numberOfCylinders)
-        radiuses = Array{Tuple{Number, Number}}(undef, numberOfCylinders)
-        dualSingularPlanes = Array{Matrix{Float64}}(undef, numberOfCylinders)
-        for i in 1:numberOfCylinders
-            center = randRange(collect(((-5, 5), (-5, 5), (-5, 5))))
-            rotation = randRange((0, 40), 3)
+        number_of_cylinders = 4
+        cylinders = []
+        for i in 1:number_of_cylinders
+            cylinder = Cylinder.CylinderProperties()
+            position = normalize(rand(Float64, 3)) * rand_in_range(0.0, 5.0)
+            rotation = rand_in_range((0, 40), 3)
+            cylinder.euler_rotation = rotation
 
-            transforms[i] = Transformation((center[1], center[2], center[3]), (rotation[1], rotation[2], rotation[3]))
-            radius = randRange((1, 3), 2)
-            radius = [radius[1], radius[1]]
+            cylinder.transform = transformation(position, cylinder.euler_rotation)
+            radius = rand_in_range((1, 3), 2)
+            cylinder.radiuses = [radius[1], radius[1]] # TODO Support different radiuses for each cylinder
 
-            axis = transforms[i] * [0; 0; 1; 0]
+            axis = cylinder.transform * [0; 0; 1; 0]
             axis = axis ./ axis[3]
             axis = axis[1:3]
-            cylinders_geometry[i] = CylinderType(
-                center,
-                radius[1],
+            cylinder.geometry = CylinderType(
+                position,
+                cylinder.radiuses[1],
                 axis,
             )
 
-            radiuses[i] = (radius[1], radius[2])
-            cylinders[i] = Cylinder.StandardAndDual(transforms[i], radiuses[i])
+            standard, dual, singularpoint = Cylinder.standard_and_dual(cylinder.transform, cylinder.radiuses)
+            cylinder.matrix = standard
+            cylinder.dual_matrix = dual
+            cylinder.singular_point = singularpoint
+
+            push!(cylinders, cylinder)
 
             begin #asserts
-                # @assert cylinders[i][1] * cylinders[i][2][1] ≃ diagm([1, 1, 0, 1]) "(-1) The dual quadric is correct"
+                # @assert cylinder.matrix * cylinder.dual_matrix ≃ diagm([1, 1, 0, 1]) "(-1) The dual quadric is correct"
 
-                @assert cylinders[i][2][2]' * cylinders[i][1] * cylinders[i][2][2] ≃ 0 "(1) Singular point $(1) belongs to the cylinder $(1)"
-                dualSingularPlanes[i] = inv(transforms[i]') * reshape([1, 0, 0, -radiuses[i][1]], :, 1)
-                @assert (dualSingularPlanes[i]' * cylinders[i][2][1] * dualSingularPlanes[i]) ≃ 0 "(2) Perpendicular plane $(1) belongs to the dual cylinder $(1)"
+                @assert cylinder.singular_point' * cylinder.matrix * cylinder.singular_point ≃ 0 "(1) Singular point $(1) belongs to the cylinder $(1)"
+                dual_singular_plane = inv(cylinder.transform') * reshape([1, 0, 0, -cylinder.radiuses[1]], :, 1)
+                @assert (dual_singular_plane' * cylinder.dual_matrix * dual_singular_plane) ≃ 0 "(2) Perpendicular plane $(1) belongs to the dual cylinder $(1)"
 
-                @assert (cylinders[i][1] * cylinders[i][2][2]) ≃ [0, 0, 0, 0] "(6) Singular point is right null space of cylinder matrix $(i)"
+                @assert (cylinder.matrix * cylinder.singular_point) ≃ [0, 0, 0, 0] "(6) Singular point is right null space of cylinder matrix $(i)"
 
-                @assert ((dualSingularPlanes[i]' * cylinders[i][2][2]) ≃ 0 && (dualSingularPlanes[i]' * cylinders[i][2][1] * dualSingularPlanes[i]) ≃ 0) "(7) Singular plane / point and dual quadric constraints $(i)"
-                @assert cylinders[i][2][2][4] ≃ 0 "(10) Singular point is at infinity $(i)"
+                @assert ((dual_singular_plane' * cylinder.singular_point) ≃ 0 && (dual_singular_plane' * cylinder.dual_matrix * dual_singular_plane) ≃ 0) "(7) Singular plane / point and dual quadric constraints $(i)"
+                @assert cylinder.singular_point[4] ≃ 0 "(10) Singular point is at infinity $(i)"
             end
         end
 
-        cameraTranslation = (2.0, 30.0, 5.0)
-        cameraRotation = (-83.0, 180.0, 0.0)
-        cameraPositionMatrix = Transformation(cameraTranslation, cameraRotation)
-        cameraProjectionMatrix = build_camera_matrix(cameraTranslation, cameraRotation, 2, 1)
+        camera = CameraProperties(
+            position = [2.0, 30.0, 5.0],
+            euler_rotation = [-83.0, 180.0, 0.0],
+        )
+        camera.matrix = build_camera_matrix(camera.position, camera.euler_rotation, 2, 1)
 
-        conics = Array{Tuple{Matrix{Float64}, Tuple{Matrix{Float64}, Vector{Float64}}}}(undef, numberOfCylinders)
-        for i in 1:numberOfCylinders
-            conics[i] = (
-                pinv(cameraProjectionMatrix') * cylinders[i][1] * pinv(cameraProjectionMatrix),
-                (
-                    cameraProjectionMatrix * cylinders[i][2][1] * cameraProjectionMatrix',
-                    cameraProjectionMatrix * cylinders[i][2][2]
-                )
+        conics = []
+        for i in 1:number_of_cylinders
+            conic = Conic.ConicProperties(
+                pinv(camera.matrix') * cylinders[i].matrix * pinv(camera.matrix),
+                camera.matrix * cylinders[i].singular_point,
+                camera.matrix * cylinders[i].dual_matrix * camera.matrix',
             )
-
-            begin #asserts
-                # @assert conics[i][1] * conics[i][2][1] ≃ diagm([1, 1, 0]) "(-3) The dual conic is correct"
-                cylinderProjection = cameraProjectionMatrix * cylinders[i][2][1] * cameraProjectionMatrix'
-                @assert conics[i][2][1] ≃ cylinderProjection "(4) Dual conic $(1) is the transformation of the dual cylinder"
-            end
+            push!(conics, conic)
         end
 
-        conicBorders = Array{Array{Vector{Float64}}}(undef, numberOfCylinders)
-        for i in 1:numberOfCylinders
+        conics_contours = Array{Float64}(undef, number_of_cylinders, 2, 3)
+        @info size(conics_contours)
+        @info typeof(conics_contours)
+        for i in 1:number_of_cylinders
             lines = get_cylinder_contours(
-                cylinders_geometry[i],
-                collect(cameraTranslation),
-                cameraProjectionMatrix
+                cylinders[i].geometry,
+                collect(camera.position),
+                camera.matrix
             )
-            conicBorders[i] = Vector{Line}(undef, length(lines))
             for (j, line) in enumerate(lines)
                 line_homogenous = line_to_homogenous(line)
-                conicBorders[i][j] = line_homogenous
+                conics_contours[i, j, :] = line_homogenous
 
                 begin #asserts
-                    @assert line_homogenous' * conics[i][2][1] * line_homogenous ≃ 0 "(3) Line of projected singular plane $(1) belongs to the dual conic $(1)"
-                    @assert line_homogenous' * cameraProjectionMatrix * cylinders[i][2][2] ≃ 0 "(8) Line $(j) of conic $(i) passes through the projected singular point"
-                    @assert line_homogenous' * cameraProjectionMatrix * cylinders[i][2][1] * cameraProjectionMatrix' * line_homogenous ≃ 0 "(9) Line $(j) of conic $(i) is tangent to the projected cylinder"
+                    @assert line_homogenous' * conics[i].dual_matrix * line_homogenous ≃ 0 "(3) Line of projected singular plane $(1) belongs to the dual conic $(1)"
+                    @assert line_homogenous' * camera.matrix * cylinders[i].singular_point ≃ 0 "(8) Line $(j) of conic $(i) passes through the projected singular point"
+                    @assert line_homogenous' * camera.matrix * cylinders[i].dual_matrix * camera.matrix' * line_homogenous ≃ 0 "(9) Line $(j) of conic $(i) is tangent to the projected cylinder"
                 end
             end
         end
 
-        singularPoints = Array{Tuple{Number, Number}}(undef, numberOfCylinders)
-        for i in 1:numberOfCylinders
-            singularPoint = conics[i][2][2]
-            singularPoint = singularPoint ./ singularPoint[3]
-            singularPoint = (singularPoint[1], singularPoint[2])
-            singularPoints[i] = singularPoint
-        end
-
-        figure = initFigure()
-        plot3DCamera(Plot3DCameraInput(
-            cameraRotation,
-            cameraTranslation
+        figure = initfigure()
+        plot_3dcamera(Plot3dCameraInput(
+            camera.euler_rotation,
+            camera.position,
         ))
-        plot3DCylinders(Plot3DCylindersInput(
-            transforms,
-            radiuses,
-            numberOfCylinders,
-            # cameraProjectionMatrix
+        plot_3dcylinders(Plot3dCylindersInput(
+            [cylinder.transform for cylinder in cylinders],
+            [cylinder.radiuses for cylinder in cylinders],
+            number_of_cylinders,
         ))
-        plot2DPoints(singularPoints)
-        plot2DCylinders(conicBorders)
+        plot_2dpoints([(conic.singular_point ./ conic.singular_point[3])[1:2] for conic in conics])
+        @info conics_contours[1, :, :]
+        plot_2dcylinders(conics_contours)
 
-        # 3 line minimum to solve the pose
-        numberOfLinesToSolveFor = 4
-        lines = []
-        pointAtInfinityToUse = []
-        dualQuadricToUse = []
-        possiblePicks = 1:(numberOfCylinders*2)
-        pickedLines = []
-        for _ in (1:numberOfLinesToSolveFor)
-            lineIndex = rand(possiblePicks)
-            possiblePicks = filter(x -> x != lineIndex, possiblePicks)
-            i = ceil(Int, lineIndex / 2)
-            j = (lineIndex - 1) % 2 + 1
-            push!(pickedLines, (i, j))
-            borders = conicBorders[i]
-            line = borders[j]
-            push!(lines, line)
-            push!(pointAtInfinityToUse, cylinders[i][2][2][1:3])
-            push!(dualQuadricToUse, cylinders[i][2][1])
-        end
-
-        @var x y z f
-        Rₚ = build_rotation_matrix(x, y, z)
-
-        systemToSolve = []
-        for i in 1:numberOfLinesToSolveFor
-            equation = lines[i]' * [
-                f 0 0;
-                0 f 0;
-                0 0 1
-            ] * Rₚ * pointAtInfinityToUse[i]
-            push!(systemToSolve, equation)
-        end
-
-        F = System(systemToSolve, variables=[x, y, z, f])
-        result = solve(F)
-        display(result)
-
-        rotationCalculated = nothing
-        focalLengthCalculated = nothing
-        rotationSolutionError = Inf
-        for (solutionIndex, solution) in enumerate(real_solutions(result))
-            display("Trying solution $(solutionIndex)")
-            xₛ = solution[1]
-            yₛ = solution[2]
-            zₛ = solution[3]
-            fₛ = solution[4]
-            rotation = Rotations.QuatRotation(1, xₛ , yₛ, zₛ)
-            # rotation = buildRotationMatrix(xₛ, yₛ, zₛ, true)
-            # display("Rotation angle: $(rotation_angle(rotation)), Rotation axis: $(rotation_axis(rotation))")
-            acceptable = true
-            currentError = 0
-            for (i, border) in enumerate(conicBorders)
-                for (j, line) in enumerate(border)
-                    eq = line' * [
-                        fₛ 0 0;
-                        0 fₛ 0;
-                        0 0 1
-                    ] *rotation * cylinders[i][2][2][1:3]
-                    currentError += abs(eq)
-                    # display("Solution $(solutionIndex): $(eq)")
-                    if (!(eq ≃ 0))
-                        # display("Line $(j) of conic $(i) does not satisfy the constraints")
-                        acceptable = false
-                    end
-                end
-                if (!acceptable)
-                    # break
-                end
-            end
-            if (acceptable)
-                # rotationCalculated = solution
-                display("Solution $(solutionIndex) is acceptable")
-                break
-            end
-            if (currentError < rotationSolutionError)
-                rotationSolutionError = currentError
-                rotationCalculated = rotation
-                focalLengthCalculated = fₛ
-            end
-        end
-
-        begin #asserts
-            @assert rotationCalculated isa QuatRotation{Float64} "(11) Found rotation satisfies constraints"
-        end
-
-        display("Error of the best rotation solution: $(rotationSolutionError)")
-        display("Best solution for rotation: $(rad2deg.(Rotations.params(RotXYZ(rotationCalculated))))")
-        display("Actual rotation: $(Rotations.params(RotXYZ(cameraRotation[1], cameraRotation[2], cameraRotation[3])))")
-
-        function buildCameraMatrixForSolving(rotation, translation)
-            return [focalLengthCalculated 0 0 0;
-                0 focalLengthCalculated 0 0;
-                0 0 focalLengthCalculated 0] * vcat(hcat(rotation, translation), [0 0 0 1])
-        end
-
-        @var tx ty tz
-        P = buildCameraMatrixForSolving(rotationCalculated, [tx; ty; tz])
-
-        systemToSolve = []
-        for i in 1:3
-            equation = lines[i]' * P * dualQuadricToUse[i] * P' * lines[i]
-            push!(systemToSolve, equation)
-        end
-
-        F = System(systemToSolve, variables=[tx, ty, tz])
-        result = solve(F)
-        display(result)
-        solutions = real_solutions(result)
-        translationSolutionError = Inf
-        translationCalculated = nothing
-        for (solutionIndex, solution) in enumerate(solutions)
-            txₛ = solution[1]
-            tyₛ = solution[2]
-            tzₛ = solution[3]
-            translation = [txₛ, tyₛ, tzₛ]
-            acceptable = true
-            currentError = 0
-            Pₛ = buildCameraMatrixForSolving(rotationCalculated, translation)
-            for (i, conicBorder) in enumerate(conicBorders)
-                for (j, line) in enumerate(conicBorder)
-                    eq = line' * Pₛ * cylinders[i][2][1] * Pₛ' * line
-                    currentError += abs(eq)
-                    # display("Solution $(i): $(eq))")
-                    # if ((i, j) in pickedLines)
-                    #     display("Solution $(solutionIndex): $(eq ≃ 0)")
-                    # end
-                    if (!(eq ≃ 0))
-                        # display("Line $(j) of conic $(i) does not satisfy the constraints")
-                        acceptable = false
-                    end
-                    if (currentError < translationSolutionError)
-                        translationSolutionError = currentError
-                        translationCalculated = translation
-                    end
-                end
-                if (!acceptable)
-                    # break
-                end
-            end
-        end
-
-        display("Translation: $(translationCalculated)")
-
-        calculatedCameraMatrix = buildCameraMatrixForSolving(rotationCalculated, translationCalculated)
-
-        display("Camera projection matrix: $(cameraProjectionMatrix ./ cameraProjectionMatrix[3, 4])")
-        display("Calculated projection camera matrix: $(calculatedCameraMatrix ./ calculatedCameraMatrix[3, 4])")
-
-        reconstructedBorders = Array{Array{Vector{Float64}}}(undef, numberOfCylinders)
-        for i in 1:numberOfCylinders
-            reconstructedConic = (
-                pinv(calculatedCameraMatrix') * cylinders[i][1] * pinv(calculatedCameraMatrix),
-                (
-                    calculatedCameraMatrix * cylinders[i][2][1] * calculatedCameraMatrix',
-                    calculatedCameraMatrix * cylinders[i][2][2]
-                )
-            )
-            local lines = get_cylinder_contours(
-                cylinders_geometry[i],
-                translationCalculated,
-                calculatedCameraMatrix
-            )
-            reconstructedBorders[i] = Array{Vector{Float64}}(undef, length(lines))
-            for (j, line) in enumerate(lines)
-                line_homogenous = line_to_homogenous(line)
-                reconstructedBorders[i][j] = line_homogenous
-            end
-        end
-
-        plot2DCylinders(reconstructedBorders, linestyle=:dash)
         figure
+
+        # # 3 line minimum to solve the pose
+        # numberoflines_tosolvefor = 4
+        # lines = Matrix{Float64}(undef, numberoflines_tosolvefor, 3)
+        # points_at_infinity = Matrix{Float64}(undef, numberoflines_tosolvefor, 3)
+        # dualquadrics = Array{Float64}(undef, numberoflines_tosolvefor, 4, 4)
+        # possible_picks = 1:(number_of_cylinders*2)
+        # picked_lines = []
+        # for store_index in (1:numberoflines_tosolvefor)
+        #     line_index = rand(possible_picks)
+        #     possible_picks = filter(x -> x != line_index, possible_picks)
+        #     i = ceil(Int, line_index / 2)
+        #     j = (line_index - 1) % 2 + 1
+        #     push!(picked_lines, (i, j))
+        #     line = conics_contours[i, j, :]
+        #     lines[store_index, :] = line
+        #     points_at_infinity[store_index, :] = cylinders[i].singular_point[1:3]
+        #     dualquadrics[store_index, :, :] = cylinders[i].dual_matrix
+        # end
+
+        # parameters_solutions_pair = nothing
+        # try
+        #     parameters_solutions_pair = deserialize("tmp/intrinsic_rotation_monodromy_solutions.jld")
+        # catch
+        #     error("generate intrinsic-rotation monodromy first")
+        #     return 1
+        # end
+
+        # intrinsic_rotation_system = build_intrinsic_rotation_conic_system(lines, points_at_infinity)
+        # parameters = stack_homotopy_parameters(lines, points_at_infinity)
+
+        # result = solve(
+        #     intrinsic_rotation_system,
+        #     parameters_solutions_pair.solutions,
+        #     start_parameters = parameters_solutions_pair.start_parameters,
+        #     target_parameters = parameters,
+        # )
+        # @info result
+        # @info solutions(result)
+
+        # camera_calculated = nothing
+        # solution_error = Inf
+        # for solution in real_solutions(result)
+        #     xₛ = solution[1]
+        #     yₛ = solution[2]
+        #     zₛ = solution[3]
+        #     fₛ = solution[4]
+        #     rotation = Rotations.QuatRotation(1, xₛ , yₛ, zₛ)
+        #     acceptable = true
+        #     current_error = 0
+        #     for (i, contour) in enumerate(conics_contours)
+        #         for line in contour
+        #             eq = line' * build_intrinsic_matrix(fₛ) * rotation * cylinders[i].singular_point[1:3]
+        #             currentError += abs(eq)
+        #             if (!(eq ≃ 0))
+        #                 acceptable = false
+        #             end
+        #         end
+        #         if (!acceptable)
+        #             break
+        #         end
+        #     end
+        #     if (current_error < solution_error)
+        #         solution_error = current_error
+        #         camera_calculated = CameraProperties(
+        #             euler_rotation = rad2deg.(Rotations.params(RotXYZ(rotation))),
+        #             quaternion_rotation = rotation,
+        #             focal_length = fₛ,
+        #         )
+        #     end
+        # end
+
+        # begin #asserts
+        #     @assert isnothing(camera_calculated) == false  "(11) Found rotation satisfies constraints"
+        # end
+
+        # display("Error of the best rotation solution: $(solution_error)")
+        # display("Best solution for rotation: $(camera_calculated.euler_rotation)")
+        # display("Actual rotation: $(Rotations.params(RotXYZ(cameraRotation[1], cameraRotation[2], cameraRotation[3])))")
+
+        # try
+        #     parameters_solutions_pair = deserialize("tmp/intrinsic_rotation_monodromy_solutions.jld")
+        # catch
+        #     error("generate translation monodromy first")
+        #     return 1
+        # end
+
+        # translation_system = build_intrinsic_rotation_translation_conic_system(
+        #     build_intrinsic_matrix(camera_calculated.focal_length),
+        #     camera_calculated.quaternion_rotation,
+        #     contour_lines,
+        #     dualquadrics
+        # )
+
+        # parameters = stack_homotopy_parameters(contour_lines, dualquadrics)
+
+        # result = solve(
+        #     translation_system,
+        #     parameters_solutions_pair.solutions,
+        #     start_parameters = parameters_solutions_pair.start_parameters,
+        #     target_parameters = parameters,
+        # )
+        # @info result
+
+        # solution_error = Inf
+        # for solution in real_solutions(result)
+        #     txₛ = solution[1]
+        #     tyₛ = solution[2]
+        #     tzₛ = solution[3]
+        #     position = [txₛ, tyₛ, tzₛ]
+        #     acceptable = true
+        #     current_error = 0
+        #     Pₛ = build_camera_matrix(position, camera_calculated.quaternion_rotation, camera_calculated.focal_length, 1)
+        #     for (i, conic_contour) in enumerate(conics_contours)
+        #         for line in conic_contour
+        #             eq = line' * Pₛ * cylinders[i].dual_matrix * Pₛ' * line
+        #             currentError += abs(eq)
+        #             if (!(eq ≃ 0))
+        #                 acceptable = false
+        #             end
+        #             if (!acceptable)
+        #                 break
+        #             end
+        #             if (current_error < solution_error)
+        #                 solution_error = currentError
+        #                 camera_calculated.position
+        #             end
+        #         end
+        #     end
+        # end
+
+        # camera_calculated.matrix = build_camera_matrix(camera_calculated.position, camera_calculated.quaternion_rotation, camera_calculated.focal_length, 1)
+
+        # @info "Translation: $(camera_calculated.position)"
+
+        # display("Camera projection matrix: $(camera.matrix ./ camera.matrix[3, 4])")
+        # display("Calculated projection camera matrix: $(camera_calculated.matrix ./ camera_calculated.matrix[3, 4])")
+
+        # reconstructued_contours = Array{Float64}(undef, number_of_cylinders, 2, 3)
+        # for i in 1:number_of_cylinders
+        #     lines = get_cylinder_contours(
+        #         cylinders[i].geometry,
+        #         collect(camera_calculated.position),
+        #         camera_calculated.matrix
+        #     )
+        #     for (j, line) in enumerate(lines)
+        #         line_homogenous = line_to_homogenous(line)
+        #         reconstructued_contours[i, j, :] = line_homogenous
+        #     end
+        # end
+
+        # plot_2dcylinders(reconstructued_contours, linestyle=:dash)
+        # figure
     end
 
     function generate_monodromy_solutions()
         Random.seed!(777)
 
         camera_translationdirection = normalize(rand(Float64, 3))
-        camera_translation = camera_translationdirection * randRange(6.0, 10.0)
+        camera_translation = camera_translationdirection * rand_in_range(6.0, 10.0)
         camera_rotation = lookat_rotation(camera_translationdirection, [0, 0, 0], [0, 0, 1])
 
         quaternion_camera_rotation = quat_from_rotmatrix(camera_rotation)
@@ -312,24 +284,25 @@ module CylindersBasedCameraResectioning
         f = 2
 
         cameramatrix = build_camera_matrix(
-            (camera_translation[1], camera_translation[2], camera_translation[3]),
-            camera_rotation, f, 1
+            camera_translation,
+            quaternion_camera_rotation, f, 1
         )
 
         random_cylindertranslation_range = 5
         cylinders = []
         cylinders_geometry = []
+        transforms::Vector{Matrix{Float64}} = []
+        radiuses::Vector{Vector{Float64}} = []
         for i in 1:2
             position_direction = normalize(rand(Float64, 3))
-            position = position_direction * randRange(0, random_cylindertranslation_range)
-            rotation = randRange((0, 180), 3)
+            position = position_direction * rand_in_range(0, random_cylindertranslation_range)
+            rotation = rand_in_range((0, 90), 3)
 
-            transform = Transformation(
-                (position[1], position[2], position[3]),
-                (rotation[1], rotation[2], rotation[3])
-            )
-            radius = randRange(1, 3)
+            transform = transformation(position, rotation)
+            push!(transforms, transform)
+            radius = rand_in_range(1, 3)
             radius = [radius, radius]
+            push!(radiuses, radius)
 
             axis = transform * [0; 0; 1; 0]
             axis = axis ./ axis[3]
@@ -340,29 +313,46 @@ module CylindersBasedCameraResectioning
                 axis,
             ))
 
-            push!(cylinders, Cylinder.StandardAndDual(transform, (radius[1], radius[2])))
+            push!(cylinders, Cylinder.standard_and_dual(transform, radius))
         end
 
-        contour_lines = Matrix{Float64}(undef, 4, 3)
+        contour_lines = Array{Float64}(undef, 2, 2, 3)
+        lines = Matrix{Float64}(undef, 4, 3)
         points_at_infinity = Matrix{Float64}(undef, 4, 3)
         dualquadrics = Array{Float64}(undef, 4, 4, 4)
         for i in 1:2
-            lines = get_cylinder_contours(
+            cylinder_lines = get_cylinder_contours(
                 cylinders_geometry[i],
                 camera_translation,
                 cameramatrix
             )
-            for (line_index, line) in enumerate(lines)
+            for (line_index, line) in enumerate(cylinder_lines)
                 line_homogenous = line_to_homogenous(line)
                 index = (i - 1) * 2 + line_index
-                contour_lines[index, :] = line_homogenous
-                points_at_infinity[index, :] = cylinders[i][2][2][1:3]
-                dualquadrics[index, :, :] = cylinders[i][2][1]
+                contour_lines[i, line_index, :] = line_homogenous
+                lines[index, :] = line_homogenous
+                points_at_infinity[index, :] = cylinders[i][3][1:3]
+                dualquadrics[index, :, :] = cylinders[i][2]
             end
         end
 
-        intrinsic_rotation_system = build_intrinsic_rotation_conic_system(contour_lines, points_at_infinity)
-        parameters = stack_intrinsic_rotation_conic_parameters(contour_lines, points_at_infinity)
+        figure = initfigure()
+        rx, ry, rz = rad2deg.(Rotations.params(RotXYZ(quaternion_camera_rotation)))
+        plot_3dcamera(Plot3dCameraInput(
+            [rx, ry, rz],
+            camera_translation,
+        ))
+        plot_3dcylinders(Plot3dCylindersInput(
+            transforms,
+            radiuses,
+            2,
+        ))
+        plot_2dcylinders(contour_lines)
+
+        display(figure)
+
+        intrinsic_rotation_system = build_intrinsic_rotation_conic_system(lines, points_at_infinity)
+        parameters = stack_homotopy_parameters(lines, points_at_infinity)
         monodromy_solutions = monodromy_solve(intrinsic_rotation_system, [x, y, z, f], parameters)
         @info monodromy_solutions
 
@@ -373,7 +363,7 @@ module CylindersBasedCameraResectioning
 
         serialize(
             "tmp/intrinsic_rotation_monodromy_solutions.jld",
-            MonodromyParametersSolutionPair(parameters, solutions(monodromy_solutions))
+            MonodromyParametersSolutionsPair(parameters, solutions(monodromy_solutions))
         )
 
         intrinsic_matrix = build_intrinsic_matrix(f)
@@ -381,16 +371,16 @@ module CylindersBasedCameraResectioning
         translation_system = build_intrinsic_rotation_translation_conic_system(
             intrinsic_matrix,
             camera_rotation,
-            contour_lines,
+            lines,
             dualquadrics
         )
-        parameters = stack_intrinsic_rotation_conic_parameters(contour_lines, dualquadrics)
+        parameters = stack_homotopy_parameters(lines, dualquadrics)
         monodromy_solutions = monodromy_solve(translation_system, camera_translation, parameters)
         @info monodromy_solutions
 
         serialize(
             "tmp/translation_monodromy_solutions.jld",
-            MonodromyParametersSolutionPair(parameters, solutions(monodromy_solutions))
+            MonodromyParametersSolutionsPair(parameters, solutions(monodromy_solutions))
         )
     end
 
