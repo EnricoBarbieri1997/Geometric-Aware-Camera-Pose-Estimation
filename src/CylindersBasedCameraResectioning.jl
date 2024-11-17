@@ -109,9 +109,7 @@ module CylindersBasedCameraResectioning
             number_of_cylinders,
         ))
         plot_2dpoints([(conic.singular_point ./ conic.singular_point[3])[1:2] for conic in conics])
-        plot_2dcylinders(conics_contours)
-
-        figure
+        # plot_2dcylinders(conics_contours)
 
         # 3 line minimum to solve the pose
         numberoflines_tosolvefor = 4
@@ -154,17 +152,12 @@ module CylindersBasedCameraResectioning
         solution_error = Inf
         solutions_to_try = [real_solutions(result)[3]]
         for solution in solutions_to_try
+            solution = solution ./ solution[5]
+            @info solution[5]
             xₛ = solution[1]
             yₛ = solution[2]
             zₛ = solution[3]
             fₛ = solution[4]
-
-            if (fₛ < 0) # TODO is needed?
-                xₛ = -xₛ
-                yₛ = -yₛ
-                zₛ = -zₛ
-                fₛ = -fₛ
-            end
 
             camera_extrinsic_rotation= quat_from_rotmatrix(build_rotation_matrix(xₛ , yₛ, zₛ, true))
             acceptable = true
@@ -206,7 +199,6 @@ module CylindersBasedCameraResectioning
             return 1
         end
 
-        @info camera_calculated
         translation_system = build_intrinsic_rotation_translation_conic_system(
             build_intrinsic_matrix(camera_calculated.focal_length),
             camera_calculated.quaternion_rotation,
@@ -226,6 +218,7 @@ module CylindersBasedCameraResectioning
 
         solution_error = Inf
         for solution in real_solutions(result)
+            solution = solution ./ solution[4]
             txₛ = solution[1]
             tyₛ = solution[2]
             tzₛ = solution[3]
@@ -277,6 +270,7 @@ module CylindersBasedCameraResectioning
         end
 
         plot_2dcylinders(reconstructued_contours, linestyle=:dash)
+
         figure
     end
 

@@ -12,32 +12,34 @@ module EquationSystems
 
 	function build_intrinsic_rotation_conic_system(lines_values::Matrix{<:Number}, points_at_infinity_values::Matrix{<:Number})
 		lines_count = size(lines_values)[1]
-		@var x y z f
+		@var x y z f scale
 		@var lines[1:lines_count, 1:3] points_at_infinity[1:lines_count, 1:3]
 		Rₚ = build_rotation_matrix(x, y, z)
 		intrinsic_topleft = build_intrinsic_matrix(f)[1:3, 1:3]
 
 		system_to_solve = []
 		for line_index in 1:lines_count
-			equation = lines[line_index, :]' * intrinsic_topleft * Rₚ * points_at_infinity[line_index, :]
+			equation = lines[line_index, :]' * scale * intrinsic_topleft * Rₚ * points_at_infinity[line_index, :]
 			push!(system_to_solve, equation)
 		end
+		push!(system_to_solve, scale - 1)
 		parameters = stack_homotopy_parameters(lines, points_at_infinity)
-		return System(system_to_solve, variables = [x, y, z, f], parameters = parameters)
+		return System(system_to_solve, variables = [x, y, z, f, scale], parameters = parameters)
 	end
 
 	function build_intrinsic_rotation_translation_conic_system(intrinsic, rotation, lines_values, dual_quadic_values)
 		lines_count = size(lines_values)[1]
-		@var tx ty tz
+		@var tx ty tz scale
 		@var lines[1:lines_count, 1:3] dual_quadrics[1:lines_count, 1:4, 1:4]
 		P = build_camera_matrix(intrinsic, rotation, [tx; ty; tz])
 
 		system_to_solve = []
 		for i in 1:lines_count
-				equation = lines[i, :]' * P * dual_quadrics[i, :, :] * P' * lines[i, :]
+				equation = lines[i, :]' * scale * P * dual_quadrics[i, :, :] * P' * lines[i, :]
 				push!(system_to_solve, equation)
 		end
+		push!(system_to_solve, scale - 1)
 		parameters = stack_homotopy_parameters(lines, dual_quadrics)
-		return System(system_to_solve, variables=[tx, ty, tz], parameters=parameters)
+		return System(system_to_solve, variables=[tx, ty, tz, scale], parameters=parameters)
 	end
 end
