@@ -107,7 +107,7 @@ module Camera
 
 		return [xaxis[1] yaxis[1] zaxis[1];
 			xaxis[2] yaxis[2] zaxis[2];
-			xaxis[3] yaxis[3] zaxis[3]]
+			xaxis[3] yaxis[3] zaxis[3]] * RotZ(π)
 	end
 
 	function lookat_matrix(eye, at, up)

@@ -279,9 +279,9 @@ module CylindersBasedCameraResectioning
 
         camera_translationdirection = normalize(rand(Float64, 3))
         camera_translation = camera_translationdirection * rand_in_range(15.0, 20.0)
-        # camera_rotation = lookat_rotation(camera_translationdirection, [0, 0, 0], [0, 0, 1])
-        rx, ry, rz = (-90, -110, 0)
-        camera_rotation = RotXYZ(deg2rad(rx), deg2rad(ry), deg2rad(rz))
+        camera_rotation = lookat_rotation(camera_translationdirection, [0, 0, 0], [0, 0, 1])
+        # rx, ry, rz = (-90, -110, 0)
+        # camera_rotation = RotXYZ(deg2rad(rx), deg2rad(ry), deg2rad(rz))
 
         # quaternion_camera_rotation = quat_from_rotmatrix(camera_rotation)
         quaternion_camera_rotation = QuatRotation(camera_rotation)
@@ -344,7 +344,7 @@ module CylindersBasedCameraResectioning
         end
 
         figure = initfigure()
-        # rx, ry, rz = rad2deg.(Rotations.params(RotXYZ(quaternion_camera_rotation)))
+        rx, ry, rz = rad2deg.(Rotations.params(RotXYZ(quaternion_camera_rotation)))
         plot_3dcamera(Plot3dCameraInput(
             [rx, ry, rz],
             camera_translation,
@@ -366,7 +366,7 @@ module CylindersBasedCameraResectioning
 
         intrinsic_rotation_system = build_intrinsic_rotation_conic_system(lines, points_at_infinity)
         parameters = stack_homotopy_parameters(lines, points_at_infinity)
-        startingsolution = [x, y, z, f]
+        startingsolution = [x, y, z, f, 1]
         monodromy_solutions = monodromy_solve(intrinsic_rotation_system, startingsolution, parameters, max_loops_no_progress=5)
         @info monodromy_solutions
 
@@ -392,7 +392,7 @@ module CylindersBasedCameraResectioning
             dualquadrics[1:3, :, :]
         )
         parameters = stack_homotopy_parameters(lines[1:3, :], dualquadrics[1:3, :, :])
-        monodromy_solutions = monodromy_solve(translation_system, camera_translation, parameters, max_loops_no_progress=5)
+        monodromy_solutions = monodromy_solve(translation_system, [camera_translation; 1], parameters, max_loops_no_progress=5)
         @info monodromy_solutions
 
         serialize(
