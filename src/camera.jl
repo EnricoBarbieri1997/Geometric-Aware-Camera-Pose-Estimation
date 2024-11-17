@@ -48,8 +48,7 @@ module Camera
 
 		r₁ = rotation' # inv(r)
 	
-		t = [translation[1], translation[2], translation[3]]
-		t₁ = -r₁ * t
+		t₁ = -r₁ * translation
 
 		M[1:3, 1:3] = r₁
 		M[1:3, 4] = t₁
@@ -71,8 +70,7 @@ module Camera
 		r = RotXYZ(deg2rad.(rotation)...)
 		r₁ = r' # inv(r)
 	
-		t = [translation[1], translation[2], translation[3]]
-		t₁ = -r₁ * t
+		t₁ = -r₁ * translation
 
 		M[1:3, 1:3] = r₁
 		M[1:3, 4] = t₁

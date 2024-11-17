@@ -1,7 +1,7 @@
 module EquationSystems
 	export stack_homotopy_parameters, build_intrinsic_rotation_conic_system, build_intrinsic_rotation_translation_conic_system
 
-	using ..Camera: build_camera_matrix
+	using ..Camera: build_intrinsic_matrix, build_camera_matrix
 	using ..Space: build_rotation_matrix
 
 	using HomotopyContinuation
@@ -15,14 +15,11 @@ module EquationSystems
 		@var x y z f
 		@var lines[1:lines_count, 1:3] points_at_infinity[1:lines_count, 1:3]
 		Rₚ = build_rotation_matrix(x, y, z)
+		intrinsic_topleft = build_intrinsic_matrix(f)[1:3, 1:3]
 
 		system_to_solve = []
 		for line_index in 1:lines_count
-			equation = lines[line_index, :]' * [
-					f 0 0;
-					0 f 0;
-					0 0 1
-			] * Rₚ * points_at_infinity[line_index, :]
+			equation = lines[line_index, :]' * intrinsic_topleft * Rₚ * points_at_infinity[line_index, :]
 			push!(system_to_solve, equation)
 		end
 		parameters = stack_homotopy_parameters(lines, points_at_infinity)
