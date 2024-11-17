@@ -46,7 +46,7 @@ module Camera
 
 		M = zeros(4, 4)
 
-		r₁ = rotation
+		r₁ = rotation' # inv(r)
 	
 		t = [translation[1], translation[2], translation[3]]
 		t₁ = -r₁ * t
@@ -91,8 +91,9 @@ module Camera
 	end
 
 	function build_camera_matrix(intrinsic, rotation, translation)
-		t₁ = -rotation * translation
-		return intrinsic * vcat(hcat(rotation, t₁), [0 0 0 1])
+		r₁ = rotation' # inv(r)
+		t₁ = -r₁ * translation
+		return intrinsic * vcat(hcat(r₁, t₁), [0 0 0 1])
 	end
 
 	function lookat_axis(eye, at, up)

@@ -73,20 +73,6 @@ module Plotting
             canonicPoints = Array{Float64}(undef, 0, 4)
 
             for j in 1:heightLevels
-                # a = canonicPoints
-                # b = [X Y (z[j] * ones(angles)) ones(angles)]
-                # sa = size(a)
-                # sb = size(b)
-                # if (a != b)
-                #     display(sa)
-                #     display(sb)
-                #     display(a)
-                #     display(X)
-                #     display(Y)
-                #     display(z[j] * ones(angles))
-                #     display(ones(angles))
-                #     return
-                # end
                 canonicPoints = vcat(canonicPoints, [X Y (z[j] * ones(angles)) ones(angles)])
             end
             points = transpose(cylindersInfo.transforms[i] * canonicPoints')
@@ -104,9 +90,9 @@ module Plotting
         end
     end
 
-    function plot_2dpoints(singularPoints)
-        for (i, singularPoint) in enumerate(singularPoints)
-            scatter!(ax2, (singularPoint[1], -singularPoint[2]), color = colors[i])
+    function plot_2dpoints(points)
+        for (i, point) in enumerate(points)
+            scatter!(ax2, (point[1], -point[2]), color = colors[i])
         end
     end
 
@@ -128,11 +114,11 @@ module Plotting
         end
     end
 
-    function plot_2dcylinders(conic_borders; linestyle = :solid)
+    function plot_2dcylinders(conic_contours; linestyle = :solid)
         y = function (x, l) return (-(l[1] * x + l[3]) / l[2]) end
-        for i in 1:(size(conic_borders)[1])
-            for j in 1:(size(conic_borders)[2])
-                line = conic_borders[i, j, :]
+        for i in 1:(size(conic_contours)[1])
+            for j in 1:(size(conic_contours)[2])
+                line = conic_contours[i, j, :]
                 y1 = function (x) return y(x, line) end
                 xs = -50:1:50
                 ys1 = y1.(xs)
