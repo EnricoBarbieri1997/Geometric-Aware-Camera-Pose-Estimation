@@ -109,7 +109,7 @@ module CylindersBasedCameraResectioning
             number_of_cylinders,
         ))
         plot_2dpoints([(conic.singular_point ./ conic.singular_point[3])[1:2] for conic in conics])
-        # plot_2dcylinders(conics_contours)
+        plot_2dcylinders(conics_contours, alpha=0.5)
 
         # 3 line minimum to solve the pose
         numberoflines_tosolvefor = 4
@@ -150,7 +150,8 @@ module CylindersBasedCameraResectioning
 
         camera_calculated = nothing
         solution_error = Inf
-        solutions_to_try = [real_solutions(result)[3]]
+        # solutions_to_try = [real_solutions(result)[3]]
+        solutions_to_try = real_solutions(result)
         for solution in solutions_to_try
             solution = solution ./ solution[5]
             @info solution[5]

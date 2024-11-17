@@ -114,7 +114,7 @@ module Plotting
         end
     end
 
-    function plot_2dcylinders(conic_contours; linestyle = :solid)
+    function plot_2dcylinders(conic_contours; linestyle = :solid, alpha = 1)
         y = function (x, l) return (-(l[1] * x + l[3]) / l[2]) end
         for i in 1:(size(conic_contours)[1])
             for j in 1:(size(conic_contours)[2])
@@ -122,7 +122,7 @@ module Plotting
                 y1 = function (x) return y(x, line) end
                 xs = -50:1:50
                 ys1 = y1.(xs)
-                lines!(ax2, xs, -ys1, color = colors[i], linestyle=linestyle)
+                lines!(ax2, xs, -ys1, color = (colors[i], alpha), linestyle=linestyle)
             end
         end
     end
