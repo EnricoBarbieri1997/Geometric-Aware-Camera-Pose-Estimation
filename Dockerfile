@@ -4,6 +4,8 @@ COPY ./Manifest.toml /app/Manifest.toml
 COPY ./src /app/src
 COPY ./test /app/test
 
+ENV JULIA_REVISE_POLL=1
+
 WORKDIR /app
 
 RUN apt-get update && apt-get install -y \
@@ -12,7 +14,12 @@ RUN apt-get update && apt-get install -y \
     mesa-utils \
     xvfb \
     libgl1 \
-    freeglut3-dev
+    freeglut3-dev \
+    inotify-tools
+
+RUN mkdir ~/.julia
+RUN mkdir ~/.julia/config
+RUN printf "atreplinit() do repl\ntry\n@eval using Revise\n@async Revise.wait_steal_repl_backend()\ncatch\nend\nend\n" >> ~/.julia/config/startup.jl 
 
 RUN julia -e 'using Pkg; Pkg.add("Revise");'
 RUN julia -e 'using Pkg; Pkg.activate("./"); Pkg.instantiate();'

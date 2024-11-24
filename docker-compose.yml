@@ -8,4 +8,5 @@ services:
       - ./assets:/app/assets
       - ./src:/app/src
       - ./test:/app/test
+      - ./tmp:/app/tmp
     working_dir: /app
