@@ -4,8 +4,6 @@ COPY ./Manifest.toml /app/Manifest.toml
 COPY ./src /app/src
 COPY ./test /app/test
 
-ENV JULIA_REVISE_POLL=1
-
 WORKDIR /app
 
 RUN apt-get update && apt-get install -y \
