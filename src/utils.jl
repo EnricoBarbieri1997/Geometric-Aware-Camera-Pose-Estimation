@@ -1,6 +1,7 @@
 module Utils
-	export almostequal, ≃, rand_in_range, quat_from_rotmatrix
+	export almostequal, ≃, rand_in_range, quat_from_rotmatrix, rotations_difference, translations_difference
 
+	using LinearAlgebra: norm
 	using Rotations
 	using Random
 
@@ -123,7 +124,7 @@ module Utils
 		return rand_in_range(map(r -> (Float64(r[1]), Float64(r[2])), range))
 	end
 
-	function bestSolution(solutions::Vector{Float64}, tester::Function):: [Int64, Float64]
+	function best_solution(solutions::Vector{Float64}, tester::Function):: [Int64, Float64]
 		best = 1
 		currentBestError = Inf
 		for (i, s) in enumerate(solutions)
@@ -137,9 +138,17 @@ module Utils
 	end
 
 	function quat_from_rotmatrix(dcm::AbstractMatrix{T}) where {T<:Real}
-    a2 = 1 + dcm[1,1] + dcm[2,2] + dcm[3,3]
-    a = sqrt(a2)/2
-    b,c,d = (dcm[3,2]-dcm[2,3])/4a, (dcm[1,3]-dcm[3,1])/4a, (dcm[2,1]-dcm[1,2])/4a
-    return QuatRotation(a,b,c,d)
+		a2 = 1 + dcm[1,1] + dcm[2,2] + dcm[3,3]
+		a = sqrt(a2)/2
+		b,c,d = (dcm[3,2]-dcm[2,3])/4a, (dcm[1,3]-dcm[3,1])/4a, (dcm[2,1]-dcm[1,2])/4a
+		return QuatRotation(a,b,c,d)
+	end
+
+	function rotations_difference(q1::QuatRotation, q2::QuatRotation)
+		return norm(Rotations.params(q1 * q2'))
+	end
+
+	function translations_difference(t1::Vector{<:Number}, t2::Vector{<:Number})
+		return norm(t1 - t2)
 	end
 end

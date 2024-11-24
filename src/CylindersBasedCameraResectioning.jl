@@ -99,10 +99,10 @@ module CylindersBasedCameraResectioning
         end
 
         figure = initfigure()
-        plot_3dcamera(Plot3dCameraInput(
-            camera.euler_rotation,
-            camera.position,
-        ))
+        # plot_3dcamera(Plot3dCameraInput(
+        #     camera.euler_rotation,
+        #     camera.position,
+        # ))
         plot_3dcylinders(Plot3dCylindersInput(
             [cylinder.transform for cylinder in cylinders],
             [cylinder.radiuses for cylinder in cylinders],
@@ -152,6 +152,7 @@ module CylindersBasedCameraResectioning
         solution_error = Inf
         # solutions_to_try = [real_solutions(result)[3]]
         solutions_to_try = real_solutions(result)
+        possible_cameras = []
         for solution in solutions_to_try
             # solution = solution ./ solution[5]
             xₛ = solution[1]
@@ -160,6 +161,14 @@ module CylindersBasedCameraResectioning
             fₛ = solution[4] ./ solution[5]
 
             camera_extrinsic_rotation = quat_from_rotmatrix(build_rotation_matrix(xₛ , yₛ, zₛ, true))
+
+            possible_camera = CameraProperties(
+                euler_rotation = rad2deg.(Rotations.params(RotXYZ(camera_extrinsic_rotation'))),
+                quaternion_rotation = camera_extrinsic_rotation',
+                focal_length = fₛ,
+            )
+            possible_cameras = [possible_cameras; possible_camera]
+
             acceptable = true
             current_error = 0
             for (i, contour) in enumerate(eachslice(conics_contours, dims=1))
@@ -176,11 +185,7 @@ module CylindersBasedCameraResectioning
             end
             if (current_error < solution_error)
                 solution_error = current_error
-                camera_calculated = CameraProperties(
-                    euler_rotation = rad2deg.(Rotations.params(RotXYZ(camera_extrinsic_rotation'))),
-                    quaternion_rotation = camera_extrinsic_rotation',
-                    focal_length = fₛ,
-                )
+                camera_calculated = possible_camera
             end
         end
 
@@ -191,6 +196,7 @@ module CylindersBasedCameraResectioning
         display("Error of the best rotation solution: $(solution_error)")
         display("Best solution for rotation: $(camera_calculated.euler_rotation)")
         display("Actual rotation: $(camera.euler_rotation)")
+        display("Difference between rotations: $(rotations_difference(camera_calculated.quaternion_rotation, camera.quaternion_rotation))")
 
         try
             parameters_solutions_pair = deserialize("tmp/translation_monodromy_solutions.jld")
@@ -199,48 +205,59 @@ module CylindersBasedCameraResectioning
             return 1
         end
 
-        translation_system = build_intrinsic_rotation_translation_conic_system(
-            build_intrinsic_matrix(camera_calculated.focal_length),
-            camera_calculated.quaternion_rotation,
-            lines[1:3, :],
-            dualquadrics[1:3, :, :]
-        )
-
-        parameters = stack_homotopy_parameters(lines[1:3, :], dualquadrics[1:3, :, :])
-
-        result = solve(
-            translation_system,
-            # parameters_solutions_pair.solutions,
-            # start_parameters = parameters_solutions_pair.start_parameters,
-            target_parameters = parameters,
-        )
-        @info result
-
         solution_error = Inf
-        for solution in real_solutions(result)
-            solution = solution ./ solution[4]
-            txₛ = solution[1]
-            tyₛ = solution[2]
-            tzₛ = solution[3]
-            position = [txₛ, tyₛ, tzₛ]
-            acceptable = true
-            current_error = 0
-            Pₛ = build_camera_matrix(position, camera_calculated.quaternion_rotation, camera_calculated.focal_length, 1)
-            for (i, conic_contour) in enumerate(eachslice(conics_contours, dims=1))
-                for line in eachslice(conic_contour, dims=1)
-                    eq = line' * Pₛ * cylinders[i].dual_matrix * Pₛ' * line
-                    current_error += abs(eq)
-                    # if (!(eq ≃ 0))
-                    #     acceptable = false
-                    # end
-                    if (!acceptable)
-                        break
+        for possible_camera in possible_cameras
+            translation_system = build_intrinsic_rotation_translation_conic_system(
+                build_intrinsic_matrix(possible_camera.focal_length),
+                possible_camera.quaternion_rotation,
+                lines[1:3, :],
+                dualquadrics[1:3, :, :]
+            )
+
+            parameters = stack_homotopy_parameters(lines[1:3, :], dualquadrics[1:3, :, :])
+
+            result = solve(
+                translation_system,
+                # parameters_solutions_pair.solutions,
+                # start_parameters = parameters_solutions_pair.start_parameters,
+                target_parameters = parameters,
+            )
+            @info result
+
+            for solution in real_solutions(result)
+                solution = solution ./ solution[4]
+                txₛ = solution[1]
+                tyₛ = solution[2]
+                tzₛ = solution[3]
+                position = [txₛ, tyₛ, tzₛ]
+                acceptable = true
+                current_error = 0
+                Pₛ = build_camera_matrix(position, camera_calculated.quaternion_rotation, camera_calculated.focal_length, 1)
+                
+                plot_3dcamera(Plot3dCameraInput(
+                    possible_camera.euler_rotation,
+                    position,
+                ))
+
+                if (possible_camera == camera_calculated)
+                    for (i, conic_contour) in enumerate(eachslice(conics_contours, dims=1))
+                        for line in eachslice(conic_contour, dims=1)
+                            eq = line' * Pₛ * cylinders[i].dual_matrix * Pₛ' * line
+                            current_error += abs(eq)
+                            # if (!(eq ≃ 0))
+                            #     acceptable = false
+                            # end
+                            if (!acceptable)
+                                break
+                            end
+                        end
+                    end
+                    if (current_error < solution_error)
+                        solution_error = current_error
+                        camera_calculated.position = position
+                        camera_calculated.matrix = Pₛ
                     end
                 end
-            end
-            if (current_error < solution_error)
-                solution_error = current_error
-                camera_calculated.position = position
             end
         end
 
@@ -248,10 +265,9 @@ module CylindersBasedCameraResectioning
             @assert solution_error < Inf  "(12) Found translation satisfies constraints"
         end
 
-        camera_calculated.matrix = build_camera_matrix(camera_calculated.position, camera_calculated.quaternion_rotation, camera_calculated.focal_length, 1)
-
         @info "Calculated translation: $(camera_calculated.position)"
         @info "Actual translation: $(camera.position)"
+        @info "Difference between translations: $(translations_difference(camera_calculated.position, camera.position))"
 
         display("Camera projection matrix: $(camera.matrix ./ camera.matrix[3, 4])")
         display("Calculated projection camera matrix: $(camera_calculated.matrix ./ camera_calculated.matrix[3, 4])")
