@@ -153,14 +153,13 @@ module CylindersBasedCameraResectioning
         # solutions_to_try = [real_solutions(result)[3]]
         solutions_to_try = real_solutions(result)
         for solution in solutions_to_try
-            solution = solution ./ solution[5]
-            @info solution[5]
+            # solution = solution ./ solution[5]
             xₛ = solution[1]
             yₛ = solution[2]
             zₛ = solution[3]
-            fₛ = solution[4]
+            fₛ = solution[4] ./ solution[5]
 
-            camera_extrinsic_rotation= quat_from_rotmatrix(build_rotation_matrix(xₛ , yₛ, zₛ, true))
+            camera_extrinsic_rotation = quat_from_rotmatrix(build_rotation_matrix(xₛ , yₛ, zₛ, true))
             acceptable = true
             current_error = 0
             for (i, contour) in enumerate(eachslice(conics_contours, dims=1))
@@ -270,6 +269,10 @@ module CylindersBasedCameraResectioning
             end
         end
 
+        plot_3dcamera(Plot3dCameraInput(
+            camera_calculated.euler_rotation,
+            camera_calculated.position,
+        ))
         plot_2dcylinders(reconstructued_contours, linestyle=:dash)
 
         figure
