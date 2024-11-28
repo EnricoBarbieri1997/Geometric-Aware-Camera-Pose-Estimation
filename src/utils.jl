@@ -1,9 +1,10 @@
 module Utils
-	export almostequal, ≃, rand_in_range, quat_from_rotmatrix, rotations_difference, translations_difference
+	export almostequal, ≃, rand_in_range, quat_from_rotmatrix, rotations_difference, eulerangles_from_rotationmatrix, translations_difference, isvalid_startsolution
 
-	using LinearAlgebra: norm
+	using LinearAlgebra: norm, svdvals
 	using Rotations
 	using Random
+	using HomotopyContinuation: jacobian
 
 	function almostequal(x::Number, y::Number)
 		return abs(x - y) < 1e-6
@@ -150,5 +151,16 @@ module Utils
 
 	function translations_difference(t1::Vector{<:Number}, t2::Vector{<:Number})
 		return norm(t1 - t2)
+	end
+
+	function isvalid_startsolution(system, solution, parameters)
+		return minimum(svdvals(jacobian(system, solution, parameters))) > 1e-6
+	end
+
+	function eulerangles_from_rotationmatrix(rotation_matrix)
+		θ = atan(rotation_matrix[3,2], rotation_matrix[3,3])
+		ϕ = atan(-rotation_matrix[3,1], sqrt(rotation_matrix[3,2]^2 + rotation_matrix[3,3]^2))
+		ψ = atan(rotation_matrix[2,1], rotation_matrix[1,1])
+		return [θ, ϕ, ψ]
 	end
 end

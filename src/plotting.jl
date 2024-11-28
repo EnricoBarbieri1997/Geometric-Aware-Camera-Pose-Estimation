@@ -27,11 +27,12 @@ module Plotting
         cameraRotation::Vector{<:Number}
         cameraTranslation::Vector{<:Number}
     end
-    function plot_3dcamera(info::Plot3dCameraInput)    
+    function plot_3dcamera(info::Plot3dCameraInput, color = :black)
         cameraModel = load("./assets/camera.stl")
         cameraMesh = mesh!(
             ax3,
             cameraModel,
+            color = color,
         )
         cameraRotationRad = deg2rad.(info.cameraRotation)
         cameraRotation = RotXYZ(cameraRotationRad...)

@@ -88,8 +88,11 @@ module Camera
 		]
 	end
 
-	function build_camera_matrix(intrinsic, rotation, translation)
-		r₁ = rotation' # inv(r)
+	function build_camera_matrix(intrinsic, rotation, translation; use_rotation_as_is = false)
+		r₁ = rotation
+		if (!use_rotation_as_is)
+			r₁ = r₁' # inv(r)
+		end
 		t₁ = -r₁ * translation
 		return intrinsic * vcat(hcat(r₁, t₁), [0 0 0 1])
 	end

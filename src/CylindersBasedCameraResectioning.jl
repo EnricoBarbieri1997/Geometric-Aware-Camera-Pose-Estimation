@@ -5,7 +5,7 @@ module CylindersBasedCameraResectioning
     using .Space: transformation, random_transformation, identity_transformation, build_rotation_matrix
     using .Camera: CameraProperties, build_intrinsic_matrix, build_camera_matrix, lookat_rotation
     using .Plotting: initfigure, plot_2dpoints, plot_line_2d, Plot3dCameraInput, plot_3dcamera, Plot3dCylindersInput, plot_cylinders_contours, plot_3dcylinders, plot_2dcylinders
-    using .EquationSystems: stack_homotopy_parameters, build_intrinsic_rotation_conic_system, build_intrinsic_rotation_translation_conic_system
+    using .EquationSystems: stack_homotopy_parameters, build_intrinsic_rotation_conic_system, build_intrinsic_rotation_translation_conic_system, build_camera_matrix_conic_system
     using .Debug
     using .Utils
     using LinearAlgebra: deg2rad, diagm, dot, normalize, svd, pinv
@@ -67,6 +67,7 @@ module CylindersBasedCameraResectioning
             position = [2.0, 30.0, 5.0],
             euler_rotation = [-83.0, 180.0, 0.0],
         )
+        camera.quaternion_rotation = RotXYZ(deg2rad.(camera.euler_rotation)...)
         camera.matrix = build_camera_matrix(camera.position, camera.euler_rotation, 2, 1)
 
         conics = []
@@ -99,10 +100,10 @@ module CylindersBasedCameraResectioning
         end
 
         figure = initfigure()
-        # plot_3dcamera(Plot3dCameraInput(
-        #     camera.euler_rotation,
-        #     camera.position,
-        # ))
+        plot_3dcamera(Plot3dCameraInput(
+            camera.euler_rotation,
+            camera.position,
+        ))
         plot_3dcylinders(Plot3dCylindersInput(
             [cylinder.transform for cylinder in cylinders],
             [cylinder.radiuses for cylinder in cylinders],
@@ -131,17 +132,17 @@ module CylindersBasedCameraResectioning
 
         parameters_solutions_pair = nothing
         try
-            parameters_solutions_pair = deserialize("tmp/intrinsic_rotation_monodromy_solutions.jld")
+            parameters_solutions_pair = deserialize("tmp/camera_matrix_monodromy_solutions.jld")
         catch
-            error("generate intrinsic-rotation monodromy first")
+            error("generate monodromy first")
             return 1
         end
 
-        intrinsic_rotation_system = build_intrinsic_rotation_conic_system(lines, points_at_infinity)
-        parameters = stack_homotopy_parameters(lines, points_at_infinity)
+        camera_matrix_system = build_camera_matrix_conic_system(lines)
+        parameters = stack_homotopy_parameters(lines, points_at_infinity, dualquadrics[1:3, :, :])
 
         result = solve(
-            intrinsic_rotation_system,
+            camera_matrix_system,
             # parameters_solutions_pair.solutions,
             # start_parameters = parameters_solutions_pair.start_parameters,
             target_parameters = parameters,
@@ -154,20 +155,24 @@ module CylindersBasedCameraResectioning
         solutions_to_try = real_solutions(result)
         possible_cameras = []
         for solution in solutions_to_try
-            # solution = solution ./ solution[5]
             xₛ = solution[1]
             yₛ = solution[2]
             zₛ = solution[3]
-            fₛ = solution[4] ./ solution[5]
+            fₛ = solution[4]
+            txₛ = solution[5]
+            tyₛ = solution[6]
+            tzₛ = solution[7]
 
             camera_extrinsic_rotation = quat_from_rotmatrix(build_rotation_matrix(xₛ , yₛ, zₛ, true))
 
             possible_camera = CameraProperties(
-                euler_rotation = rad2deg.(Rotations.params(RotXYZ(camera_extrinsic_rotation'))),
+                position = [txₛ, tyₛ, tzₛ],
+                euler_rotation = rad2deg.(eulerangles_from_rotationmatrix(camera_extrinsic_rotation')),
                 quaternion_rotation = camera_extrinsic_rotation',
                 focal_length = fₛ,
             )
-            possible_cameras = [possible_cameras; possible_camera]
+            possible_camera.matrix = build_camera_matrix(possible_camera.position, possible_camera.quaternion_rotation, possible_camera.focal_length, 1)
+            push!(possible_cameras, possible_camera)
 
             acceptable = true
             current_error = 0
@@ -175,6 +180,9 @@ module CylindersBasedCameraResectioning
                 for line in eachslice(contour, dims=1)
                     eq = line' * build_intrinsic_matrix(fₛ)[1:3, 1:3] * camera_extrinsic_rotation * cylinders[i].singular_point[1:3]
                     current_error += abs(eq)
+                    eq = line' * possible_camera.matrix * cylinders[i].dual_matrix * possible_camera.matrix' * line
+                    current_error += abs(eq)
+
                     if (!(eq ≃ 0))
                         acceptable = false
                     end
@@ -193,84 +201,36 @@ module CylindersBasedCameraResectioning
             @assert isnothing(camera_calculated) == false  "(11) Found rotation satisfies constraints"
         end
 
+        # for possible_camera in possible_cameras
+        #     if possible_camera != camera_calculated
+        #         plot_3dcamera(Plot3dCameraInput(
+        #             possible_camera.euler_rotation,
+        #             possible_camera.position,
+        #         ), :red)
+        #     end
+        # end
+
+        plot_3dcamera(Plot3dCameraInput(
+            camera_calculated.euler_rotation,
+            camera_calculated.position,
+        ), :green)
+
+        display("O: $(round.(camera.quaternion_rotation, digits=2))")
+        display("C: $(round.(camera_calculated.quaternion_rotation, digits=2))")
+        display("CI: $(round.(camera_calculated.quaternion_rotation', digits=2))")
+
         display("Error of the best rotation solution: $(solution_error)")
         display("Best solution for rotation: $(camera_calculated.euler_rotation)")
         display("Actual rotation: $(camera.euler_rotation)")
         display("Difference between rotations: $(rotations_difference(camera_calculated.quaternion_rotation, camera.quaternion_rotation))")
 
-        try
-            parameters_solutions_pair = deserialize("tmp/translation_monodromy_solutions.jld")
-        catch
-            error("generate translation monodromy first")
-            return 1
-        end
-
-        solution_error = Inf
-        for possible_camera in possible_cameras
-            translation_system = build_intrinsic_rotation_translation_conic_system(
-                build_intrinsic_matrix(possible_camera.focal_length),
-                possible_camera.quaternion_rotation,
-                lines[1:3, :],
-                dualquadrics[1:3, :, :]
-            )
-
-            parameters = stack_homotopy_parameters(lines[1:3, :], dualquadrics[1:3, :, :])
-
-            result = solve(
-                translation_system,
-                # parameters_solutions_pair.solutions,
-                # start_parameters = parameters_solutions_pair.start_parameters,
-                target_parameters = parameters,
-            )
-            @info result
-
-            for solution in real_solutions(result)
-                solution = solution ./ solution[4]
-                txₛ = solution[1]
-                tyₛ = solution[2]
-                tzₛ = solution[3]
-                position = [txₛ, tyₛ, tzₛ]
-                acceptable = true
-                current_error = 0
-                Pₛ = build_camera_matrix(position, camera_calculated.quaternion_rotation, camera_calculated.focal_length, 1)
-                
-                plot_3dcamera(Plot3dCameraInput(
-                    possible_camera.euler_rotation,
-                    position,
-                ))
-
-                if (possible_camera == camera_calculated)
-                    for (i, conic_contour) in enumerate(eachslice(conics_contours, dims=1))
-                        for line in eachslice(conic_contour, dims=1)
-                            eq = line' * Pₛ * cylinders[i].dual_matrix * Pₛ' * line
-                            current_error += abs(eq)
-                            # if (!(eq ≃ 0))
-                            #     acceptable = false
-                            # end
-                            if (!acceptable)
-                                break
-                            end
-                        end
-                    end
-                    if (current_error < solution_error)
-                        solution_error = current_error
-                        camera_calculated.position = position
-                        camera_calculated.matrix = Pₛ
-                    end
-                end
-            end
-        end
-
-        begin #asserts
-            @assert solution_error < Inf  "(12) Found translation satisfies constraints"
-        end
-
-        @info "Calculated translation: $(camera_calculated.position)"
-        @info "Actual translation: $(camera.position)"
-        @info "Difference between translations: $(translations_difference(camera_calculated.position, camera.position))"
+        display("Calculated translation: $(camera_calculated.position)")
+        display("Actual translation: $(camera.position)")
+        display("Difference between translations: $(translations_difference(camera_calculated.position, camera.position))")
 
         display("Camera projection matrix: $(camera.matrix ./ camera.matrix[3, 4])")
         display("Calculated projection camera matrix: $(camera_calculated.matrix ./ camera_calculated.matrix[3, 4])")
+
 
         reconstructued_contours = Array{Float64}(undef, number_of_cylinders, 2, 3)
         for i in 1:number_of_cylinders
@@ -285,10 +245,6 @@ module CylindersBasedCameraResectioning
             end
         end
 
-        plot_3dcamera(Plot3dCameraInput(
-            camera_calculated.euler_rotation,
-            camera_calculated.position,
-        ))
         plot_2dcylinders(reconstructued_contours, linestyle=:dash)
 
         figure
@@ -299,21 +255,23 @@ module CylindersBasedCameraResectioning
 
         camera_translationdirection = normalize(rand(Float64, 3))
         camera_translation = camera_translationdirection * rand_in_range(15.0, 20.0)
-        camera_rotation = lookat_rotation(camera_translationdirection, [0, 0, 0], [0, 0, 1])
-        # rx, ry, rz = (-90, -110, 0)
-        # camera_rotation = RotXYZ(deg2rad(rx), deg2rad(ry), deg2rad(rz))
+        camera_object_rotation = lookat_rotation(camera_translationdirection, [0, 0, 0], [0, 0, 1])
 
-        # quaternion_camera_rotation = quat_from_rotmatrix(camera_rotation)
-        quaternion_camera_rotation = QuatRotation(camera_rotation)
-        rotation_params = Rotations.params(quaternion_camera_rotation')
-        rotation_params = rotation_params ./ rotation_params[1]
-        w, x, y, z = rotation_params
+        quaternion_camera_rotation = QuatRotation(camera_object_rotation')
+        display(quaternion_camera_rotation)
+        display(Rotations.params(quaternion_camera_rotation))
+        camerarotation_quaternionparameters = Rotations.params(quaternion_camera_rotation)
+        w, x, y, z = camerarotation_quaternionparameters ./ camerarotation_quaternionparameters[1]
         f = 2
 
-        cameramatrix = build_camera_matrix(
-            camera_translation,
-            quaternion_camera_rotation, f, 1
-        )
+        # cameramatrix = build_camera_matrix(
+        #     camera_translation,
+        #     quaternion_camera_rotation, f, 1
+        # )
+        intrinsic = build_intrinsic_matrix(f)
+        top_left_intrinsic = intrinsic[1:3, 1:3]
+        R = build_rotation_matrix(x, y, z)
+        cameramatrix = build_camera_matrix(intrinsic, R, camera_translation; use_rotation_as_is = true)
 
         random_cylindertranslation_range = 5
         cylinders = []
@@ -364,7 +322,7 @@ module CylindersBasedCameraResectioning
         end
 
         figure = initfigure()
-        rx, ry, rz = rad2deg.(Rotations.params(RotXYZ(quaternion_camera_rotation)))
+        rx, ry, rz = rad2deg.(Rotations.params(RotXYZ(camera_object_rotation)))
         plot_3dcamera(Plot3dCameraInput(
             [rx, ry, rz],
             camera_translation,
@@ -384,11 +342,17 @@ module CylindersBasedCameraResectioning
 
         display(figure)
 
-        intrinsic_rotation_system = build_intrinsic_rotation_conic_system(lines, points_at_infinity)
-        parameters = stack_homotopy_parameters(lines, points_at_infinity)
-        startingsolution = [x, y, z, f, 1]
-        monodromy_solutions = monodromy_solve(intrinsic_rotation_system, startingsolution, parameters, max_loops_no_progress=5)
-        @info monodromy_solutions
+        for i in 1:4
+            begin #asserts
+                display("$(lines[i, :]' * top_left_intrinsic * R * points_at_infinity[i, :]), (1) line point")
+                display("$(lines[i, :]' * cameramatrix * dualquadrics[i, :, :] * cameramatrix' * lines[i, :]), (2) line quadric")
+            end
+        end
+        camera_matrix_system = build_camera_matrix_conic_system(lines)
+        parameters = stack_homotopy_parameters(lines, points_at_infinity, dualquadrics[1:3, :, :])
+        startingsolution = [x; y; z; f; camera_translation]
+        monodromy_solutions = monodromy_solve(camera_matrix_system, startingsolution, parameters; max_loops_no_progress=5)
+        display(monodromy_solutions)
 
         try
             mkdir("tmp")
@@ -396,27 +360,7 @@ module CylindersBasedCameraResectioning
         end
 
         serialize(
-            "tmp/intrinsic_rotation_monodromy_solutions.jld",
-            MonodromyParametersSolutionsPair(
-                parameters,
-                solutions(monodromy_solutions)
-            )
-        )
-
-        intrinsic_matrix = build_intrinsic_matrix(f)
-
-        translation_system = build_intrinsic_rotation_translation_conic_system(
-            intrinsic_matrix,
-            quaternion_camera_rotation,
-            lines[1:3, :],
-            dualquadrics[1:3, :, :]
-        )
-        parameters = stack_homotopy_parameters(lines[1:3, :], dualquadrics[1:3, :, :])
-        monodromy_solutions = monodromy_solve(translation_system, [camera_translation; 1], parameters, max_loops_no_progress=5)
-        @info monodromy_solutions
-
-        serialize(
-            "tmp/translation_monodromy_solutions.jld",
+            "tmp/camera_matrix_monodromy_solutions.jld",
             MonodromyParametersSolutionsPair(
                 parameters,
                 solutions(monodromy_solutions)
