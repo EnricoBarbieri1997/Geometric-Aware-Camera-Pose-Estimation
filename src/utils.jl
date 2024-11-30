@@ -1,6 +1,8 @@
 module Utils
 	export almostequal, ≃, rand_in_range, quat_from_rotmatrix, rotations_difference, eulerangles_from_rotationmatrix, translations_difference, isvalid_startsolution
 
+	using Camera: lookat_rotation
+
 	using LinearAlgebra: norm, svdvals
 	using Rotations
 	using Random
@@ -162,5 +164,12 @@ module Utils
 		ϕ = atan(-rotation_matrix[3,1], sqrt(rotation_matrix[3,2]^2 + rotation_matrix[3,3]^2))
 		ψ = atan(rotation_matrix[2,1], rotation_matrix[1,1])
 		return [θ, ϕ, ψ]
+	end
+
+	function random_camera_lookingat_center()
+		camera_translationdirection = normalize(rand(Float64, 3))
+        camera_translation = camera_translationdirection * rand_in_range(15.0, 20.0)
+        camera_object_rotation = lookat_rotation(camera_translationdirection, [0, 0, 0], [0, 0, 1])
+		return camera_translation, camera_object_rotation
 	end
 end

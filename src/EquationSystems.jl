@@ -7,6 +7,15 @@ module EquationSystems
 	using HomotopyContinuation
 	using LinearAlgebra: det, I
 
+	module Problems
+		@kwdef mutable struct CylinderCameraContoursProblem
+			camera::CameraProperties
+			cylinders::Vector{Cylinder.CylinderProperties}
+			conics::Vector{Vector{Conic.ConicProperties}}
+			conics_contours::Array{Float64, 3}
+		end
+	end
+
 	function stack_homotopy_parameters(parameters...)
 		stacked_parameters = []
 		for parameter in parameters
@@ -84,5 +93,8 @@ module EquationSystems
 		variables::Vector{HomotopyContinuation.ModelKit.Variable} = stack_homotopy_parameters([f], R, t)
 		parameters::Vector{HomotopyContinuation.ModelKit.Variable} = stack_homotopy_parameters(lines, points_at_infinity, dual_quadrics)
 		return System(system_to_solve, variables=variables, parameters=parameters)
+	end
+
+	module SingleProblem
 	end
 end

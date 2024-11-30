@@ -3,9 +3,10 @@ module CylindersBasedCameraResectioning
 
     using .Geometry: Line, Cylinder as CylinderType, line_to_homogenous, get_cylinder_contours
     using .Space: transformation, random_transformation, identity_transformation, build_rotation_matrix
-    using .Camera: CameraProperties, build_intrinsic_matrix, build_camera_matrix, lookat_rotation
+    using .Camera: CameraProperties, IntrinsicParameters, build_intrinsic_matrix, build_camera_matrix, lookat_rotation
     using .Plotting: initfigure, plot_2dpoints, plot_line_2d, Plot3dCameraInput, plot_3dcamera, Plot3dCylindersInput, plot_cylinders_contours, plot_3dcylinders, plot_2dcylinders
     using .EquationSystems: stack_homotopy_parameters, build_intrinsic_rotation_conic_system, build_intrinsic_rotation_translation_conic_system, build_camera_matrix_conic_system
+    using .EquationSystems.Problems: CylinderCameraContoursProblem
     using .Debug
     using .Utils
     using LinearAlgebra: diagm, deg2rad, dot, normalize, pinv, svd
@@ -63,40 +64,63 @@ module CylindersBasedCameraResectioning
             end
         end
 
-        camera = CameraProperties(
-            position = [2.0, 30.0, 5.0],
-            euler_rotation = [-83.0, 180.0, 0.0],
-        )
-        camera.quaternion_rotation = RotXYZ(deg2rad.(camera.euler_rotation)...)
-        camera.matrix = build_camera_matrix(camera.position, camera.euler_rotation, 2, 1)
-
-        conics = []
-        for i in 1:number_of_cylinders
-            conic = Conic.ConicProperties(
-                pinv(camera.matrix') * cylinders[i].matrix * pinv(camera.matrix),
-                camera.matrix * cylinders[i].singular_point,
-                camera.matrix * cylinders[i].dual_matrix * camera.matrix',
+        problems = []
+        for i in 1:5
+            problem = CylinderCameraContoursProblem(
+                cylinders = cylinders,
             )
-            push!(conics, conic)
-        end
-
-        conics_contours = Array{Float64}(undef, number_of_cylinders, 2, 3)
-        for i in 1:number_of_cylinders
-            lines = get_cylinder_contours(
-                cylinders[i].geometry,
-                collect(camera.position),
-                camera.matrix
+            position, rotation_matrix = random_camera_lookingat_center()
+            quaternion_camera_rotation = QuatRotation(rotation_matrix)
+            euler_rotation = rad2deg.(eulerangles_from_rotationmatrix(rotation_matrix))
+            intrinsic = build_intrinsic_matrix(IntrinsicParameters(
+                focal_length_x = rand_in_range(1, 4),
+                focal_length_y = rand_in_range(1, 4),
+                principal_point_x = rand_in_range(-0.5, 0.5),
+                principal_point_y = rand_in_range(-0.5, 0.5),
+                skew = rand_in_range(-0.5, 0.5),
+            ))
+            camera = CameraProperties(
+                position = position,
+                euler_rotation = euler_rotation,
+                quaternion_rotation = quaternion_camera_rotation,
+                intrinsic = intrinsic,
             )
-            for (j, line) in enumerate(lines)
-                line_homogenous = line_to_homogenous(line)
-                conics_contours[i, j, :] = line_homogenous
+            camera.matrix = build_camera_matrix(intrinsic, quaternion_camera_rotation, position)
 
-                begin #asserts
-                    @assert line_homogenous' * conics[i].dual_matrix * line_homogenous ≃ 0 "(3) Line of projected singular plane $(1) belongs to the dual conic $(1)"
-                    @assert line_homogenous' * camera.matrix * cylinders[i].singular_point ≃ 0 "(8) Line $(j) of conic $(i) passes through the projected singular point"
-                    @assert line_homogenous' * camera.matrix * cylinders[i].dual_matrix * camera.matrix' * line_homogenous ≃ 0 "(9) Line $(j) of conic $(i) is tangent to the projected cylinder"
+            problem.camera = camera
+            
+            conics = []
+            for i in 1:number_of_cylinders
+                conic = Conic.ConicProperties(
+                    pinv(camera.matrix') * cylinders[i].matrix * pinv(camera.matrix),
+                    camera.matrix * cylinders[i].singular_point,
+                    camera.matrix * cylinders[i].dual_matrix * camera.matrix',
+                )
+                push!(conics, conic)
+            end
+            problem.conics = conics
+
+            conics_contours = Array{Float64}(undef, number_of_cylinders, 2, 3)
+            for i in 1:number_of_cylinders
+                lines = get_cylinder_contours(
+                    cylinders[i].geometry,
+                    collect(camera.position),
+                    camera.matrix
+                )
+                for (j, line) in enumerate(lines)
+                    line_homogenous = line_to_homogenous(line)
+                    conics_contours[i, j, :] = line_homogenous
+
+                    begin #asserts
+                        @assert line_homogenous' * conics[i].dual_matrix * line_homogenous ≃ 0 "(3) Line of projected singular plane $(1) belongs to the dual conic $(1)"
+                        @assert line_homogenous' * camera.matrix * cylinders[i].singular_point ≃ 0 "(8) Line $(j) of conic $(i) passes through the projected singular point"
+                        @assert line_homogenous' * camera.matrix * cylinders[i].dual_matrix * camera.matrix' * line_homogenous ≃ 0 "(9) Line $(j) of conic $(i) is tangent to the projected cylinder"
+                    end
                 end
             end
+            problem.conics_contours = conics_contours
+
+            push!(problems, problem)
         end
 
         figure = initfigure()
@@ -309,13 +333,9 @@ module CylindersBasedCameraResectioning
     function generate_monodromy_solutions()
         Random.seed!(777)
 
-        camera_translationdirection = normalize(rand(Float64, 3))
-        camera_translation = camera_translationdirection * rand_in_range(15.0, 20.0)
-        camera_object_rotation = lookat_rotation(camera_translationdirection, [0, 0, 0], [0, 0, 1])
+        camera_translation, camera_object_rotation = random_camera_lookingat_center()
 
         quaternion_camera_rotation = QuatRotation(camera_object_rotation')
-        display(quaternion_camera_rotation)
-        display(Rotations.params(quaternion_camera_rotation))
         camerarotation_quaternionparameters = Rotations.params(quaternion_camera_rotation)
         w, x, y, z = camerarotation_quaternionparameters ./ camerarotation_quaternionparameters[1]
         f = 2
