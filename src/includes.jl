@@ -1,7 +1,7 @@
+include("Camera.jl")
 include("utils.jl")
 include("space.jl")
 include("Geometry.jl")
-include("Camera.jl")
 include("EquationSystems.jl")
 include("Formulas.jl")
 include("Conic.jl")

@@ -1,15 +1,15 @@
 module Camera
-	export CameraProperties, build_camera_matrix, build_intrinsic_matrix, build_camera_matrix, lookat_rotation
+	export CameraProperties, IntrinsicParameters, build_camera_matrix, build_intrinsic_matrix, build_camera_matrix, lookat_rotation
 
 	using Rotations
 	using LinearAlgebra
-	using ..Space: Vec3Tuple
 
 	@kwdef mutable struct CameraProperties
 		position::Vector{Number} = [0, 0, 0]
 		euler_rotation::Vector{Number} = [0, 0, 0]
 		quaternion_rotation::QuatRotation{Float64} = one(QuatRotation)
 		focal_length::Number = 1
+		intrinsic::Matrix{<:Number} = Matrix(I, 3, 3)
 		matrix::Matrix{<:Number} = Matrix(I, 3, 4)
 	end
 
@@ -79,13 +79,37 @@ module Camera
 		return K * M
 	end
 
-	function build_intrinsic_matrix(focal_length::Number, pixel_size::Number = 1)
-		f = focal_length / pixel_size
+	@kwdef mutable struct IntrinsicParameters
+		focal_length_x::Number = 1
+		focal_length_y::Number = 1
+		principal_point_x::Number = 0
+		principal_point_y::Number = 0
+		skew::Number = 0
+		pixel_size::Number = 1
+	end
+	function build_intrinsic_matrix(params::IntrinsicParameters)
+		fx = params.focal_length_x / params.pixel_size
+		fy = params.focal_length_y / params.pixel_size
+		s = params.skew
+		cx = params.principal_point_x
+		cy = params.principal_point_y
 		return [
-			f 0 0 0;
-			0 f 0 0;
+			fx s cx 0;
+			0 fy cy 0;
 			0 0 1 0
 		]
+	end
+	function build_intrinsic_matrix(focal_length::Number, pixel_size::Number = 1)
+		build_intrinsic_matrix(
+			IntrinsicParameters(
+				focal_length_x = focal_length,
+				focal_length_y = focal_length,
+				principal_point_x = 0,
+				principal_point_y = 0,
+				skew = 0,
+				pixel_size = pixel_size
+			)
+		)
 	end
 
 	function build_camera_matrix(intrinsic, rotation, translation; use_rotation_as_is = false)
@@ -116,9 +140,9 @@ module Camera
 	function lookat_matrix(eye, at, up)
 		xaxis, yaxis, zaxis = lookat_axis(eye, at, up)
 
-		return [xaxis[1] yaxis[1] zaxis[1] 0;
+		return RotMatrix([xaxis[1] yaxis[1] zaxis[1] 0;
 			xaxis[2] yaxis[2] zaxis[2] 0;
 			xaxis[3] yaxis[3] zaxis[3] 0;
-			-dot(xaxis, eye) -dot(yaxis, eye) -dot(zaxis, eye) 1]
+			-dot(xaxis, eye) -dot(yaxis, eye) -dot(zaxis, eye) 1])
 	end
 end

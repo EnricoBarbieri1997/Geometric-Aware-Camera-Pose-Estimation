@@ -1,5 +1,5 @@
 module Plotting
-    export initfigure, plot_2dpoints, plot_line_2d, Plot3dCameraInput, plot_3dcamera, Plot3dCylindersInput, plot_cylinders_contours, plot_3dcylinders, plot_2dcylinders
+    export initfigure, add_2d_axis!, plot_2dpoints, plot_line_2d, Plot3dCameraInput, plot_3dcamera, Plot3dCylindersInput, plot_cylinders_contours, plot_3dcylinders, plot_2dcylinders
 
     using ..Geometry: Line
 
@@ -15,11 +15,25 @@ module Plotting
         "solid" => :solid,
     )
 
+    function add_2d_axis!()
+        index = length(ax2_array) + 1
+        row = ceil(Int, index / 3)
+        col = index % 3
+        if col == 0
+            col = 3
+        end
+        ax = Axis(grid_2d[row, col], autolimitaspect = 1)
+        push!(ax2_array, ax)
+    end
+
     function initfigure()
-        global f, ax3, ax2
+        global f, ax3, grid_2d, ax2_array
         f = Figure(size=(1200, 800))
         ax3 = Axis3(f[1, 1], title = "Cylinders", aspect = :data, perspectiveness = 1.0)
-        ax2 = Axis(f[1, 2], title = "Conics", autolimitaspect = 1)
+        grid_2d = f[1, 2] = GridLayout()
+        Label(grid_2d[:, :, Top()], "Conics")
+        ax2_array = []
+        add_2d_axis!()
         return f
     end
 
@@ -58,7 +72,7 @@ module Plotting
             new(transforms, radiuses, numberOfCylinders, cameraProjectionMatrix)
         end
     end
-    function plot_3dcylinders(cylindersInfo::Plot3dCylindersInput)    
+    function plot_3dcylinders(cylindersInfo::Plot3dCylindersInput; axindex = 1)    
         heightLevels = 100
         angles = 100
 
@@ -86,25 +100,25 @@ module Plotting
                 points2d = [(point ./ point[3]) for point in points2d]
                 points2d = hcat(points2d...)'
 
-                lines!(ax2, points2d[:, 1], -points2d[:, 2], color = colors[i])
+                lines!(ax2_array[axindex], points2d[:, 1], -points2d[:, 2], color = colors[i])
             end
         end
     end
 
-    function plot_2dpoints(points)
+    function plot_2dpoints(points; axindex = 1)
         for (i, point) in enumerate(points)
-            scatter!(ax2, (point[1], -point[2]), color = colors[i])
+            scatter!(ax2_array[axindex], (point[1], -point[2]), color = colors[i])
         end
     end
 
-    function plot_line_2d(line:: Line; color = :black, linestyle = :solid)
+    function plot_line_2d(line:: Line; color = :black, linestyle = :solid, axindex = 1)
         slope = line.direction[2] / line.direction[1]
         intercept = line.origin[2] - slope * line.origin[1]
 
         y = function (x) return slope * x + intercept end
         xs = -50:1:50
         ys = y.(xs)
-        lines!(ax2, xs, ys, color = color, linestyle=linestyle)
+        lines!(ax2_array[axindex], xs, ys, color = color, linestyle=linestyle)
     end
 
     function plot_cylinders_contours(contours::Vector{Vector{Line}}; linestyle = :solid)
@@ -115,7 +129,7 @@ module Plotting
         end
     end
 
-    function plot_2dcylinders(conic_contours; linestyle = :solid, alpha = 1)
+    function plot_2dcylinders(conic_contours; linestyle = :solid, alpha = 1, axindex = 1)
         y = function (x, l) return (-(l[1] * x + l[3]) / l[2]) end
         for i in 1:(size(conic_contours)[1])
             for j in 1:(size(conic_contours)[2])
@@ -123,7 +137,7 @@ module Plotting
                 y1 = function (x) return y(x, line) end
                 xs = -50:1:50
                 ys1 = y1.(xs)
-                lines!(ax2, xs, -ys1, color = (colors[i], alpha), linestyle=linestyle)
+                lines!(ax2_array[axindex], xs, -ys1, color = (colors[i], alpha), linestyle=linestyle)
             end
         end
     end
