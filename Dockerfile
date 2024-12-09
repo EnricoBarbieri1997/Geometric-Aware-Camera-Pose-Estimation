@@ -20,6 +20,6 @@ RUN mkdir ~/.julia/config
 RUN printf "atreplinit() do repl\ntry\n@eval using Revise\n@async Revise.wait_steal_repl_backend()\ncatch\nend\nend\n" >> ~/.julia/config/startup.jl 
 
 RUN julia -e 'using Pkg; Pkg.add("Revise");'
-RUN julia -e 'using Pkg; Pkg.activate("./"); Pkg.instantiate();'
+RUN julia -e 'using Pkg; Pkg.activate("./"); Pkg.update(); Pkg.resolve(); Pkg.instantiate();'
 
 CMD ["julia", "--project", "/app", "-e", "using CylindersBasedCameraResectioning; main()"]
