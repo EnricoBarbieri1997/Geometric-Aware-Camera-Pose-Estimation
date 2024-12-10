@@ -31,7 +31,8 @@ module CylindersBasedCameraResectioning
     end
 
     function main()
-        scene, problems = create_scene_instances_and_problems()
+        scene, problems = create_scene_instances_and_problems(number_of_instances=1)
+        camera = scene.instances[1].camera
 
         parameters_solutions_pair = nothing
         try
@@ -69,7 +70,7 @@ module CylindersBasedCameraResectioning
                 principal_point_x = solution[5],
                 principal_point_y = solution[6],
                 skew = solution[4],
-            )) ./ solution[1]
+            )) * solution[1]
             rotations_solution = solution[7:end]
 
             acceptable = true
@@ -77,10 +78,8 @@ module CylindersBasedCameraResectioning
             possible_cameras = []
             for (i, problem) in enumerate(problems)
                 camera_extrinsic_rotation = QuatRotation(
-                    reshape(
-                        rotations_solution[(i-1)*9+1:i*9],
-                        3, 3
-                    )
+                    1,
+                    rotations_solution[(i-1)*3+1:i*3]...
                 )
 
                 possible_camera = CameraProperties(
@@ -90,9 +89,9 @@ module CylindersBasedCameraResectioning
                 )
                 push!(possible_cameras, possible_camera)
 
-                for (i, contour) in enumerate(eachslice(instances[i].conics_contours, dims=1))
+                for (i, contour) in enumerate(eachslice(scene.instances[i].conics_contours, dims=1))
                     for line in eachslice(contour, dims=1)
-                        eq = line' * intrinsic[1:3, 1:3] * camera_extrinsic_rotation * cylinders[i].singular_point[1:3]
+                        eq = line' * intrinsic[1:3, 1:3] * camera_extrinsic_rotation * scene.cylinders[i].singular_point[1:3]
                         current_error += abs(eq)
 
                         if (!(eq ≃ 0))
@@ -113,9 +112,23 @@ module CylindersBasedCameraResectioning
             end
         end
 
+        camera_calculated = problems[1].camera
+
         begin #asserts
             @assert isnothing(camera_calculated) == false  "(11) Found rotation satisfies constraints"
         end
+
+        display("O: $(round.(camera.quaternion_rotation, digits=2))")
+        display("C: $(round.(camera_calculated.quaternion_rotation, digits=2))")
+        display("CI: $(round.(camera_calculated.quaternion_rotation', digits=2))")
+
+        display("Error of the best rotation solution: $(solution_error)")
+        display("Best solution for rotation: $(camera_calculated.euler_rotation)")
+        display("Actual rotation: $(camera.euler_rotation)")
+        display("Difference between rotations: $(rotations_difference(camera_calculated.quaternion_rotation, camera.quaternion_rotation))")
+
+        display("Calculated intrinsic: $(camera_calculated.intrinsic)")
+        display("Actual intrinsic: $(camera.intrinsic)")
 
         parameters_solutions_pair = nothing
         try
@@ -126,7 +139,6 @@ module CylindersBasedCameraResectioning
         end
 
         for (i, problem) in enumerate(problems)
-            solution_error = Inf
             translation_system = build_intrinsic_rotation_translation_conic_system(
                 problem
             )
@@ -140,11 +152,13 @@ module CylindersBasedCameraResectioning
             )
             @info result
 
-            camera_solution_error = Inf
+            solution_error = Inf
             solutions_to_try = real_solutions(result)
             for solution in solutions_to_try
                 scale, tx, ty, tz = solution
                 position = [tx, ty, tz] / scale
+
+                display("$(position) $(scale)")
 
                 camera_matrix = build_camera_matrix(
                     problem.camera.intrinsic,
@@ -154,9 +168,9 @@ module CylindersBasedCameraResectioning
 
                 acceptable = true
                 current_error = 0
-                for (i, contour) in enumerate(eachslice(instance[i].conics_contours, dims=1))
+                for (i, contour) in enumerate(eachslice(scene.instances[i].conics_contours, dims=1))
                     for line in eachslice(contour, dims=1)
-                        eq = line' * camera_matrix * cylinders[i].dual_matrix * camera_matrix' * line
+                        eq = line' * camera_matrix * scene.cylinders[i].dual_matrix * camera_matrix' * line
                         current_error += abs(eq)
 
                         if (!(eq ≃ 0))
@@ -167,8 +181,8 @@ module CylindersBasedCameraResectioning
                         break
                     end
                 end
-                if (current_error < camera_solution_error)
-                    camera_solution_error = current_error
+                if (current_error < solution_error)
+                    solution_error = current_error
                     problem.camera.position = position
                     problem.camera.matrix = camera_matrix
                 end
@@ -182,30 +196,19 @@ module CylindersBasedCameraResectioning
             ), :green)
         end
 
-        # display("O: $(round.(camera.quaternion_rotation, digits=2))")
-        # display("C: $(round.(camera_calculated.quaternion_rotation, digits=2))")
-        # display("CI: $(round.(camera_calculated.quaternion_rotation', digits=2))")
+        display("Calculated translation: $(camera_calculated.position)")
+        display("Actual translation: $(camera.position)")
+        display("Difference between translations: $(translations_difference(camera_calculated.position, camera.position))")
 
-        # display("Error of the best rotation solution: $(solution_error)")
-        # display("Best solution for rotation: $(camera_calculated.euler_rotation)")
-        # display("Actual rotation: $(camera.euler_rotation)")
-        # display("Difference between rotations: $(rotations_difference(camera_calculated.quaternion_rotation, camera.quaternion_rotation))")
+        display("Camera projection matrix: $(camera.matrix ./ camera.matrix[3, 4])")
+        display("Calculated projection camera matrix: $(camera_calculated.matrix ./ camera_calculated.matrix[3, 4])")
 
-        # display("Calculated translation: $(camera_calculated.position)")
-        # display("Actual translation: $(camera.position)")
-        # display("Difference between translations: $(translations_difference(camera_calculated.position, camera.position))")
-
-        # display("Camera projection matrix: $(camera.matrix ./ camera.matrix[3, 4])")
-        # display("Calculated projection camera matrix: $(camera_calculated.matrix ./ camera_calculated.matrix[3, 4])")
-
-        display("intrinsic: $(camera.intrinsic)")
-        display("calculated intrinsic: $(problems[1].camera.intrinsic)")
-
+        number_of_cylinders = size(scene.cylinders)[1]
         for (i, problem) in enumerate(problems)
             reconstructued_contours = Array{Float64}(undef, number_of_cylinders, 2, 3)
             for i in 1:number_of_cylinders
                 lines = get_cylinder_contours(
-                    cylinders[i].geometry,
+                    scene.cylinders[i].geometry,
                     collect(problem.camera.position),
                     problem.camera.matrix
                 )
@@ -218,13 +221,14 @@ module CylindersBasedCameraResectioning
             plot_2dcylinders(reconstructued_contours, linestyle=:dash; axindex = i)
         end
 
-        figure
+        display(scene.figure)
     end
 
     function generate_monodromy_solutions()
         scene, problems = create_scene_instances_and_problems(
-            777,
-            2,
+            random_seed=777,
+            number_of_cylinders=4,
+            number_of_instances=1,
         )
 
         display(scene.figure)
@@ -308,9 +312,10 @@ module CylindersBasedCameraResectioning
         )
     end
 
-    function create_scene_instances_and_problems(
+    function create_scene_instances_and_problems(;
         random_seed = 7, 
         number_of_cylinders = 4,
+        number_of_instances = 5,
     )
         Random.seed!(random_seed)
 
@@ -367,7 +372,7 @@ module CylindersBasedCameraResectioning
             principal_point_y = rand_in_range(-0.5, 0.5),
             skew = rand_in_range(0, 1),
         ))
-        for i in 1:5
+        for i in 1:number_of_instances
             instance = InstanceConfiguration()
             position, rotation_matrix = random_camera_lookingat_center()
             quaternion_camera_rotation = QuatRotation(rotation_matrix)
@@ -441,7 +446,7 @@ module CylindersBasedCameraResectioning
 
         # 3 line minimum to solve the pose
         problems::Vector{CylinderCameraContoursProblem} = []
-        numberoflines_tosolvefor = 4
+        numberoflines_tosolvefor = 8
         for instance in instances
             conics_contours = instance.conics_contours
 

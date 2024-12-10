@@ -9,7 +9,7 @@ module EquationSystems
 
 	module Problems
 		using ....Camera: CameraProperties
-		struct CylinderCameraContoursProblem
+		mutable struct CylinderCameraContoursProblem
 			camera::CameraProperties
 			lines::Array{Float64, 2}
 			points_at_infinity::Array{Float64, 2}
@@ -24,13 +24,6 @@ module EquationSystems
 		end
 		return stacked_parameters
 	end
-
-	# function stack_intrinsics_rotation(problems::Vector{Problems.CylinderCameraContoursProblem})
-	# 	if length(problems) == 0
-	# 		return []
-	# 	end
-	# 	return stack_homotopy_parameters(problems[1].camera.intrinsic, [(problem.camera.rotation) for problem in problems]...)
-	# end
 
 	function add_rotation_constraints!(system_to_solve, R)
 		push!(system_to_solve, det(R) - 1)
@@ -53,9 +46,10 @@ module EquationSystems
 
 		for (index, problem) in enumerate(problems)
 			lines_count = size(problem.lines)[1]
-			R = reshape([
-				Variable("R$(index)", i, j) for i in 1:3, j in 1:3
-			], 3, 3)
+			Rparams = [
+				Variable("R$(index)", i) for i in 1:3
+			]
+			R = build_rotation_matrix(Rparams..., false)
 			lines = reshape([
 				Variable("lines$(index)", i, j)
 				for i in 1:lines_count, j in 1:3
@@ -72,13 +66,12 @@ module EquationSystems
 				skew = skew,
 			))[1:3, 1:3]
 
-			add_rotation_constraints!(system_to_solve, R)
 			for line_index in 1:lines_count
 				equation = scale * lines[line_index, :]' * intrinsic_topleft * R * points_at_infinity[line_index, :]
 				push!(system_to_solve, equation)
 			end
 
-			variables = stack_homotopy_parameters(variables, R)
+			variables = stack_homotopy_parameters(variables, Rparams)
 			parameters = stack_homotopy_parameters(parameters, lines, points_at_infinity)
 		end
 
@@ -101,7 +94,7 @@ module EquationSystems
 				push!(system_to_solve, equation)
 		end
 		parameters::Vector{HomotopyContinuation.ModelKit.Variable} = stack_homotopy_parameters(lines, dual_quadrics)
-		return System(system_to_solve, variables=[tx, ty, tz, scale], parameters=parameters)
+		return System(system_to_solve, variables=[scale, tx, ty, tz], parameters=parameters)
 	end
 
 	function build_camera_matrix_conic_system(lines_values)
