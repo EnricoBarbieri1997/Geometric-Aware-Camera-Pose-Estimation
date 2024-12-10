@@ -57,7 +57,8 @@ module CylindersBasedCameraResectioning
             rotation_intrinsic_system,
             # parameters_solutions_pair.solutions,
             # start_parameters = parameters_solutions_pair.start_parameters,
-            target_parameters = parameters
+            target_parameters = parameters,
+            start_system = :total_degree
         )
         @info result
 
@@ -71,6 +72,7 @@ module CylindersBasedCameraResectioning
                 principal_point_y = solution[6],
                 skew = solution[4],
             )) * solution[1]
+            if (!all(x -> x > 0, intrinsic)) continue end
             rotations_solution = solution[7:end]
 
             acceptable = true
