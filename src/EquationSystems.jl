@@ -40,7 +40,7 @@ module EquationSystems
 
 		@var scale fₓ fᵧ skew cₓ cᵧ
 
-		system_to_solve = [scale - 1]
+		system_to_solve = [scale * fₓ * fᵧ - 1]
 		variables::Vector{HomotopyContinuation.ModelKit.Variable} = [scale, fₓ, fᵧ, skew, cₓ, cᵧ]
 		parameters::Vector{HomotopyContinuation.ModelKit.Variable} = []
 
@@ -88,7 +88,7 @@ module EquationSystems
 			[tx; ty; tz]
 		)
 
-		system_to_solve = [scale - 1]
+		system_to_solve = [scale - 1.0]
 		for i in 1:lines_count
 				equation = lines[i, :]' * scale * P * dual_quadrics[i, :, :] * P' * lines[i, :]
 				push!(system_to_solve, equation)
@@ -123,6 +123,38 @@ module EquationSystems
 		variables::Vector{HomotopyContinuation.ModelKit.Variable} = stack_homotopy_parameters([f], R, t)
 		parameters::Vector{HomotopyContinuation.ModelKit.Variable} = stack_homotopy_parameters(lines, points_at_infinity, dual_quadrics)
 		return System(system_to_solve, variables=variables, parameters=parameters)
+	end
+
+	module Minimization
+		using ..EquationSystems
+		using ..Problems
+
+		using HomotopyContinuation
+		using LinearAlgebra: norm
+
+		function bestsolution(system, solutions, parameters)
+			best_solution = nothing
+			best_residual = Inf
+			for solution in solutions
+				residual = norm(system(solution, parameters))
+				if residual < best_residual
+					best_residual = residual
+					best_solution = solution
+				end
+			end
+			return best_solution
+		end
+		function build_intrinsic_rotation_conic_system(problems::Vector{Problems.CylinderCameraContoursProblem})
+			sys = EquationSystems.build_intrinsic_rotation_conic_system(problems)
+			expressions = sys.expressions
+			minimizer = sum(expressions.^2)
+			variables = sys.variables
+			parameters = sys.parameters
+
+			diff = differentiate(minimizer, variables)
+
+			return System(diff, variables = variables, parameters = parameters)
+		end
 	end
 
 	module SingleProblem

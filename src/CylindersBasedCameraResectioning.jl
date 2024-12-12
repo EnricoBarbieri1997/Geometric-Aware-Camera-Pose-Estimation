@@ -5,7 +5,8 @@ module CylindersBasedCameraResectioning
     using .Space: transformation, random_transformation, identity_transformation, build_rotation_matrix
     using .Camera: CameraProperties, IntrinsicParameters, build_intrinsic_matrix, build_camera_matrix, lookat_rotation
     using .Plotting: initfigure, add_2d_axis!, plot_2dpoints, plot_line_2d, Plot3dCameraInput, plot_3dcamera, Plot3dCylindersInput, plot_cylinders_contours, plot_3dcylinders, plot_2dcylinders
-    using .EquationSystems: stack_homotopy_parameters, build_intrinsic_rotation_conic_system, build_intrinsic_rotation_translation_conic_system, build_camera_matrix_conic_system
+    using .EquationSystems: stack_homotopy_parameters, build_intrinsic_rotation_translation_conic_system, build_camera_matrix_conic_system
+    using .EquationSystems.Minimization: build_intrinsic_rotation_conic_system
     using .EquationSystems.Problems: CylinderCameraContoursProblem
     using .Debug
     using .Utils
@@ -64,6 +65,7 @@ module CylindersBasedCameraResectioning
 
         solution_error = Inf
         solutions_to_try = real_solutions(result)
+        all_possible_solutions = []
         for solution in solutions_to_try
             intrinsic = build_intrinsic_matrix(IntrinsicParameters(
                 focal_length_x = solution[2],
@@ -105,6 +107,7 @@ module CylindersBasedCameraResectioning
                     end
                 end
             end
+            push!(all_possible_solutions, possible_cameras[1])
 
             if (current_error < solution_error)
                 solution_error = current_error
@@ -140,56 +143,64 @@ module CylindersBasedCameraResectioning
             return 1
         end
 
-        for (i, problem) in enumerate(problems)
-            translation_system = build_intrinsic_rotation_translation_conic_system(
-                problem
-            )
-            parameters = stack_homotopy_parameters(problem.lines[1:3, :], problem.dualquadrics[1:3, :, :])
-
-            result = solve(
-                translation_system,
-                # parameters_solutions_pair.solutions,
-                # start_parameters = parameters_solutions_pair.start_parameters,
-                target_parameters = parameters,
-            )
-            @info result
-
-            solution_error = Inf
-            solutions_to_try = real_solutions(result)
-            for solution in solutions_to_try
-                scale, tx, ty, tz = solution
-                position = [tx, ty, tz] / scale
-
-                display("$(position) $(scale)")
-
-                camera_matrix = build_camera_matrix(
-                    problem.camera.intrinsic,
-                    problem.camera.quaternion_rotation,
-                    position
+        real_camera_solution = problems[1].camera
+        for possible_solution in all_possible_solutions
+            for (i, problem) in enumerate(problems)
+                translation_system = build_intrinsic_rotation_translation_conic_system(
+                    problem
                 )
+                parameters = stack_homotopy_parameters(problem.lines[1:3, :], problem.dualquadrics[1:3, :, :])
 
-                acceptable = true
-                current_error = 0
-                for (i, contour) in enumerate(eachslice(scene.instances[i].conics_contours, dims=1))
-                    for line in eachslice(contour, dims=1)
-                        eq = line' * camera_matrix * scene.cylinders[i].dual_matrix * camera_matrix' * line
-                        current_error += abs(eq)
+                result = solve(
+                    translation_system,
+                    # parameters_solutions_pair.solutions,
+                    # start_parameters = parameters_solutions_pair.start_parameters,
+                    target_parameters = parameters,
+                )
+                @info result
 
-                        if (!(eq ≃ 0))
-                            acceptable = false
+                solution_error = Inf
+                solutions_to_try = real_solutions(result)
+                for solution in solutions_to_try
+                    scale, tx, ty, tz = solution
+                    position = [tx, ty, tz] / scale
+
+                    display("$(position) $(scale)")
+
+                    camera_matrix = build_camera_matrix(
+                        problem.camera.intrinsic,
+                        problem.camera.quaternion_rotation,
+                        position
+                    )
+
+                    acceptable = true
+                    current_error = 0
+                    for (i, contour) in enumerate(eachslice(scene.instances[i].conics_contours, dims=1))
+                        for line in eachslice(contour, dims=1)
+                            eq = line' * camera_matrix * scene.cylinders[i].dual_matrix * camera_matrix' * line
+                            current_error += abs(eq)
+
+                            if (!(eq ≃ 0))
+                                acceptable = false
+                            end
+                        end
+                        if (!acceptable)
+                            break
                         end
                     end
-                    if (!acceptable)
-                        break
+                    if (current_error < solution_error)
+                        solution_error = current_error
+                        problem.camera.position = position
+                        problem.camera.matrix = camera_matrix
                     end
                 end
-                if (current_error < solution_error)
-                    solution_error = current_error
-                    problem.camera.position = position
-                    problem.camera.matrix = camera_matrix
-                end
+                plot_3dcamera(Plot3dCameraInput(
+                    problem.camera.euler_rotation,
+                    problem.camera.position,
+                ), :green)
             end
         end
+        problems[1].camera = real_camera_solution
 
         for problem in problems
             plot_3dcamera(Plot3dCameraInput(
@@ -257,9 +268,13 @@ module CylindersBasedCameraResectioning
         startingsolution = [1, fₓ, fᵧ, skew, cₓ, cᵧ]
         parameters = []
         for problem in problems
+            rot = Rotations.params(problem.camera.quaternion_rotation')
+            rot = rot / rot[1]
+            rot = rot[2:end]
+            display(rot)
             startingsolution = stack_homotopy_parameters(
                 startingsolution,
-                problem.camera.quaternion_rotation',
+                rot,
             )
             parameters = stack_homotopy_parameters(
                 parameters,
