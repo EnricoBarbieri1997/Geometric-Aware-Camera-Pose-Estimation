@@ -5,8 +5,7 @@ module CylindersBasedCameraResectioning
     using .Space: transformation, random_transformation, identity_transformation, build_rotation_matrix
     using .Camera: CameraProperties, IntrinsicParameters, build_intrinsic_matrix, build_camera_matrix, lookat_rotation
     using .Plotting: initfigure, add_2d_axis!, plot_2dpoints, plot_line_2d, Plot3dCameraInput, plot_3dcamera, Plot3dCylindersInput, plot_cylinders_contours, plot_3dcylinders, plot_2dcylinders
-    using .EquationSystems: stack_homotopy_parameters, build_intrinsic_rotation_translation_conic_system, build_camera_matrix_conic_system
-    using .EquationSystems.Minimization: build_intrinsic_rotation_conic_system
+    using .EquationSystems: stack_homotopy_parameters, build_intrinsic_rotation_conic_system, build_intrinsic_rotation_translation_conic_system, build_camera_matrix_conic_system
     using .EquationSystems.Problems: CylinderCameraContoursProblem
     using .Debug
     using .Utils
@@ -44,6 +43,7 @@ module CylindersBasedCameraResectioning
         end
 
         rotation_intrinsic_system = build_intrinsic_rotation_conic_system(problems)
+        display(rotation_intrinsic_system)
         parameters = []
         for problem in problems
             parameters = stack_homotopy_parameters(
@@ -59,7 +59,8 @@ module CylindersBasedCameraResectioning
             # parameters_solutions_pair.solutions,
             # start_parameters = parameters_solutions_pair.start_parameters,
             target_parameters = parameters,
-            start_system = :total_degree
+            start_system = :total_degree,
+            only_torus = true
         )
         @info result
 
@@ -282,11 +283,18 @@ module CylindersBasedCameraResectioning
                 problem.points_at_infinity,
             )
         end
+        display(startingsolution)
         startingsolution = convert(Vector{Float64}, startingsolution)
         parameters = convert(Vector{Float64}, parameters)
         monodromy_solutions = monodromy_solve(
             intrinsic_rotation_system,
             startingsolution,
+            parameters;
+            max_loops_no_progress = 20,
+        )
+        monodromy_solutions = monodromy_solve(
+            intrinsic_rotation_system,
+            monodromy_solutions,
             parameters;
             max_loops_no_progress = 20,
         )
@@ -495,5 +503,61 @@ module CylindersBasedCameraResectioning
         return scene, problems
     end
 
-    export main, generate_monodromy_solutions
+    using DelimitedFiles
+    using StatsBase
+    using LinearAlgebra: cross
+    function labtesting()
+        link1 = "https://gist.githubusercontent.com/PBrdng/e17d0e3bc4d983734238b9cb8386d560/raw/07272b125a6ad03c791fdf99e741318f1d85149b/3Dpoints"
+        link2 = "https://gist.githubusercontent.com/PBrdng/e17d0e3bc4d983734238b9cb8386d560/raw/07272b125a6ad03c791fdf99e741318f1d85149b/2Dpoints"
+        points3D = readdlm(download(link1)) |> transpose
+        points2D = readdlm(download(link2)) |> transpose
+        τ = 0.01
+        m = 5
+        @var x[1:3, 1:m], u[1:2, 1:m]
+        @var R[1:3, 1:3], t[1:3], v[1:3], n[1:m]
+
+        cams = [[R t-(n[i]*τ).*v] for i in 1:m] # m = 5 cameras
+
+        y = [cams[i] * [x[:,i]; 1] for i in 1:m] # m = 5 images
+
+        g = [cross(y[i],  [u[:,i]; 1]) for i in 1:m]
+
+        k = R * R' - diagm(ones(3))
+        Rconstraints = [k[i,j] for i in 1:3, j in 1:3 if i<=j]
+        vconstraints = transpose(v) * v - 1
+
+        @var l1[1:6], l2       # Lagrange multipliers 
+
+        L = transpose(g) * g - transpose(l1) * Rconstraints - l2 * vconstraints
+        Lag = differentiate(L, [vec(R); t; v; l1; l2]);
+
+        F = System(Lag, variables = [vec(R); t; v; l1; l2], parameters = [vec(x); vec([u; n'])]);
+        display(F)
+
+        p0 = randn(ComplexF64, 30) 
+        S0 = solve(F, target_parameters = p0)
+        start = solutions(S0);
+
+        N = size(points2D, 2)
+        s = StatsBase.sample(collect(1:N), m; replace=false)
+
+        X = points2D[1:3, s] 
+        Y = points2D[:, s]
+
+        p1 = [vec(X); vec(Y)]
+        S1 = solve(F, start, start_parameters = p0, target_parameters = p1)
+        G = System(vcat(g...), variables = [vec(R); t; v], parameters = [vec(x); vec([u; n'])]);
+        function find_min(sols, p)
+            sols = [r[1:15] for r in sols]
+            a = map(sols) do r 
+                norm(G(r, p))
+            end
+            i = findmin(a)
+            sols[i[2]]
+        end
+        recovery = find_min(real_solutions(S1), p1)
+        R1, t1, v1 = reshape(recovery[1:9], 3, 3), recovery[10:12], recovery[13:15]
+    end
+
+    export main, generate_monodromy_solutions, labtesting
 end
