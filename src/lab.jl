@@ -128,7 +128,7 @@ module Lab
         g = (Q₁' * Q₁) * z₁ - λ .* (Q₂' * Q₂) * z₂
         # gather everything in one system
         params = [vec(Q₁); vec(Q₂); p₁; p₂]
-        F = system([f₁; f₂; g], variables = [x; r; λ], parameters=params)
+        F = System([f₁; f₂; g]; variables=[x; r; λ], parameters=params)
         display(F)
 
         q = [1, 0, 0, 1, 1, 0, 0, 1, 1, 0, -1, 0]
@@ -193,7 +193,7 @@ module Lab
 
         #Plug in the variables of the 3 points
         #and coefficients of the 3 conics
-        F = ([
+        F = System([
             f([x; y; a; r; vec(B)] => [v[:,i]; a; r; vec(C)])
             for f in conditions
             for (i,C) in enumerate([C1, C2, C3])
