@@ -1,0 +1,31 @@
+System of length 12
+ 12 variables: h₁, h₂, h₃, x₁, x₂, x₃, y₁, y₂, y₃, z₁, z₂, z₃
+ 20 parameters: c₁, c₂, c₃, c₄, c₅, c₆, c₇, c₈, c₉, c₁₀, c₁₁, c₁₂, c₁₃, c₁₄, c₁₅, c₁₆, c₁₇, c₁₈, c₁₉, c₂₀
+
+ -1 + h₁*x₁ + h₂*x₂ + h₃*x₃
+ x₃ - x₂*x₁
+ c₂₀ + c₁*x₁^3 + c₇*x₂^3 + x₁*c₁₇ + x₁^2*c₁₁ + x₂*c₁₈ + x₂^2*c₁₄ + x₃*c₁₉ + x₃^2*c₁₆ + x₃^3*c₁₀ + c₂*x₂*x₁^2 + c₃*x₃*x₁^2 + c₄*x₂^2*x₁ + c₆*x₃^2*x₁ + c₈*x₂^2*x₃ + c₉*x₂*x₃^2 + x₂*x₁*c₁₂ + x₂*x₃*c₁₅ + x₃*x₁*c₁₃ + c₅*x₂*x₃*x₁
+ h₁*(-x₁*(c₁₉ + c₃*x₁^2 + c₈*x₂^2 + x₁*c₁₃ + x₂*c₁₅ + 2*x₃*c₁₆ + 3*x₃^2*c₁₀ + c₅*x₂*x₁ + 2*c₆*x₃*x₁ + 2*c₉*x₂*x₃) - (c₁₈ + c₂*x₁^2 + 3*c₇*x₂^2 + c₉*x₃^2 + x₁*c₁₂ + 2*x₂*c₁₄ + x₃*c₁₅ + 2*c₄*x₂*x₁ + c₅*x₃*x₁ + 2*c₈*x₂*x₃)) - h₂*(-x₂*(c₁₉ + c₃*x₁^2 + c₈*x₂^2 + x₁*c₁₃ + x₂*c₁₅ + 2*x₃*c₁₆ + 3*x₃^2*c₁₀ + c₅*x₂*x₁ + 2*c₆*x₃*x₁ + 2*c₉*x₂*x₃) - (c₁₇ + 3*c₁*x₁^2 + c₄*x₂^2 + c₆*x₃^2 + 2*x₁*c₁₁ + x₂*c₁₂ + x₃*c₁₃ + 2*c₂*x₂*x₁ + 2*c₃*x₃*x₁ + c₅*x₂*x₃)) + h₃*(x₁*(c₁₇ + 3*c₁*x₁^2 + c₄*x₂^2 + c₆*x₃^2 + 2*x₁*c₁₁ + x₂*c₁₂ + x₃*c₁₃ + 2*c₂*x₂*x₁ + 2*c₃*x₃*x₁ + c₅*x₂*x₃) - x₂*(c₁₈ + c₂*x₁^2 + 3*c₇*x₂^2 + c₉*x₃^2 + x₁*c₁₂ + 2*x₂*c₁₄ + x₃*c₁₅ + 2*c₄*x₂*x₁ + c₅*x₃*x₁ + 2*c₈*x₂*x₃))
+ -1 + h₁*y₁ + h₂*y₂ + h₃*y₃
+ y₃ - y₁*y₂
+ c₂₀ + y₁*c₁₇ + y₁^2*c₁₁ + y₁^3*c₁ + y₂*c₁₈ + y₂^2*c₁₄ + y₂^3*c₇ + y₃*c₁₉ + y₃^2*c₁₆ + y₃^3*c₁₀ + y₁*y₂*c₁₂ + y₁*y₂^2*c₄ + y₁*y₃*c₁₃ + y₁*y₃^2*c₆ + y₁^2*y₂*c₂ + y₁^2*y₃*c₃ + y₃*y₂*c₁₅ + y₃*y₂^2*c₈ + y₃^2*y₂*c₉ + y₁*y₃*y₂*c₅
+ h₁*(-y₁*(c₁₉ + y₁*c₁₃ + y₁^2*c₃ + y₂*c₁₅ + y₂^2*c₈ + 2*y₃*c₁₆ + 3*y₃^2*c₁₀ + y₁*y₂*c₅ + 2*y₁*y₃*c₆ + 2*y₃*y₂*c₉) - (c₁₈ + y₁*c₁₂ + y₁^2*c₂ + 2*y₂*c₁₄ + 3*y₂^2*c₇ + y₃*c₁₅ + y₃^2*c₉ + 2*y₁*y₂*c₄ + y₁*y₃*c₅ + 2*y₃*y₂*c₈)) - h₂*(-y₂*(c₁₉ + y₁*c₁₃ + y₁^2*c₃ + y₂*c₁₅ + y₂^2*c₈ + 2*y₃*c₁₆ + 3*y₃^2*c₁₀ + y₁*y₂*c₅ + 2*y₁*y₃*c₆ + 2*y₃*y₂*c₉) - (c₁₇ + 2*y₁*c₁₁ + 3*y₁^2*c₁ + y₂*c₁₂ + y₂^2*c₄ + y₃*c₁₃ + y₃^2*c₆ + 2*y₁*y₂*c₂ + 2*y₁*y₃*c₃ + y₃*y₂*c₅)) + (y₁*(c₁₇ + 2*y₁*c₁₁ + 3*y₁^2*c₁ + y₂*c₁₂ + y₂^2*c₄ + y₃*c₁₃ + y₃^2*c₆ + 2*y₁*y₂*c₂ + 2*y₁*y₃*c₃ + y₃*y₂*c₅) - y₂*(c₁₈ + y₁*c₁₂ + y₁^2*c₂ + 2*y₂*c₁₄ + 3*y₂^2*c₇ + y₃*c₁₅ + y₃^2*c₉ + 2*y₁*y₂*c₄ + y₁*y₃*c₅ + 2*y₃*y₂*c₈))*h₃
+ -1 + h₁*z₁ + h₂*z₂ + h₃*z₃
+ z₃ - z₂*z₁
+ c₂₀ + c₁*z₁^3 + c₇*z₂^3 + z₁*c₁₇ + z₁^2*c₁₁ + z₂*c₁₈ + z₂^2*c₁₄ + z₃*c₁₉ + z₃^2*c₁₆ + z₃^3*c₁₀ + c₂*z₂*z₁^2 + c₃*z₃*z₁^2 + c₄*z₂^2*z₁ + c₆*z₃^2*z₁ + c₈*z₂^2*z₃ + c₉*z₂*z₃^2 + z₂*z₁*c₁₂ + z₂*z₃*c₁₅ + z₃*z₁*c₁₃ + c₅*z₂*z₃*z₁
+ h₁*(-z₁*(c₁₉ + c₃*z₁^2 + c₈*z₂^2 + z₁*c₁₃ + z₂*c₁₅ + 2*z₃*c₁₆ + 3*z₃^2*c₁₀ + c₅*z₂*z₁ + 2*c₆*z₃*z₁ + 2*c₉*z₂*z₃) - (c₁₈ + c₂*z₁^2 + 3*c₇*z₂^2 + c₉*z₃^2 + z₁*c₁₂ + 2*z₂*c₁₄ + z₃*c₁₅ + 2*c₄*z₂*z₁ + c₅*z₃*z₁ + 2*c₈*z₂*z₃)) - h₂*(-z₂*(c₁₉ + c₃*z₁^2 + c₈*z₂^2 + z₁*c₁₃ + z₂*c₁₅ + 2*z₃*c₁₆ + 3*z₃^2*c₁₀ + c₅*z₂*z₁ + 2*c₆*z₃*z₁ + 2*c₉*z₂*z₃) - (c₁₇ + 3*c₁*z₁^2 + c₄*z₂^2 + c₆*z₃^2 + 2*z₁*c₁₁ + z₂*c₁₂ + z₃*c₁₃ + 2*c₂*z₂*z₁ + 2*c₃*z₃*z₁ + c₅*z₂*z₃)) + h₃*(z₁*(c₁₇ + 3*c₁*z₁^2 + c₄*z₂^2 + c₆*z₃^2 + 2*z₁*c₁₁ + z₂*c₁₂ + z₃*c₁₃ + 2*c₂*z₂*z₁ + 2*c₃*z₃*z₁ + c₅*z₂*z₃) - z₂*(c₁₈ + c₂*z₁^2 + 3*c₇*z₂^2 + c₉*z₃^2 + z₁*c₁₂ + 2*z₂*c₁₄ + z₃*c₁₅ + 2*c₄*z₂*z₁ + c₅*z₃*z₁ + 2*c₈*z₂*z₃))
+Tracking 12636 paths... 100%|██████████████| Time: 0:01:42
+  # paths tracked:                  12636
+  # non-singular solutions (real):  720 (0)
+  # singular endpoints (real):      4741 (0)
+  # total solutions (real):         5461 (0)
+Tracking 720 paths... 100%|████████████████| Time: 0:00:02
+  # paths tracked:                  720
+  # non-singular solutions (real):  684 (24)
+  # singular endpoints (real):      0 (0)
+  # total solutions (real):         684 (24)
+Result with 684 solutions
+=========================
+• 720 paths tracked
+• 684 non-singular solutions (24 real)
+• random_seed: 0x479ed874

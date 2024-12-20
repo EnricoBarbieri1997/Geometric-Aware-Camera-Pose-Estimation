@@ -1,0 +1,10 @@
+4-element Vector{DynamicPolynomials.Polynomial{DynamicPolynomials.Commutative{DynamicPolynomials.CreationOrder}, MultivariatePolynomials.Graded{MultivariatePolynomials.LexOrder}, Int64}}:
+ -r² + Q₁₂₋₂²x₂² - 2Q₁₂₋₂²p₁₂x₂ + Q₁₂₋₂²p₁₂² + Q₁₁₋₂²x₂² - 2Q₁₁₋₂²p₁₂x₂ + Q₁₁₋₂²p₁₂² + 2Q₁₂₋₁Q₁₂₋₂x₁x₂ - 2Q₁₂₋₁Q₁₂₋₂p₁₂x₁ - 2Q₁₂₋₁Q₁₂₋₂p₁₁x₂ + 2Q₁₂₋₁Q₁₂₋₂p₁₁p₁₂ + Q₁₂₋₁²x₁² - 2Q₁₂₋₁²p₁₁x₁ + Q₁₂₋₁²p₁₁² + 2Q₁₁₋₁Q₁₁₋₂x₁x₂ - 2Q₁₁₋₁Q₁₁₋₂p₁₂x₁ - 2Q₁₁₋₁Q₁₁₋₂p₁₁x₂ + 2Q₁₁₋₁Q₁₁₋₂p₁₁p₁₂ + Q₁₁₋₁²x₁² - 2Q₁₁₋₁²p₁₁x₁ + Q₁₁₋₁²p₁₁²
+ -r² + Q₂₂₋₂²x₂² - 2Q₂₂₋₂²p₂₂x₂ + Q₂₂₋₂²p₂₂² + Q₂₁₋₂²x₂² - 2Q₂₁₋₂²p₂₂x₂ + Q₂₁₋₂²p₂₂² + 2Q₂₂₋₁Q₂₂₋₂x₁x₂ - 2Q₂₂₋₁Q₂₂₋₂p₂₂x₁ - 2Q₂₂₋₁Q₂₂₋₂p₂₁x₂ + 2Q₂₂₋₁Q₂₂₋₂p₂₁p₂₂ + Q₂₂₋₁²x₁² - 2Q₂₂₋₁²p₂₁x₁ + Q₂₂₋₁²p₂₁² + 2Q₂₁₋₁Q₂₁₋₂x₁x₂ - 2Q₂₁₋₁Q₂₁₋₂p₂₂x₁ - 2Q₂₁₋₁Q₂₁₋₂p₂₁x₂ + 2Q₂₁₋₁Q₂₁₋₂p₂₁p₂₂ + Q₂₁₋₁²x₁² - 2Q₂₁₋₁²p₂₁x₁ + Q₂₁₋₁²p₂₁²
+ Q₁₂₋₁Q₁₂₋₂x₂ - Q₁₂₋₁Q₁₂₋₂p₁₂ + Q₁₂₋₁²x₁ - Q₁₂₋₁²p₁₁ + Q₁₁₋₁Q₁₁₋₂x₂ - Q₁₁₋₁Q₁₁₋₂p₁₂ + Q₁₁₋₁²x₁ - Q₁₁₋₁²p₁₁ - Q₂₂₋₁Q₂₂₋₂x₂λ + Q₂₂₋₁Q₂₂₋₂p₂₂λ - Q₂₂₋₁²x₁λ + Q₂₂₋₁²p₂₁λ - Q₂₁₋₁Q₂₁₋₂x₂λ + Q₂₁₋₁Q₂₁₋₂p₂₂λ - Q₂₁₋₁²x₁λ + Q₂₁₋₁²p₂₁λ
+ Q₁₂₋₂²x₂ - Q₁₂₋₂²p₁₂ + Q₁₁₋₂²x₂ - Q₁₁₋₂²p₁₂ + Q₁₂₋₁Q₁₂₋₂x₁ - Q₁₂₋₁Q₁₂₋₂p₁₁ + Q₁₁₋₁Q₁₁₋₂x₁ - Q₁₁₋₁Q₁₁₋₂p₁₁ - Q₂₂₋₂²x₂λ + Q₂₂₋₂²p₂₂λ - Q₂₁₋₂²x₂λ + Q₂₁₋₂²p₂₂λ - Q₂₂₋₁Q₂₂₋₂x₁λ + Q₂₂₋₁Q₂₂₋₂p₂₁λ - Q₂₁₋₁Q₂₁₋₂x₁λ + Q₂₁₋₁Q₂₁₋₂p₂₁λ
+Result with 1 solution
+======================
+• 1 path tracked
+• 1 non-singular solution (1 real)
+• random_seed: 0xe0ae28ce
