@@ -123,8 +123,8 @@ module CylindersBasedCameraResectioning
             @assert isnothing(camera_calculated) == false  "(11) Found rotation satisfies constraints"
         end
 
-        display("O: $(round.(camera.quaternion_rotation, digits=2))")
-        display("C: $(round.(camera_calculated.quaternion_rotation, digits=2))")
+        display("Original rotation:$(round.(camera.quaternion_rotation, digits=2))")
+        display("Calculated rotation:$(round.(camera_calculated.quaternion_rotation, digits=2))")
 
         display("Error of the best rotation solution: $(solution_error)")
         display("Best solution for rotation: $(camera_calculated.euler_rotation)")
@@ -429,8 +429,8 @@ module CylindersBasedCameraResectioning
 
         camera_calculated = problems[1].camera
 
-        display("O: $(round.(camera.quaternion_rotation, digits=2))")
-        display("C: $(round.(camera_calculated.quaternion_rotation, digits=2))")
+        display("Original rotation:$(round.(camera.quaternion_rotation, digits=2))")
+        display("Calculated rotation:$(round.(camera_calculated.quaternion_rotation, digits=2))")
 
         display("Error of the best rotation solution: $(solution_error)")
         display("Best solution for rotation: $(camera_calculated.euler_rotation)")
