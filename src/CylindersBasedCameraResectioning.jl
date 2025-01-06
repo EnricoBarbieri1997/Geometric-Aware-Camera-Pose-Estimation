@@ -68,14 +68,14 @@ module CylindersBasedCameraResectioning
         all_possible_solutions = []
         for solution in solutions_to_try
             intrinsic = build_intrinsic_matrix(IntrinsicParameters(
-                focal_length_x = solution[2],
-                focal_length_y = solution[3],
-                principal_point_x = solution[5],
-                principal_point_y = solution[6],
-                skew = solution[4],
-            )) * solution[1]
+                focal_length_x = solution[1],
+                focal_length_y = solution[2],
+                principal_point_x = solution[4],
+                principal_point_y = solution[5],
+                skew = solution[3],
+            ))
             if (!all(x -> x > 0, intrinsic)) continue end
-            rotations_solution = solution[7:end]
+            rotations_solution = solution[6:end]
 
             acceptable = true
             current_error = 0
@@ -161,8 +161,8 @@ module CylindersBasedCameraResectioning
                 solution_error = Inf
                 solutions_to_try = real_solutions(result)
                 for solution in solutions_to_try
-                    scale, tx, ty, tz = solution
-                    position = [tx, ty, tz] / scale
+                    tx, ty, tz = solution
+                    position = [tx, ty, tz]
 
                     camera_matrix = build_camera_matrix(
                         problem.camera.intrinsic,
@@ -252,8 +252,8 @@ module CylindersBasedCameraResectioning
                     dualquadrics = problem.dualquadrics
                     R = problem.camera.quaternion_rotation'
                     cameramatrix = problem.camera.matrix
-                    top_left_intrinsic = problem.camera.intrinsic[1:3, 1:3]
-                    display("$(lines[i, :]' * top_left_intrinsic * R * points_at_infinity[i, :]), (1) line point")
+                    intrinsic = problem.camera.intrinsic
+                    display("$(lines[i, :]' * intrinsic * R * points_at_infinity[i, :]), (1) line point")
                     display("$(lines[i, :]' * cameramatrix * dualquadrics[i, :, :] * cameramatrix' * lines[i, :]), (2) line quadric")
                 end
             end
@@ -378,14 +378,14 @@ module CylindersBasedCameraResectioning
         all_possible_solutions = []
         for solution in solutions_to_try
             intrinsic = build_intrinsic_matrix(IntrinsicParameters(
-                focal_length_x = solution[2],
-                focal_length_y = solution[3],
-                principal_point_x = solution[5],
-                principal_point_y = solution[6],
-                skew = solution[4],
-            )) * solution[1]
+                focal_length_x = solution[1],
+                focal_length_y = solution[2],
+                principal_point_x = solution[4],
+                principal_point_y = solution[5],
+                skew = solution[3],
+            ))
             # if (!all(x -> x > 0, intrinsic)) continue end
-            rotations_solution = solution[7:end]
+            rotations_solution = solution[6:end]
 
             acceptable = true
             current_error = 0
@@ -405,7 +405,7 @@ module CylindersBasedCameraResectioning
 
                 for (i, contour) in enumerate(eachslice(scene.instances[i].conics_contours, dims=1))
                     for line in eachslice(contour, dims=1)
-                        eq = line' * intrinsic[1:3, 1:3] * camera_extrinsic_rotation * scene.cylinders[i].singular_point[1:3]
+                        eq = line' * intrinsic * camera_extrinsic_rotation * scene.cylinders[i].singular_point[1:3]
                         current_error += abs(eq)
 
                         if (!(eq ≃ 0))
@@ -416,6 +416,14 @@ module CylindersBasedCameraResectioning
                         break
                     end
                 end
+            end
+            if (intrinsic[1, 1] < 0 && intrinsic[1, 2] < 0)
+                intrinsic[1, 1] = abs(intrinsic[1, 1])
+                intrinsic[1, 2] = abs(intrinsic[1, 2])
+            end
+            if (intrinsic[2, 2] < 0 && intrinsic[1, 2] < 0)
+                intrinsic[2, 2] = abs(intrinsic[2, 2])
+                intrinsic[1, 2] = abs(intrinsic[1, 2])
             end
             push!(all_possible_solutions, possible_cameras[1])
 
@@ -459,8 +467,8 @@ module CylindersBasedCameraResectioning
                 solution_error = Inf
                 solutions_to_try = real_solutions(result)
                 for solution in solutions_to_try
-                    scale, tx, ty, tz = solution
-                    position = [tx, ty, tz] / scale
+                    tx, ty, tz = solution
+                    position = [tx, ty, tz]
 
                     camera_matrix = build_camera_matrix(
                         problem.camera.intrinsic,

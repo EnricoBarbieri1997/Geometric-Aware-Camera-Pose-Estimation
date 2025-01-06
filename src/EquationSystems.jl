@@ -38,10 +38,10 @@ module EquationSystems
 			throw(ArgumentError("At least one problem is needed"))
 		end
 
-		@var scale fₓ fᵧ skew cₓ cᵧ
+		@var fₓ fᵧ skew cₓ cᵧ
 
-		system_to_solve = [scale * fₓ * fᵧ - 1]
-		variables::Vector{HomotopyContinuation.ModelKit.Variable} = [scale, fₓ, fᵧ, skew, cₓ, cᵧ]
+		system_to_solve = []
+		variables::Vector{HomotopyContinuation.ModelKit.Variable} = [fₓ, fᵧ, skew, cₓ, cᵧ]
 		parameters::Vector{HomotopyContinuation.ModelKit.Variable} = []
 
 		for (index, problem) in enumerate(problems)
@@ -58,16 +58,16 @@ module EquationSystems
 				Variable("points_at_infinity$(index)", i, j)
 				for i in 1:lines_count, j in 1:3
 			], lines_count, 3)
-			intrinsic_topleft = build_intrinsic_matrix(IntrinsicParameters(
+			intrinsic = build_intrinsic_matrix(IntrinsicParameters(
 				focal_length_x = fₓ,
 				focal_length_y = fᵧ,
 				principal_point_x = cₓ,
 				principal_point_y = cᵧ,
 				skew = skew,
-			))[1:3, 1:3]
+			))
 
 			for line_index in 1:lines_count
-				equation = scale * lines[line_index, :]' * intrinsic_topleft * R * points_at_infinity[line_index, :]
+				equation = lines[line_index, :]' * intrinsic * R * points_at_infinity[line_index, :]
 				push!(system_to_solve, equation)
 			end
 
@@ -80,7 +80,7 @@ module EquationSystems
 
 	function build_intrinsic_rotation_translation_conic_system(problem::Problems.CylinderCameraContoursProblem)
 		lines_count = 3
-		@var scale tx ty tz
+		@var tx ty tz
 		@var lines[1:lines_count, 1:3] dual_quadrics[1:lines_count, 1:4, 1:4]
 		P = build_camera_matrix(
 			problem.camera.intrinsic, 
@@ -88,13 +88,13 @@ module EquationSystems
 			[tx; ty; tz]
 		)
 
-		system_to_solve = [scale - 1.0]
+		system_to_solve = []
 		for i in 1:lines_count
-				equation = lines[i, :]' * scale * P * dual_quadrics[i, :, :] * P' * lines[i, :]
+				equation = lines[i, :]' * P * dual_quadrics[i, :, :] * P' * lines[i, :]
 				push!(system_to_solve, equation)
 		end
 		parameters::Vector{HomotopyContinuation.ModelKit.Variable} = stack_homotopy_parameters(lines, dual_quadrics)
-		return System(system_to_solve, variables=[scale, tx, ty, tz], parameters=parameters)
+		return System(system_to_solve, variables=[tx, ty, tz], parameters=parameters)
 	end
 
 	function build_camera_matrix_conic_system(lines_values)
