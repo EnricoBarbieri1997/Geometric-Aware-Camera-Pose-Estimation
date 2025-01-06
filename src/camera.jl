@@ -54,7 +54,7 @@ module Camera
 		M[1:3, 4] = t₁
 		M[4, 4] = 1
 
-		return K * M
+		return hcat(K, zeros(3)) * M
 	end
 
 	function build_camera_matrix(
@@ -76,7 +76,7 @@ module Camera
 		M[1:3, 4] = t₁
 		M[4, 4] = 1
 
-		return K * M
+		return hcat(K, zeros(3)) * M
 	end
 
 	@kwdef mutable struct IntrinsicParameters
@@ -94,9 +94,9 @@ module Camera
 		cx = params.principal_point_x
 		cy = params.principal_point_y
 		return [
-			fx s cx 0;
-			0 fy cy 0;
-			0 0 1 0
+			fx s cx;
+			0 fy cy;
+			0 0 1
 		]
 	end
 	function build_intrinsic_matrix(focal_length::Number, pixel_size::Number = 1)
@@ -118,7 +118,7 @@ module Camera
 			r₁ = r₁' # inv(r)
 		end
 		t₁ = -r₁ * translation
-		return intrinsic * vcat(hcat(r₁, t₁), [0 0 0 1])
+		return hcat(intrinsic, zeros(3)) * vcat(hcat(r₁, t₁), [0 0 0 1])
 	end
 
 	function lookat_axis(eye, at, up)

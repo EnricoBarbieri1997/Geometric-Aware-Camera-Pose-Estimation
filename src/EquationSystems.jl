@@ -107,13 +107,12 @@ module EquationSystems
 		@var t[1:3]
 		@var lines[1:input_count, 1:3] points_at_infinity[1:input_count, 1:3] dual_quadrics[1:translation_equations_count, 1:4, 1:4]
 		intrinsic = build_intrinsic_matrix(f)
-		intrinsic_topleft = intrinsic[1:3, 1:3]
 		P = build_camera_matrix(intrinsic, R, t; use_rotation_as_is = true)
 
 		system_to_solve = []
 		add_rotation_constraints!(system_to_solve, R)
 		for i in 1:input_count
-			equation = lines[i, :]' * intrinsic_topleft * R * points_at_infinity[i, :]
+			equation = lines[i, :]' * intrinsic * R * points_at_infinity[i, :]
 			push!(system_to_solve, equation)
 		end
 		for i in 1:translation_equations_count
