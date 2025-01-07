@@ -8,6 +8,15 @@ module Utils
 	using Random
 	using HomotopyContinuation: jacobian
 
+	@enum EulerOrder begin
+		EulerOrderXYZ = 1
+		EulerOrderXZY = 2
+		EulerOrderYXZ = 3
+		EulerOrderYZX = 4
+		EulerOrderZXY = 5
+		EulerOrderZYX = 6
+	end
+
 	function almostequal(x::Number, y::Number)
 		return abs(x - y) < 1e-6
 	end
@@ -158,18 +167,109 @@ module Utils
 	function isvalid_startsolution(system, solution, parameters)
 		return minimum(svdvals(jacobian(system, solution, parameters))) > 1e-6
 	end
-
-	function eulerangles_from_rotationmatrix(rotation_matrix)
-		θ = atan(rotation_matrix[3,2], rotation_matrix[3,3])
-		ϕ = atan(-rotation_matrix[3,1], sqrt(rotation_matrix[3,2]^2 + rotation_matrix[3,3]^2))
-		ψ = atan(rotation_matrix[2,1], rotation_matrix[1,1])
-		return [θ, ϕ, ψ]
+	function eulerangles_from_rotationmatrix(rotation_matrix; order::EulerOrder = EulerOrderXYZ)
+		r = rotation_matrix
+		if (order == EulerOrderXYZ)
+			sy = r[1,3]
+			if (sy < 1)
+				if (sy > -1)
+					if (
+						r[2,1] == 0 &&
+						r[1,2] == 0 &&
+						r[2,3] == 0 &&
+						r[3,2] == 0 &&
+						r[2,2] == 1
+					)
+						return [0, atan(r[1,3], r[1,1]), 0]
+					else
+						return [atan(-r[2,3], r[3,3]), asin(r[1,3]), atan(-r[1,2], r[1,1])]
+					end
+				else
+					return [atan(r[2,1], r[2,2]), -π/2, 0]
+				end
+			else
+				return [atan(r[2,1], r[2,2]), π/2, 0]
+			end
+		end
+		if (order == EulerOrderXZY)
+			sz = r[1,2]
+			if (sz < 1)
+				if (sz > -1)
+					return [atan(r[3,2], r[2,2]), atan(r[1,3], r[1,1]), asin(-sz)]
+				else
+					# sz == -1
+					return [-atan(r[2,3], r[3,3]), 0, π/2]
+				end
+			else
+				# sz == 1
+				return [-atan(r[2,3], r[3,3]), 0, -π/2]
+			end
+		end
+		if (order == EulerOrderYXZ)
+			m12 = r[2,3]
+			if (m12 < 1)
+				if (m12 > -1)
+					if (
+						r[2,1] == 0 &&
+						r[1,2] == 0 &&
+						r[1,3] == 0 &&
+						r[3,1] == 0 &&
+						r[1,1] == 1
+					)
+						return [atan(-m12, r[2,2]), 0, 0]
+					else
+						return [asin(-m12), atan(r[1,3], r[3,3]), atan(r[2,1], r[2,2])]
+					end
+				else
+					return [π/2, atan(r[1,2], r[1,1]), 0]
+				end
+			else
+				return [-π/2, -atan(r[1,2], r[1,1]), 0]
+			end
+		end
+		if (order == EulerOrderYZX)
+			sz = r[2,1]
+			if (sz < 1)
+				if (sz > -1)
+					return [atan(-r[2,3], r[2,2]), atan(-r[3,1], r[1,1]), asin(sz)]
+				else
+					return [atan(r[3,2], r[3,3]), 0, -π/2]
+				end
+			else
+				return [atan(r[3,2], r[3,3]), 0, π/2]
+			end
+		end
+		if (order == EulerOrderZXY)
+			sx = r[3,2]
+			if (sx < 1)
+				if (sx > -1)
+					return [asin(sx), atan(-r[3,1], r[3,3]), atan(-r[1,2], r[2,2])]
+				else
+					return [-π/2, atan(r[1,3], r[1,1]), 0]
+				end
+			else
+				return [π/2, atan(r[1,3], r[1,1]), 0]
+			end
+		end
+		if (order == EulerOrderZYX)
+			sy = r[3,1]
+			if (sy < 1)
+				if (sy > -1)
+					return [atan(r[3,2], r[3,3]), asin(-sy), atan(r[2,1], r[1,1])]
+				else
+					return [0, π/2, -atan(r[1,2], r[2,2])]
+				end
+			else
+				return [0, -π/2, -atan(r[1,2], r[2,2])]
+			end
+		end
+		throw(ArgumentError("Invalid arguments"))
 	end
 
 	function random_camera_lookingat_center()
 		camera_translationdirection = normalize(rand_in_range(-1.0, 1.0, 3))
-    camera_translation = camera_translationdirection * rand_in_range(15.0, 20.0)
-    camera_object_rotation = lookat_rotation(camera_translationdirection, [0, 0, 0], [0, 0, 1])
+		camera_translation = camera_translationdirection * rand_in_range(15.0, 20.0)
+		camera_object_rotation = lookat_rotation(camera_translationdirection, [0, 0, 0], [0, 0, 1])
 		return camera_translation, camera_object_rotation
 	end
 end
