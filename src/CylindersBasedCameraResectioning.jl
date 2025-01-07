@@ -377,13 +377,34 @@ module CylindersBasedCameraResectioning
         solutions_to_try = real_solutions(result)
         all_possible_solutions = []
         for solution in solutions_to_try
+            focal_length_x = solution[1]
+            focal_length_y = solution[2]
+            principal_point_x = solution[4]
+            principal_point_y = solution[5]
+            skew = solution[3]
             intrinsic = build_intrinsic_matrix(IntrinsicParameters(
-                focal_length_x = solution[1],
-                focal_length_y = solution[2],
-                principal_point_x = solution[4],
-                principal_point_y = solution[5],
-                skew = solution[3],
+                focal_length_x = focal_length_x,
+                focal_length_y = focal_length_y,
+                principal_point_x = principal_point_x,
+                principal_point_y = principal_point_y,
+                skew = skew,
             ))
+            intrinsic_correction = I
+            if (focal_length_x < 0 && skew < 0)
+                intrinsic_correction = [
+                    -1 -2*abs(skew)/abs(focal_length_x) 0;
+                    0 1 0;
+                    0 0 1;
+                ]
+            end
+            if (focal_length_y < 0 && skew < 0)
+                intrinsic_correction = [
+                    1 0 0;
+                    1 -1 0;
+                    0 0 1;
+                ]
+            end
+            intrinsic = intrinsic * intrinsic_correction
             # if (!all(x -> x > 0, intrinsic)) continue end
             rotations_solution = solution[6:end]
 
@@ -394,7 +415,7 @@ module CylindersBasedCameraResectioning
                 camera_extrinsic_rotation = QuatRotation(
                     1,
                     rotations_solution[(i-1)*3+1:i*3]...
-                )
+                ) * inv(intrinsic_correction)
 
                 possible_camera = CameraProperties(
                     euler_rotation = rad2deg.(eulerangles_from_rotationmatrix(camera_extrinsic_rotation')),
@@ -417,14 +438,6 @@ module CylindersBasedCameraResectioning
                     end
                 end
             end
-            if (intrinsic[1, 1] < 0 && intrinsic[1, 2] < 0)
-                intrinsic[1, 1] = abs(intrinsic[1, 1])
-                intrinsic[1, 2] = abs(intrinsic[1, 2])
-            end
-            if (intrinsic[2, 2] < 0 && intrinsic[1, 2] < 0)
-                intrinsic[2, 2] = abs(intrinsic[2, 2])
-                intrinsic[1, 2] = abs(intrinsic[1, 2])
-            end
             push!(all_possible_solutions, possible_cameras[1])
 
             if (current_error < solution_error)
@@ -437,16 +450,17 @@ module CylindersBasedCameraResectioning
 
         camera_calculated = problems[1].camera
 
-        display("Original rotation:$(round.(camera.quaternion_rotation, digits=2))")
-        display("Calculated rotation:$(round.(camera_calculated.quaternion_rotation, digits=2))")
+        display("Error of the best solution: $(solution_error)")
 
-        display("Error of the best rotation solution: $(solution_error)")
-        display("Best solution for rotation: $(camera_calculated.euler_rotation)")
+        display("Original quaternion:$(round.(camera.quaternion_rotation, digits=2))")
+        display("Calculated quaternion:$(round.(camera_calculated.quaternion_rotation, digits=2))")
+
         display("Actual rotation: $(camera.euler_rotation)")
+        display("Best solution for rotation: $(camera_calculated.euler_rotation)")
         display("Difference between rotations: $(rotations_difference(camera_calculated.quaternion_rotation, camera.quaternion_rotation))")
 
-        display("Calculated intrinsic: $(camera_calculated.intrinsic)")
         display("Actual intrinsic: $(camera.intrinsic)")
+        display("Calculated intrinsic: $(camera_calculated.intrinsic)")
 
         reference_translation_result = nothing
         real_camera_solution = problems[1].camera
