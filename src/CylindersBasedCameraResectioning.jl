@@ -55,11 +55,9 @@ module CylindersBasedCameraResectioning
 
         result = solve(
             rotation_intrinsic_system,
-            # parameters_solutions_pair.solutions,
-            # start_parameters = parameters_solutions_pair.start_parameters,
+            parameters_solutions_pair.solutions,
+            start_parameters = parameters_solutions_pair.start_parameters,
             target_parameters = parameters,
-            start_system = :total_degree,
-            only_torus = true
         )
         @info result
 
@@ -67,14 +65,34 @@ module CylindersBasedCameraResectioning
         solutions_to_try = real_solutions(result)
         all_possible_solutions = []
         for solution in solutions_to_try
+            focal_length_x = solution[1]
+            focal_length_y = solution[2]
+            principal_point_x = solution[4]
+            principal_point_y = solution[5]
+            skew = solution[3]
             intrinsic = build_intrinsic_matrix(IntrinsicParameters(
-                focal_length_x = solution[1],
-                focal_length_y = solution[2],
-                principal_point_x = solution[4],
-                principal_point_y = solution[5],
-                skew = solution[3],
+                focal_length_x = focal_length_x,
+                focal_length_y = focal_length_y,
+                principal_point_x = principal_point_x,
+                principal_point_y = principal_point_y,
+                skew = skew,
             ))
-            if (!all(x -> x > 0, intrinsic)) continue end
+            intrinsic_correction = I
+            if (focal_length_x < 0 && skew < 0)
+                intrinsic_correction = [
+                    -1 -2*abs(skew)/abs(focal_length_x) 0;
+                    0 1 0;
+                    0 0 1;
+                ]
+            end
+            if (focal_length_y < 0 && skew < 0)
+                intrinsic_correction = [
+                    1 0 0;
+                    1 -1 0;
+                    0 0 1;
+                ]
+            end
+            intrinsic = intrinsic * intrinsic_correction
             rotations_solution = solution[6:end]
 
             acceptable = true
@@ -84,7 +102,7 @@ module CylindersBasedCameraResectioning
                 camera_extrinsic_rotation = QuatRotation(
                     1,
                     rotations_solution[(i-1)*3+1:i*3]...
-                )
+                ) * inv(intrinsic_correction)
 
                 possible_camera = CameraProperties(
                     euler_rotation = rad2deg.(eulerangles_from_rotationmatrix(camera_extrinsic_rotation')),
@@ -123,16 +141,15 @@ module CylindersBasedCameraResectioning
             @assert isnothing(camera_calculated) == false  "(11) Found rotation satisfies constraints"
         end
 
-        display("Original rotation:$(round.(camera.quaternion_rotation, digits=2))")
-        display("Calculated rotation:$(round.(camera_calculated.quaternion_rotation, digits=2))")
+        display("Original quaternion:$(round.(camera.quaternion_rotation, digits=2))")
+        display("Calculated quaternion:$(round.(camera_calculated.quaternion_rotation, digits=2))")
 
-        display("Error of the best rotation solution: $(solution_error)")
-        display("Best solution for rotation: $(camera_calculated.euler_rotation)")
         display("Actual rotation: $(camera.euler_rotation)")
+        display("Best solution for rotation: $(camera_calculated.euler_rotation)")
         display("Difference between rotations: $(rotations_difference(camera_calculated.quaternion_rotation, camera.quaternion_rotation))")
 
-        display("Calculated intrinsic: $(camera_calculated.intrinsic)")
         display("Actual intrinsic: $(camera.intrinsic)")
+        display("Calculated intrinsic: $(camera_calculated.intrinsic)")
 
         parameters_solutions_pair = nothing
         try
@@ -152,8 +169,8 @@ module CylindersBasedCameraResectioning
 
                 result = solve(
                     translation_system,
-                    # parameters_solutions_pair.solutions,
-                    # start_parameters = parameters_solutions_pair.start_parameters,
+                    parameters_solutions_pair.solutions,
+                    start_parameters = parameters_solutions_pair.start_parameters,
                     target_parameters = parameters,
                 )
                 @info result
@@ -243,29 +260,31 @@ module CylindersBasedCameraResectioning
 
         display(scene.figure)
 
-        for (i, problem) in enumerate(problems)
-            display("--------------- problem $i ---------------")
+        for (j, problem) in enumerate(problems)
+            display("--------------- problem $j ---------------")
+            camera = scene.instances[j].camera
             for i in 1:4
                 begin #asserts
                     lines = problem.lines
                     points_at_infinity = problem.points_at_infinity
                     dualquadrics = problem.dualquadrics
-                    R = problem.camera.quaternion_rotation'
-                    cameramatrix = problem.camera.matrix
-                    intrinsic = problem.camera.intrinsic
+                    R = camera.quaternion_rotation'
+                    cameramatrix = camera.matrix
+                    intrinsic = camera.intrinsic
                     display("$(lines[i, :]' * intrinsic * R * points_at_infinity[i, :]), (1) line point")
                     display("$(lines[i, :]' * cameramatrix * dualquadrics[i, :, :] * cameramatrix' * lines[i, :]), (2) line quadric")
                 end
             end
-            display("------------- end problem $i -------------")
+            display("------------- end problem $j -------------")
         end
 
         intrinsic_rotation_system = build_intrinsic_rotation_conic_system(problems)
-        fₓ, _, _, skew, fᵧ, _, cₓ, cᵧ = vec(problems[1].camera.intrinsic)
-        startingsolution = [1, fₓ, fᵧ, skew, cₓ, cᵧ]
+        fₓ, _, _, skew, fᵧ, _, cₓ, cᵧ, _ = vec(scene.instances[1].camera.intrinsic)
+        startingsolution = [fₓ, fᵧ, skew, cₓ, cᵧ]
         parameters = []
-        for problem in problems
-            rot = Rotations.params(problem.camera.quaternion_rotation')
+        for (i, problem) in enumerate(problems)
+            camera = scene.instances[i].camera
+            rot = Rotations.params(camera.quaternion_rotation')
             rot = rot / rot[1]
             rot = rot[2:end]
             startingsolution = stack_homotopy_parameters(
@@ -284,14 +303,8 @@ module CylindersBasedCameraResectioning
             intrinsic_rotation_system,
             startingsolution,
             parameters;
-            max_loops_no_progress = 20,
+            max_loops_no_progress = 60,
         )
-        monodromy_solutions = monodromy_solve(
-            intrinsic_rotation_system,
-            monodromy_solutions,
-            parameters;
-            max_loops_no_progress = 20,
-        ) # ???
         display(monodromy_solutions)
 
         try
@@ -307,8 +320,11 @@ module CylindersBasedCameraResectioning
             )
         )
 
+        problems[1].camera.intrinsic = scene.instances[1].camera.intrinsic
+        problems[1].camera.quaternion_rotation = scene.instances[1].camera.quaternion_rotation
         translation_system = build_intrinsic_rotation_translation_conic_system(problems[1])
-        startingsolution = [1; problems[1].camera.position;]
+        startingsolution = scene.instances[1].camera.position
+        display("startingsolution: $startingsolution")
         parameters = stack_homotopy_parameters(
             problems[1].lines[1:3, :],
             problems[1].dualquadrics[1:3, :, :]
