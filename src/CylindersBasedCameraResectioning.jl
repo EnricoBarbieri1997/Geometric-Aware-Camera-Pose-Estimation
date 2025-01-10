@@ -483,17 +483,24 @@ module CylindersBasedCameraResectioning
                 skew = skew,
             ))
             intrinsic_correction = I
-            if (focal_length_x < 0 && skew < 0)
-                intrinsic_correction = [
-                    -1 -2*abs(skew)/abs(focal_length_x) 0;
+            if (focal_length_x < 0)
+                intrinsic_correction *= [
+                    -1 0 0;
                     0 1 0;
                     0 0 1;
                 ]
             end
-            if (focal_length_y < 0 && skew < 0)
-                intrinsic_correction = [
-                    1 0 0;
+            if (focal_length_y < 0)
+                intrinsic_correction *= [
+                    1 2*abs(skew)/abs(focal_length_x) 0;
                     1 -1 0;
+                    0 0 1;
+                ]
+            end
+            if (skew < 0)
+                intrinsic_correction *= [
+                    1 2*abs(skew)/abs(focal_length_x) 0;
+                    0 1 0;
                     0 0 1;
                 ]
             end
