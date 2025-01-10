@@ -32,7 +32,10 @@ module CylindersBasedCameraResectioning
     end
 
     function main()
-        scene, problems = create_scene_instances_and_problems(number_of_instances=1)
+        scene, problems = create_scene_instances_and_problems(
+            number_of_instances=1,
+            noise=0.1,
+        )
         camera = scene.instances[1].camera
 
         parameters_solutions_pair = nothing
@@ -50,16 +53,11 @@ module CylindersBasedCameraResectioning
             # parameters_solutions_pair.solutions,
             # start_parameters = parameters_solutions_pair.start_parameters,
             target_parameters = parameters,
+            start_system = :total_degree,
         )
         @info result
 
         solution_error, all_possible_solutions = best_intrinsic_rotation_system_solution!(result, scene, problems)
-
-        camera_calculated = problems[1].camera
-
-        begin #asserts
-            @assert isnothing(camera_calculated) == false  "(11) Found rotation satisfies constraints"
-        end
 
         parameters_solutions_pair = nothing
         try
@@ -75,9 +73,10 @@ module CylindersBasedCameraResectioning
 
                 result = solve(
                     translation_system,
-                    parameters_solutions_pair.solutions,
-                    start_parameters = parameters_solutions_pair.start_parameters,
+                    # parameters_solutions_pair.solutions,
+                    # start_parameters = parameters_solutions_pair.start_parameters,
                     target_parameters = parameters,
+                    start_system = :total_degree,
                 )
                 @info result
 
@@ -103,6 +102,86 @@ module CylindersBasedCameraResectioning
         plot_reconstructed_scene(scene, problems)
 
         display(scene.figure)
+    end
+
+    function save_solutions()
+        scene, problems = create_scene_instances_and_problems(
+            random_seed=81224,
+            number_of_cylinders=4,
+            number_of_instances=1,
+        )
+        camera = scene.instances[1].camera
+
+        parameters_solutions_pair = nothing
+
+        rotation_intrinsic_system, parameters = intrinsic_rotation_system_setup(problems)
+
+        result = solve(
+            rotation_intrinsic_system,
+            target_parameters = parameters,
+            start_system = :total_degree,
+        )
+        @info result
+
+        try
+            mkdir("tmp")
+        catch
+        end
+
+        serialize(
+            "tmp/intrinsic_rotation_total_degree_solutions.jld",
+            ParametersSolutionsPair(
+                parameters,
+                solutions(result)
+            )
+        )
+
+        solution_error, all_possible_solutions = best_intrinsic_rotation_system_solution!(result, scene, problems)
+
+        camera_calculated = problems[1].camera
+
+        current_best_result_error = Inf
+        reference_translation_result = nothing
+        for possible_solution in all_possible_solutions
+            for (i, problem) in enumerate(problems)
+                translation_system, parameters = intrinsic_rotation_translation_system_setup(problem)
+
+                result = solve(
+                    translation_system,
+                    start_system = :total_degree,
+                    target_parameters = parameters,
+                )
+                @info result
+
+                solution_error = best_intrinsic_rotation_translation_system_solution!(result, scene, scene.instances[i], problem)
+                if (solution_error < current_best_result_error)
+                    reference_translation_result = result
+                end
+                plot_3dcamera(Plot3dCameraInput(
+                    problem.camera.euler_rotation,
+                    problem.camera.position,
+                ), :green)
+            end
+        end
+
+        serialize(
+            "tmp/translation_total_degree_solutions.jld",
+            ParametersSolutionsPair(
+                parameters,
+                solutions(reference_translation_result)
+            )
+        )
+
+        for problem in problems
+            plot_3dcamera(Plot3dCameraInput(
+                problem.camera.euler_rotation,
+                problem.camera.position,
+            ), :green)
+        end
+
+        print_camera_differences(camera, camera_calculated)
+
+        plot_reconstructed_scene(scene, problems)
     end
 
     function generate_monodromy_solutions()
@@ -201,96 +280,11 @@ module CylindersBasedCameraResectioning
         )
     end
 
-    function save_solutions()
-        scene, problems = create_scene_instances_and_problems(
-            random_seed=81224,
-            number_of_cylinders=4,
-            number_of_instances=1,
-        )
-        camera = scene.instances[1].camera
-
-        parameters_solutions_pair = nothing
-
-        rotation_intrinsic_system, parameters = intrinsic_rotation_system_setup(problems)
-
-        result = solve(
-            rotation_intrinsic_system,
-            target_parameters = parameters,
-            start_system = :total_degree,
-            only_torus = true
-        )
-        @info result
-
-        try
-            mkdir("tmp")
-        catch
-        end
-
-        serialize(
-            "tmp/intrinsic_rotation_total_degree_solutions.jld",
-            ParametersSolutionsPair(
-                parameters,
-                solutions(result)
-            )
-        )
-
-        solution_error, all_possible_solutions = best_intrinsic_rotation_system_solution!(result, scene, problems)
-
-        camera_calculated = problems[1].camera
-
-        current_best_result_error = Inf
-        reference_translation_result = nothing
-        real_camera_solution = problems[1].camera
-        for possible_solution in all_possible_solutions
-            for (i, problem) in enumerate(problems)
-                translation_system = build_intrinsic_rotation_translation_conic_system(
-                    problem
-                )
-                parameters = stack_homotopy_parameters(problem.lines[1:3, :], problem.dualquadrics[1:3, :, :])
-
-                result = solve(
-                    translation_system,
-                    start_system = :total_degree,
-                    target_parameters = parameters,
-                )
-                @info result
-
-                solution_error = best_intrinsic_rotation_translation_system_solution!(result, scene, scene.instances[i], problem)
-                if (solution_error < current_best_result_error)
-                    reference_translation_result = result
-                end
-                plot_3dcamera(Plot3dCameraInput(
-                    problem.camera.euler_rotation,
-                    problem.camera.position,
-                ), :green)
-            end
-        end
-        problems[1].camera = real_camera_solution
-
-        serialize(
-            "tmp/translation_total_degree_solutions.jld",
-            ParametersSolutionsPair(
-                parameters,
-                solutions(reference_translation_result)
-            )
-        )
-
-        for problem in problems
-            plot_3dcamera(Plot3dCameraInput(
-                problem.camera.euler_rotation,
-                problem.camera.position,
-            ), :green)
-        end
-
-        display_camera_differences(camera, camera_calculated)
-
-        plot_reconstructed_scene(scene, problems)
-    end
-
     function create_scene_instances_and_problems(;
         random_seed = 7, 
         number_of_cylinders = 4,
         number_of_instances = 5,
+        noise = 0,
     )
         Random.seed!(random_seed)
 
@@ -426,6 +420,7 @@ module CylindersBasedCameraResectioning
             conics_contours = instance.conics_contours
 
             lines = Matrix{Float64}(undef, numberoflines_tosolvefor, 3)
+            noise_free_lines = Matrix{Float64}(undef, numberoflines_tosolvefor, 3)
             points_at_infinity = Matrix{Float64}(undef, numberoflines_tosolvefor, 3)
             dualquadrics = Array{Float64}(undef, numberoflines_tosolvefor, 4, 4)
             possible_picks = 1:(number_of_cylinders*2)
@@ -436,6 +431,8 @@ module CylindersBasedCameraResectioning
                 j = (line_index - 1) % 2 + 1
 
                 line = conics_contours[i, j, :]
+                noise_free_lines[store_index, :] = normalize(line)
+                line = line + if (noise > 0) rand_in_range(noise, noise, 3) else [0, 0, 0] end
                 lines[store_index, :] = normalize(line)
                 points_at_infinity[store_index, :] = normalize(cylinders[i].singular_point[1:3])
                 dualquadrics[store_index, :, :] = cylinders[i].dual_matrix ./ cylinders[i].dual_matrix[4, 4]
@@ -444,10 +441,17 @@ module CylindersBasedCameraResectioning
             problem = CylinderCameraContoursProblem(
                 CameraProperties(),
                 lines,
+                noise_free_lines,
                 points_at_infinity,
                 dualquadrics,
             )
             push!(problems, problem)
+            if (noise > 0)
+                noisy_contours = vcat(lines)
+                noisy_contours = reshape(noisy_contours, 2, 4, 3)
+                noisy_contours = permutedims(noisy_contours, (2,1,3))
+                plot_2dcylinders(noisy_contours; linestyle=:dashdotdot)
+            end
         end
 
         return scene, problems
