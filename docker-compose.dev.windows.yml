@@ -5,8 +5,11 @@ services:
       file: docker-compose.dev.yml
       service: julia-app
     volumes:
-      - ./src:/app/src
       - ./assets:/app/assets
+      - ./src:/app/src
+      - ./test:/app/test
+      - ./tmp:/app/tmp
+      - ./Manifest.toml:/app/Manifest.toml
       - \\wsl.localhost\Ubuntu-18.04\tmp\.X11-unix:/tmp/.X11-unix
       - \\wsl.localhost\Ubuntu-18.04\mnt\wslg:/mnt/wslg
     environment:

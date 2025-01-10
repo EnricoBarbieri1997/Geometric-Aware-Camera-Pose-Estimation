@@ -2,11 +2,4 @@ version: '3'
 services:
   julia-app:
     build: .
-    environment:
-      DISPLAY: "host.docker.internal:0"
-    volumes:
-      - ./assets:/app/assets
-      - ./src:/app/src
-      - ./test:/app/test
-      - ./tmp:/app/tmp
     working_dir: /app
