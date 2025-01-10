@@ -11,6 +11,7 @@ services:
       - ./src:/app/src
       - ./test:/app/test
       - ./tmp:/app/tmp
+      - ./Project.toml:/app/Project.toml
       - ./Manifest.toml:/app/Manifest.toml
     working_dir: /app
     command: julia
