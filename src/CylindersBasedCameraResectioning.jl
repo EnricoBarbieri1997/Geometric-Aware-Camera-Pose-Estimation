@@ -42,114 +42,23 @@ module CylindersBasedCameraResectioning
             return 1
         end
 
-        rotation_intrinsic_system = build_intrinsic_rotation_conic_system(problems)
-        parameters = []
-        for problem in problems
-            parameters = stack_homotopy_parameters(
-                parameters,
-                problem.lines,
-                problem.points_at_infinity,
-            )
-        end
-        parameters = convert(Vector{Float64}, parameters)
+        rotation_intrinsic_system, parameters = intrinsic_rotation_system_setup(problems)
 
         result = solve(
             rotation_intrinsic_system,
-            parameters_solutions_pair.solutions,
-            start_parameters = parameters_solutions_pair.start_parameters,
+            # parameters_solutions_pair.solutions,
+            # start_parameters = parameters_solutions_pair.start_parameters,
             target_parameters = parameters,
         )
         @info result
 
-        solution_error = Inf
-        solutions_to_try = real_solutions(result)
-        all_possible_solutions = []
-        for solution in solutions_to_try
-            focal_length_x = solution[1]
-            focal_length_y = solution[2]
-            principal_point_x = solution[4]
-            principal_point_y = solution[5]
-            skew = solution[3]
-            intrinsic = build_intrinsic_matrix(IntrinsicParameters(
-                focal_length_x = focal_length_x,
-                focal_length_y = focal_length_y,
-                principal_point_x = principal_point_x,
-                principal_point_y = principal_point_y,
-                skew = skew,
-            ))
-            intrinsic_correction = I
-            if (focal_length_x < 0 && skew < 0)
-                intrinsic_correction = [
-                    -1 -2*abs(skew)/abs(focal_length_x) 0;
-                    0 1 0;
-                    0 0 1;
-                ]
-            end
-            if (focal_length_y < 0 && skew < 0)
-                intrinsic_correction = [
-                    1 0 0;
-                    1 -1 0;
-                    0 0 1;
-                ]
-            end
-            intrinsic = intrinsic * intrinsic_correction
-            rotations_solution = solution[6:end]
-
-            acceptable = true
-            current_error = 0
-            possible_cameras = []
-            for (i, problem) in enumerate(problems)
-                camera_extrinsic_rotation = QuatRotation(
-                    1,
-                    rotations_solution[(i-1)*3+1:i*3]...
-                ) * inv(intrinsic_correction)
-
-                possible_camera = CameraProperties(
-                    euler_rotation = rad2deg.(eulerangles_from_rotationmatrix(camera_extrinsic_rotation')),
-                    quaternion_rotation = camera_extrinsic_rotation',
-                    intrinsic = intrinsic,
-                )
-                push!(possible_cameras, possible_camera)
-
-                for (i, contour) in enumerate(eachslice(scene.instances[i].conics_contours, dims=1))
-                    for line in eachslice(contour, dims=1)
-                        eq = line' * intrinsic * camera_extrinsic_rotation * scene.cylinders[i].singular_point[1:3]
-                        current_error += abs(eq)
-
-                        if (!(eq ≃ 0))
-                            acceptable = false
-                        end
-                    end
-                    if (!acceptable)
-                        break
-                    end
-                end
-            end
-            push!(all_possible_solutions, possible_cameras[1])
-
-            if (current_error < solution_error)
-                solution_error = current_error
-                for (i, problem) in enumerate(problems)
-                    problem.camera = possible_cameras[i]
-                end
-            end
-        end
+        solution_error, all_possible_solutions = best_intrinsic_rotation_system_solution!(result, scene, problems)
 
         camera_calculated = problems[1].camera
 
         begin #asserts
             @assert isnothing(camera_calculated) == false  "(11) Found rotation satisfies constraints"
         end
-
-        display("Original quaternion:$(round.(camera.quaternion_rotation, digits=2))")
-        display("Calculated quaternion:$(round.(camera_calculated.quaternion_rotation, digits=2))")
-
-        display("Actual rotation: $(camera.euler_rotation)")
-        display("Best solution for rotation: $(camera_calculated.euler_rotation)")
-        display("Difference between rotations: $(rotations_difference(camera_calculated.quaternion_rotation, camera.quaternion_rotation))")
-
-        display("Actual intrinsic: $(camera.intrinsic)")
-        display("Calculated intrinsic: $(camera_calculated.intrinsic)")
 
         parameters_solutions_pair = nothing
         try
@@ -159,13 +68,9 @@ module CylindersBasedCameraResectioning
             return 1
         end
 
-        real_camera_solution = problems[1].camera
         for possible_solution in all_possible_solutions
             for (i, problem) in enumerate(problems)
-                translation_system = build_intrinsic_rotation_translation_conic_system(
-                    problem
-                )
-                parameters = stack_homotopy_parameters(problem.lines[1:3, :], problem.dualquadrics[1:3, :, :])
+                translation_system, parameters = intrinsic_rotation_translation_system_setup(problem)
 
                 result = solve(
                     translation_system,
@@ -175,46 +80,15 @@ module CylindersBasedCameraResectioning
                 )
                 @info result
 
-                solution_error = Inf
-                solutions_to_try = real_solutions(result)
-                for solution in solutions_to_try
-                    tx, ty, tz = solution
-                    position = [tx, ty, tz]
-
-                    camera_matrix = build_camera_matrix(
-                        problem.camera.intrinsic,
-                        problem.camera.quaternion_rotation,
-                        position
-                    )
-
-                    acceptable = true
-                    current_error = 0
-                    for (i, contour) in enumerate(eachslice(scene.instances[i].conics_contours, dims=1))
-                        for line in eachslice(contour, dims=1)
-                            eq = line' * camera_matrix * scene.cylinders[i].dual_matrix * camera_matrix' * line
-                            current_error += abs(eq)
-
-                            if (!(eq ≃ 0))
-                                acceptable = false
-                            end
-                        end
-                        if (!acceptable)
-                            break
-                        end
-                    end
-                    if (current_error < solution_error)
-                        solution_error = current_error
-                        problem.camera.position = position
-                        problem.camera.matrix = camera_matrix
-                    end
-                end
+                best_intrinsic_rotation_translation_system_solution!(result, scene, scene.instances[i], problem)
                 plot_3dcamera(Plot3dCameraInput(
                     problem.camera.euler_rotation,
                     problem.camera.position,
                 ), :green)
             end
         end
-        problems[1].camera = real_camera_solution
+
+        display_camera_differences(camera, camera_calculated)
 
         for problem in problems
             plot_3dcamera(Plot3dCameraInput(
@@ -223,30 +97,8 @@ module CylindersBasedCameraResectioning
             ), :green)
         end
 
-        display("Calculated translation: $(camera_calculated.position)")
-        display("Actual translation: $(camera.position)")
-        display("Difference between translations: $(translations_difference(camera_calculated.position, camera.position))")
-
-        display("Camera projection matrix: $(camera.matrix ./ camera.matrix[3, 4])")
-        display("Calculated projection camera matrix: $(camera_calculated.matrix ./ camera_calculated.matrix[3, 4])")
-
         number_of_cylinders = size(scene.cylinders)[1]
-        for (i, problem) in enumerate(problems)
-            reconstructued_contours = Array{Float64}(undef, number_of_cylinders, 2, 3)
-            for i in 1:number_of_cylinders
-                lines = get_cylinder_contours(
-                    scene.cylinders[i].geometry,
-                    collect(problem.camera.position),
-                    problem.camera.matrix
-                )
-                for (j, line) in enumerate(lines)
-                    line_homogenous = line_to_homogenous(line)
-                    reconstructued_contours[i, j, :] = line_homogenous
-                end
-            end
-
-            plot_2dcylinders(reconstructued_contours, linestyle=:dash; axindex = i)
-        end
+        plot_reconstructed_scene(scene, problems)
 
         display(scene.figure)
     end
@@ -357,16 +209,7 @@ module CylindersBasedCameraResectioning
 
         parameters_solutions_pair = nothing
 
-        rotation_intrinsic_system = build_intrinsic_rotation_conic_system(problems)
-        parameters = []
-        for problem in problems
-            parameters = stack_homotopy_parameters(
-                parameters,
-                problem.lines,
-                problem.points_at_infinity,
-            )
-        end
-        parameters = convert(Vector{Float64}, parameters)
+        rotation_intrinsic_system, parameters = intrinsic_rotation_system_setup(problems)
 
         result = solve(
             rotation_intrinsic_system,
@@ -389,95 +232,11 @@ module CylindersBasedCameraResectioning
             )
         )
 
-        solution_error = Inf
-        solutions_to_try = real_solutions(result)
-        all_possible_solutions = []
-        for solution in solutions_to_try
-            focal_length_x = solution[1]
-            focal_length_y = solution[2]
-            principal_point_x = solution[4]
-            principal_point_y = solution[5]
-            skew = solution[3]
-            intrinsic = build_intrinsic_matrix(IntrinsicParameters(
-                focal_length_x = focal_length_x,
-                focal_length_y = focal_length_y,
-                principal_point_x = principal_point_x,
-                principal_point_y = principal_point_y,
-                skew = skew,
-            ))
-            intrinsic_correction = I
-            if (focal_length_x < 0 && skew < 0)
-                intrinsic_correction = [
-                    -1 -2*abs(skew)/abs(focal_length_x) 0;
-                    0 1 0;
-                    0 0 1;
-                ]
-            end
-            if (focal_length_y < 0 && skew < 0)
-                intrinsic_correction = [
-                    1 0 0;
-                    1 -1 0;
-                    0 0 1;
-                ]
-            end
-            intrinsic = intrinsic * intrinsic_correction
-            # if (!all(x -> x > 0, intrinsic)) continue end
-            rotations_solution = solution[6:end]
-
-            acceptable = true
-            current_error = 0
-            possible_cameras = []
-            for (i, problem) in enumerate(problems)
-                camera_extrinsic_rotation = QuatRotation(
-                    1,
-                    rotations_solution[(i-1)*3+1:i*3]...
-                ) * inv(intrinsic_correction)
-
-                possible_camera = CameraProperties(
-                    euler_rotation = rad2deg.(eulerangles_from_rotationmatrix(camera_extrinsic_rotation')),
-                    quaternion_rotation = camera_extrinsic_rotation',
-                    intrinsic = intrinsic,
-                )
-                push!(possible_cameras, possible_camera)
-
-                for (i, contour) in enumerate(eachslice(scene.instances[i].conics_contours, dims=1))
-                    for line in eachslice(contour, dims=1)
-                        eq = line' * intrinsic * camera_extrinsic_rotation * scene.cylinders[i].singular_point[1:3]
-                        current_error += abs(eq)
-
-                        if (!(eq ≃ 0))
-                            acceptable = false
-                        end
-                    end
-                    if (!acceptable)
-                        break
-                    end
-                end
-            end
-            push!(all_possible_solutions, possible_cameras[1])
-
-            if (current_error < solution_error)
-                solution_error = current_error
-                for (i, problem) in enumerate(problems)
-                    problem.camera = possible_cameras[i]
-                end
-            end
-        end
+        solution_error, all_possible_solutions = best_intrinsic_rotation_system_solution!(result, scene, problems)
 
         camera_calculated = problems[1].camera
 
-        display("Error of the best solution: $(solution_error)")
-
-        display("Original quaternion:$(round.(camera.quaternion_rotation, digits=2))")
-        display("Calculated quaternion:$(round.(camera_calculated.quaternion_rotation, digits=2))")
-
-        display("Actual rotation: $(camera.euler_rotation)")
-        display("Best solution for rotation: $(camera_calculated.euler_rotation)")
-        display("Difference between rotations: $(rotations_difference(camera_calculated.quaternion_rotation, camera.quaternion_rotation))")
-
-        display("Actual intrinsic: $(camera.intrinsic)")
-        display("Calculated intrinsic: $(camera_calculated.intrinsic)")
-
+        current_best_result_error = Inf
         reference_translation_result = nothing
         real_camera_solution = problems[1].camera
         for possible_solution in all_possible_solutions
@@ -494,39 +253,9 @@ module CylindersBasedCameraResectioning
                 )
                 @info result
 
-                solution_error = Inf
-                solutions_to_try = real_solutions(result)
-                for solution in solutions_to_try
-                    tx, ty, tz = solution
-                    position = [tx, ty, tz]
-
-                    camera_matrix = build_camera_matrix(
-                        problem.camera.intrinsic,
-                        problem.camera.quaternion_rotation,
-                        position
-                    )
-
-                    acceptable = true
-                    current_error = 0
-                    for (i, contour) in enumerate(eachslice(scene.instances[i].conics_contours, dims=1))
-                        for line in eachslice(contour, dims=1)
-                            eq = line' * camera_matrix * scene.cylinders[i].dual_matrix * camera_matrix' * line
-                            current_error += abs(eq)
-
-                            if (!(eq ≃ 0))
-                                acceptable = false
-                            end
-                        end
-                        if (!acceptable)
-                            break
-                        end
-                    end
-                    if (current_error < solution_error)
-                        solution_error = current_error
-                        reference_translation_result = result
-                        problem.camera.position = position
-                        problem.camera.matrix = camera_matrix
-                    end
+                solution_error = best_intrinsic_rotation_translation_system_solution!(result, scene, scene.instances[i], problem)
+                if (solution_error < current_best_result_error)
+                    reference_translation_result = result
                 end
                 plot_3dcamera(Plot3dCameraInput(
                     problem.camera.euler_rotation,
@@ -551,32 +280,9 @@ module CylindersBasedCameraResectioning
             ), :green)
         end
 
-        display("Calculated translation: $(camera_calculated.position)")
-        display("Actual translation: $(camera.position)")
-        display("Difference between translations: $(translations_difference(camera_calculated.position, camera.position))")
+        display_camera_differences(camera, camera_calculated)
 
-        display("Camera projection matrix: $(camera.matrix ./ camera.matrix[3, 4])")
-        display("Calculated projection camera matrix: $(camera_calculated.matrix ./ camera_calculated.matrix[3, 4])")
-
-        number_of_cylinders = size(scene.cylinders)[1]
-        for (i, problem) in enumerate(problems)
-            reconstructued_contours = Array{Float64}(undef, number_of_cylinders, 2, 3)
-            for i in 1:number_of_cylinders
-                lines = get_cylinder_contours(
-                    scene.cylinders[i].geometry,
-                    collect(problem.camera.position),
-                    problem.camera.matrix
-                )
-                for (j, line) in enumerate(lines)
-                    line_homogenous = line_to_homogenous(line)
-                    reconstructued_contours[i, j, :] = line_homogenous
-                end
-            end
-
-            plot_2dcylinders(reconstructued_contours, linestyle=:dash; axindex = i)
-        end
-
-        display(scene.figure)
+        plot_reconstructed_scene(scene, problems)
     end
 
     function create_scene_instances_and_problems(;
@@ -743,6 +449,185 @@ module CylindersBasedCameraResectioning
         end
 
         return scene, problems
+    end
+
+    function intrinsic_rotation_system_setup(problems)
+        rotation_intrinsic_system = build_intrinsic_rotation_conic_system(problems)
+        parameters = []
+        for problem in problems
+            parameters = stack_homotopy_parameters(
+                parameters,
+                problem.lines,
+                problem.points_at_infinity,
+            )
+        end
+        parameters = convert(Vector{Float64}, parameters)
+
+        return rotation_intrinsic_system, parameters
+    end
+    function best_intrinsic_rotation_system_solution!(result, scene, problems)
+        solution_error = Inf
+        solutions_to_try = real_solutions(result)
+        all_possible_solutions = []
+        for solution in solutions_to_try
+            focal_length_x = solution[1]
+            focal_length_y = solution[2]
+            principal_point_x = solution[4]
+            principal_point_y = solution[5]
+            skew = solution[3]
+            intrinsic = build_intrinsic_matrix(IntrinsicParameters(
+                focal_length_x = focal_length_x,
+                focal_length_y = focal_length_y,
+                principal_point_x = principal_point_x,
+                principal_point_y = principal_point_y,
+                skew = skew,
+            ))
+            intrinsic_correction = I
+            if (focal_length_x < 0 && skew < 0)
+                intrinsic_correction = [
+                    -1 -2*abs(skew)/abs(focal_length_x) 0;
+                    0 1 0;
+                    0 0 1;
+                ]
+            end
+            if (focal_length_y < 0 && skew < 0)
+                intrinsic_correction = [
+                    1 0 0;
+                    1 -1 0;
+                    0 0 1;
+                ]
+            end
+            intrinsic = intrinsic * intrinsic_correction
+            rotations_solution = solution[6:end]
+
+            acceptable = true
+            current_error = 0
+            possible_cameras = []
+            for (i, problem) in enumerate(problems)
+                camera_extrinsic_rotation = QuatRotation(
+                    1,
+                    rotations_solution[(i-1)*3+1:i*3]...
+                ) * inv(intrinsic_correction)
+
+                possible_camera = CameraProperties(
+                    euler_rotation = rad2deg.(eulerangles_from_rotationmatrix(camera_extrinsic_rotation')),
+                    quaternion_rotation = camera_extrinsic_rotation',
+                    intrinsic = intrinsic,
+                )
+                push!(possible_cameras, possible_camera)
+
+                for (i, contour) in enumerate(eachslice(scene.instances[i].conics_contours, dims=1))
+                    for line in eachslice(contour, dims=1)
+                        eq = line' * intrinsic * camera_extrinsic_rotation * scene.cylinders[i].singular_point[1:3]
+                        current_error += abs(eq)
+
+                        if (!(eq ≃ 0))
+                            acceptable = false
+                        end
+                    end
+                    if (!acceptable)
+                        break
+                    end
+                end
+            end
+            push!(all_possible_solutions, possible_cameras[1])
+
+            if (current_error < solution_error)
+                solution_error = current_error
+                for (i, problem) in enumerate(problems)
+                    problem.camera = possible_cameras[i]
+                end
+            end
+        end
+
+        return solution_error, all_possible_solutions
+    end
+    function display_camera_differences(original_camera, calculated_camera)
+        display("Original quaternion:$(round.(original_camera.quaternion_rotation, digits=2))")
+        display("Calculated quaternion:$(round.(calculated_camera.quaternion_rotation, digits=2))")
+
+        display("Actual rotation: $(original_camera.euler_rotation)")
+        display("Best solution for rotation: $(calculated_camera.euler_rotation)")
+        display("Difference between rotations: $(rotations_difference(calculated_camera.quaternion_rotation, original_camera.quaternion_rotation))")
+
+        display("Actual intrinsic: $(original_camera.intrinsic)")
+        display("Calculated intrinsic: $(calculated_camera.intrinsic)")
+
+        display("Calculated translation: $(calculated_camera.position)")
+        display("Actual translation: $(original_camera.position)")
+        display("Difference between translations: $(translations_difference(calculated_camera.position, original_camera.position))")
+
+        display("Camera projection matrix: $(original_camera.matrix ./ original_camera.matrix[3, 4])")
+        display("Calculated projection camera matrix: $(calculated_camera.matrix ./ calculated_camera.matrix[3, 4])")
+    end
+
+    function intrinsic_rotation_translation_system_setup(problem)
+        translation_system = build_intrinsic_rotation_translation_conic_system(
+            problem
+        )
+        parameters = stack_homotopy_parameters(problem.lines[1:3, :], problem.dualquadrics[1:3, :, :])
+
+        return translation_system, parameters
+    end
+    function best_intrinsic_rotation_translation_system_solution!(result, scene, instance, problem)
+        solution_error = Inf
+        solutions_to_try = real_solutions(result)
+        reference_translation_result = nothing
+        for solution in solutions_to_try
+            tx, ty, tz = solution
+            position = [tx, ty, tz]
+
+            camera_matrix = build_camera_matrix(
+                problem.camera.intrinsic,
+                problem.camera.quaternion_rotation,
+                position
+            )
+
+            acceptable = true
+            current_error = 0
+            for (i, contour) in enumerate(eachslice(instance.conics_contours, dims=1))
+                for line in eachslice(contour, dims=1)
+                    eq = line' * camera_matrix * scene.cylinders[i].dual_matrix * camera_matrix' * line
+                    current_error += abs(eq)
+
+                    if (!(eq ≃ 0))
+                        acceptable = false
+                    end
+                end
+                if (!acceptable)
+                    break
+                end
+            end
+            if (current_error < solution_error)
+                solution_error = current_error
+                problem.camera.position = position
+                problem.camera.matrix = camera_matrix
+            end
+        end
+
+        return solution_error
+    end
+
+    function plot_reconstructed_scene(scene, problems)
+        number_of_cylinders = size(scene.cylinders)[1]
+        for (i, problem) in enumerate(problems)
+            reconstructued_contours = Array{Float64}(undef, number_of_cylinders, 2, 3)
+            for i in 1:number_of_cylinders
+                lines = get_cylinder_contours(
+                    scene.cylinders[i].geometry,
+                    collect(problem.camera.position),
+                    problem.camera.matrix
+                )
+                for (j, line) in enumerate(lines)
+                    line_homogenous = line_to_homogenous(line)
+                    reconstructued_contours[i, j, :] = line_homogenous
+                end
+            end
+
+            plot_2dcylinders(reconstructued_contours, linestyle=:dash; axindex = i)
+        end
+
+        display(scene.figure)
     end
 
     export main, save_solutions, generate_monodromy_solutions
