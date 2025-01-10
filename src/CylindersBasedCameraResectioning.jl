@@ -4,7 +4,8 @@ module CylindersBasedCameraResectioning
     using .Geometry: Line, Cylinder as CylinderType, line_to_homogenous, get_cylinder_contours
     using .Space: transformation, random_transformation, identity_transformation, build_rotation_matrix
     using .Camera: CameraProperties, IntrinsicParameters, build_intrinsic_matrix, build_camera_matrix, lookat_rotation
-    using .Plotting: initfigure, add_2d_axis!, plot_2dpoints, plot_line_2d, Plot3dCameraInput, plot_3dcamera, Plot3dCylindersInput, plot_cylinders_contours, plot_3dcylinders, plot_2dcylinders
+    using .Printing: print_camera_differences
+    using .Plotting: initfigure, add_2d_axis!, plot_2dpoints, plot_line_2d, Plot3dCameraInput, plot_3dcamera, Plot3dCylindersInput, plot_3dcylinders, plot_2dcylinders
     using .EquationSystems: stack_homotopy_parameters, build_intrinsic_rotation_conic_system, build_intrinsic_rotation_translation_conic_system, build_camera_matrix_conic_system
     using .EquationSystems.Problems: CylinderCameraContoursProblem
     using .Debug
@@ -88,7 +89,8 @@ module CylindersBasedCameraResectioning
             end
         end
 
-        display_camera_differences(camera, camera_calculated)
+        camera_calculated = problems[1].camera
+        print_camera_differences(camera, camera_calculated)
 
         for problem in problems
             plot_3dcamera(Plot3dCameraInput(

@@ -1,5 +1,5 @@
 module Utils
-	export almostequal, ≃, rand_in_range, random_camera_lookingat_center, quat_from_rotmatrix, rotations_difference, eulerangles_from_rotationmatrix, translations_difference, isvalid_startsolution
+	export almostequal, ≃, rand_in_range, random_camera_lookingat_center, quat_from_rotmatrix, vector_difference, matrix_difference, rotations_difference, eulerangles_from_rotationmatrix, translations_difference, isvalid_startsolution
 
 	using ..Camera: lookat_rotation
 
@@ -156,12 +156,20 @@ module Utils
 		return QuatRotation(a,b,c,d)
 	end
 
+	function vector_difference(v1::Vector{<:Number}, v2::Vector{<:Number})
+		return norm(v1 - v2)
+	end
+
+	function matrix_difference(m1::AbstractMatrix{T}, m2::AbstractMatrix{T}) where {T<:Real}
+		return sqrt(sum((m1 - m2) .^ 2))
+	end
+
 	function rotations_difference(q1::QuatRotation, q2::QuatRotation)
-		return norm(Rotations.params(q1 * q2'))
+		return 1 - norm(Rotations.params(q1 * q2'))
 	end
 
 	function translations_difference(t1::Vector{<:Number}, t2::Vector{<:Number})
-		return norm(t1 - t2)
+		return vector_difference(t1, t2)
 	end
 
 	function isvalid_startsolution(system, solution, parameters)

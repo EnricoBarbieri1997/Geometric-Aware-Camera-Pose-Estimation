@@ -1,42 +1,141 @@
 module Printing
-    using using PrettyTables
+    export print_camera_differences
 
-    function print_camera_differences(original_camera, calculated_camera)
-        header = (
-            ["Time", "Acceleration", "Velocity", "Distance"],
-            [   "s",     "[m / s²]",  "[m / s]",      "[m]"]
+    using ..Utils: vector_difference, matrix_difference, rotations_difference, translations_difference
+    using PrettyTables
+    using Rotations: params as rotations_params
+
+    transparent_first_col = Highlighter(
+            (data, i, j) -> (j == 1),
+            Crayon(
+                foreground = :dark_gray,
+            )
+        );
+    low_value_good = Highlighter(
+            (data, i, j) -> data[i, j] < 0.01,
+            Crayon(
+                foreground = :green,
+                bold = :true
+            )
+        );
+    high_value_bad = Highlighter(
+            (data, i, j) -> data[i, j] > 0.1,
+            Crayon(
+                foreground = :red,
+                bold = :true
+            )
+        );
+    
+    function comparisondata(data1, data2)
+        return vcat(vec(data1)', vec(data2)')
+    end
+    function originalcalculateddata(original, calculated)
+        return hcat([
+            "original",
+            "calculated",
+        ], comparisondata(original, calculated))
+    end
+    function pretty_table_withdefaults(data; header, highlighters = (transparent_first_col))
+        return pretty_table(
+            data;
+            formatters    = ft_printf("%5.2f", 2:4),
+            header        = header,
+            header_crayon = crayon"yellow bold",
+            text_crayon   = crayon"white",
+            highlighters  = highlighters,
+            tf            = tf_unicode_rounded
         )
-        (["Time", "Acceleration", "Velocity", "Distance"], ["s", "[m / s²]", "[m / s]", "[m]"])
+    end
 
-        julia> hl_p = Highlighter(
-                (data, i, j) -> (j == 4) && (data[i, j] > 9),
-                crayon"blue bold"
+    function print_camera_differences(original_camera, calculated_camera; verbose = false)
+        header = (
+            ["Rotation (Quat)", "w", "x", "y", "z"],
+        )
+        pretty_table_withdefaults(
+            originalcalculateddata(
+                rotations_params(original_camera.quaternion_rotation),
+                rotations_params(calculated_camera.quaternion_rotation),
             );
+            header = header,
+        )
 
-        julia> hl_v = Highlighter(
-                (data, i, j) -> (j == 3) && (data[i, j] > 9),
-                crayon"red bold"
+        header = (
+            ["Rotation (grad)", "x", "y", "z"],
+        )
+        pretty_table_withdefaults(
+            originalcalculateddata(
+                original_camera.euler_rotation,
+                calculated_camera.euler_rotation
             );
+            header = header,
+        )
 
-        julia> hl_10 = Highlighter(
-                (data, i, j) -> (i == 10),
-                crayon"fg:white bold bg:dark_gray"
+        header = (
+            ["Intrinsic", "f_x", "f_y", "skew", "c_x", "c_y"],
+        )
+        intrinsic_indexes = [1, 5, 4, 7, 8]
+        pretty_table_withdefaults(
+            originalcalculateddata(
+                original_camera.intrinsic[intrinsic_indexes],
+                calculated_camera.intrinsic[intrinsic_indexes]
             );
-        display("Original quaternion:$(round.(original_camera.quaternion_rotation, digits=2))")
-        display("Calculated quaternion:$(round.(calculated_camera.quaternion_rotation, digits=2))")
+            header = header,
+        )
 
-        display("Actual rotation: $(original_camera.euler_rotation)")
-        display("Best solution for rotation: $(calculated_camera.euler_rotation)")
-        display("Difference between rotations: $(rotations_difference(calculated_camera.quaternion_rotation, original_camera.quaternion_rotation))")
+        header = (
+            ["Translation", "x", "y", "z"],
+        )
+        pretty_table_withdefaults(
+            originalcalculateddata(
+                original_camera.position,
+                calculated_camera.position
+            );
+            header = header,
+        )
 
-        display("Actual intrinsic: $(original_camera.intrinsic)")
-        display("Calculated intrinsic: $(calculated_camera.intrinsic)")
+        header = (
+            ["Parameters", "Error"],
+        )
+        data = [
+            "Projection matrix" matrix_difference(
+                calculated_camera.matrix,
+                original_camera.matrix
+            );
+            "Quaternion" vector_difference(
+                convert(Vector{Float64}, rotations_params(calculated_camera.quaternion_rotation)),
+                convert(Vector{Float64}, rotations_params(original_camera.quaternion_rotation)),
+            );
+            "Intrinsic" matrix_difference(
+                calculated_camera.intrinsic,
+                original_camera.intrinsic
+            );
+            "Rotation" rotations_difference(
+                calculated_camera.quaternion_rotation,
+                original_camera.quaternion_rotation
+            );
+            "Translation" translations_difference(
+                calculated_camera.position,
+                original_camera.position
+            );
+        ]
+        display(data)
+        display(size(data))
+        pretty_table_withdefaults(data;
+            header = header,
+            highlighters = (transparent_first_col, low_value_good, high_value_bad)
+        )
 
-        display("Calculated translation: $(calculated_camera.position)")
-        display("Actual translation: $(original_camera.position)")
-        display("Difference between translations: $(translations_difference(calculated_camera.position, original_camera.position))")
-
-        display("Camera projection matrix: $(original_camera.matrix ./ original_camera.matrix[3, 4])")
-        display("Calculated projection camera matrix: $(calculated_camera.matrix ./ calculated_camera.matrix[3, 4])")
+        if verbose
+            header = (
+                ["Projection", "$j$i" for i in 1:4, j in 1:4],
+            )
+            pretty_table_withdefaults(
+                originalcalculateddata(
+                    original_camera.matrix,
+                    calculated_camera.matrix
+                );
+                header = header,
+            )
+        end
     end
 end
