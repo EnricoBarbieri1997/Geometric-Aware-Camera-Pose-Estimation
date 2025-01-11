@@ -63,7 +63,7 @@ module CylindersBasedCameraResectioning
             starts = deserialize("tmp/total_degree_starts_cache.jld")
         end
 
-        chunk_size = 100000
+        chunk_size = 500000
         numberof_start_solutions = length(starts)
         display("Number of start solutions: $numberof_start_solutions. Number of iterations needed: $(ceil(Int, numberof_start_solutions / chunk_size))")
         solution_error = Inf
@@ -82,7 +82,11 @@ module CylindersBasedCameraResectioning
 
             solution_error, _ = best_intrinsic_rotation_system_solution!(result, scene, problems; start_error=solution_error)
             if solution_error < Inf
-                serialize("tmp/chunk_test/best_problems_for_error$(round(solution_error, 2)).jld", problems)
+                try
+                    serialize("tmp/chunk_test/best_problems_for_error$(round(solution_error; digits=2)).jld", problems)
+                catch
+                    display("Error saving problems")
+                end
             end
             if solution_error < 1e-6
                 break
