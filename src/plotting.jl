@@ -134,6 +134,7 @@ module Plotting
         for i in 1:(size(conic_contours)[1])
             for j in 1:(size(conic_contours)[2])
                 line = conic_contours[i, j, :]
+                if line == [0, 0, 0] continue end
                 y1 = function (x) return y(x, line) end
                 xs = -50:1:50
                 ys1 = y1.(xs)
