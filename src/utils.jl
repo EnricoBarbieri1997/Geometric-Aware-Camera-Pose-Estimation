@@ -3,7 +3,7 @@ module Utils
 
 	using ..Camera: lookat_rotation
 
-	using LinearAlgebra: norm, normalize, svdvals
+	using LinearAlgebra: diagm, norm, normalize, svdvals
 	using Rotations
 	using Random
 	using HomotopyContinuation: jacobian
@@ -165,7 +165,8 @@ module Utils
 	end
 
 	function rotations_difference(q1::QuatRotation, q2::QuatRotation)
-		return 1 - norm(Rotations.params(q1 * q2'))
+		identity = diagm(0=>fill(1., 3))
+		return matrix_difference(q1 * q2', identity)
 	end
 
 	function translations_difference(t1::Vector{<:Number}, t2::Vector{<:Number})
@@ -276,7 +277,7 @@ module Utils
 
 	function random_camera_lookingat_center()
 		camera_translationdirection = normalize(rand_in_range(-1.0, 1.0, 3))
-		camera_translation = camera_translationdirection * rand_in_range(15.0, 20.0)
+		camera_translation = camera_translationdirection * rand_in_range(15.0, 30.0)
 		camera_object_rotation = lookat_rotation(camera_translationdirection, [0, 0, 0], [0, 0, 1])
 		return camera_translation, camera_object_rotation
 	end

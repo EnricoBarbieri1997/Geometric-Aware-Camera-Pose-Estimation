@@ -49,6 +49,18 @@ module Printing
 
     function print_camera_differences(original_camera, calculated_camera; verbose = false)
         header = (
+            ["Intrinsic", "f_x", "f_y", "skew", "c_x", "c_y"],
+        )
+        intrinsic_indexes = [1, 5, 4, 7, 8]
+        pretty_table_withdefaults(
+            originalcalculateddata(
+                original_camera.intrinsic[intrinsic_indexes],
+                calculated_camera.intrinsic[intrinsic_indexes]
+            );
+            header = header,
+        )
+
+        header = (
             ["Rotation (Quat)", "w", "x", "y", "z"],
         )
         pretty_table_withdefaults(
@@ -66,18 +78,6 @@ module Printing
             originalcalculateddata(
                 original_camera.euler_rotation,
                 calculated_camera.euler_rotation
-            );
-            header = header,
-        )
-
-        header = (
-            ["Intrinsic", "f_x", "f_y", "skew", "c_x", "c_y"],
-        )
-        intrinsic_indexes = [1, 5, 4, 7, 8]
-        pretty_table_withdefaults(
-            originalcalculateddata(
-                original_camera.intrinsic[intrinsic_indexes],
-                calculated_camera.intrinsic[intrinsic_indexes]
             );
             header = header,
         )

@@ -36,8 +36,8 @@ module CylindersBasedCameraResectioning
         intrinsic_configuration = IntrinsicParametersConfigurations.fₓ_fᵧ
         scene, problems = create_scene_instances_and_problems(;
             number_of_instances=2,
-            number_of_cylinders=2,
-            random_seed=12,
+            number_of_cylinders=3,
+            random_seed=13,
             intrinsic_configuration,
         )
 
@@ -83,7 +83,7 @@ module CylindersBasedCameraResectioning
             end
             @info result
 
-            solution_error, _ = best_intrinsic_rotation_system_solution!(
+            solution_error, _ = best_overall_solution!(
                 result,
                 scene,
                 problems;
@@ -102,34 +102,14 @@ module CylindersBasedCameraResectioning
             end
         end
 
-        parameters_solutions_pair = nothing
-        try
-            parameters_solutions_pair = deserialize("tmp/translation_monodromy_solutions.jld")
-        catch
-            error("generate t monodromy first")
-            return 1
+        # refine_best_solution!(scene, problems)
+
+        for problem in problems
+            plot_3dcamera(Plot3dCameraInput(
+                problem.camera.euler_rotation,
+                problem.camera.position,
+            ), :green)
         end
-
-        # for possible_solution in all_possible_solutions
-            for (i, problem) in enumerate(problems)
-                translation_system, parameters = intrinsic_rotation_translation_system_setup(problem)
-
-                result = solve(
-                    translation_system,
-                    # parameters_solutions_pair.solutions,
-                    # start_parameters = parameters_solutions_pair.start_parameters,
-                    target_parameters = parameters,
-                    start_system = :total_degree,
-                )
-                @info result
-
-                best_intrinsic_rotation_translation_system_solution!(result, scene, scene.instances[i], problem)
-                plot_3dcamera(Plot3dCameraInput(
-                    problem.camera.euler_rotation,
-                    problem.camera.position,
-                ), :green)
-            end
-        # end
 
         for (i, instance) in enumerate(scene.instances)
             display("View $i")
@@ -381,11 +361,13 @@ module CylindersBasedCameraResectioning
         skew = 0
         principal_point_x = 0
         principal_point_y = 0
+
+        focal_length = rand_in_range(0.1, 1.0)
         if (isIntrinsicEnabled.fₓ(intrinsic_configuration))
-            focal_length_x = rand_in_range(0.1, 4)
+            focal_length_x = rand_in_range(1.0, 4.0) * focal_length
         end
         if (isIntrinsicEnabled.fᵧ(intrinsic_configuration))
-            focal_length_y = rand_in_range(0.1, 4)
+            focal_length_y = rand_in_range(1.0, 4.0) * focal_length
         end
         if (isIntrinsicEnabled.skew(intrinsic_configuration))
             skew = rand_in_range(0, 1)
@@ -695,13 +677,13 @@ module CylindersBasedCameraResectioning
                     eq = line' * camera_matrix * scene.cylinders[i].dual_matrix * camera_matrix' * line
                     current_error += abs(eq)
 
-                    if (!(eq ≃ 0))
-                        acceptable = false
-                    end
+                    # if (!(eq ≃ 0))
+                    #     acceptable = false
+                    # end
                 end
-                if (!acceptable)
-                    break
-                end
+                # if (!acceptable)
+                #     break
+                # end
             end
             if (current_error < solution_error)
                 solution_error = current_error
@@ -713,7 +695,7 @@ module CylindersBasedCameraResectioning
         return solution_error
     end
 
-    function best_overall_solution(
+    function best_overall_solution!(
         result,
         scene,
         problems;
@@ -790,7 +772,10 @@ module CylindersBasedCameraResectioning
             acceptable = true
             current_error = 0
             possible_cameras = []
+            # individual_problem_min_error = Inf
+            individual_problem_max_error = -Inf
             for (i, problem) in enumerate(problems)
+                individual_problem_error = 0
                 camera_extrinsic_rotation = QuatRotation(
                     1,
                     rotations_solution[(i-1)*3+1:i*3]...
@@ -802,11 +787,11 @@ module CylindersBasedCameraResectioning
                         quaternion_rotation = camera_extrinsic_rotation',
                         intrinsic = intrinsic,
                     ),
-                    lines=problem.lines,
-                    noise_free_lines=problem.noise_free_lines,
-                    points_at_infinity=problem.points_at_infinity,
-                    dualquadrics=problem.dualquadrics,
-                    intrinsic_configuration=problem.intrinsic_configuration,
+                    problem.lines,
+                    problem.noise_free_lines,
+                    problem.points_at_infinity,
+                    problem.dualquadrics,
+                    problem.intrinsic_configuration,
                 )
 
                 translation_system, parameters = intrinsic_rotation_translation_system_setup(problem_upto_translation)
@@ -820,7 +805,7 @@ module CylindersBasedCameraResectioning
                 )
                 @info result
 
-                current_error += best_intrinsic_rotation_translation_system_solution!(
+                individual_problem_error += best_intrinsic_rotation_translation_system_solution!(
                     translation_result,
                     scene,
                     scene.instances[i],
@@ -833,17 +818,26 @@ module CylindersBasedCameraResectioning
                 for (i, contour) in enumerate(eachslice(scene.instances[i].conics_contours, dims=1))
                     for line in eachslice(contour, dims=1)
                         eq = line' * intrinsic * camera_extrinsic_rotation * scene.cylinders[i].singular_point[1:3]
-                        current_error += abs(eq)
+                        individual_problem_error += abs(eq)
 
-                        if (!(eq ≃ 0))
-                            acceptable = false
-                        end
+                        # if (!(eq ≃ 0))
+                        #     acceptable = false
+                        # end
                     end
-                    if (!acceptable)
-                        break
-                    end
+                    # if (!acceptable)
+                    #     break
+                    # end
                 end
+                # if (individual_problem_error < individual_problem_min_error)
+                #     individual_problem_min_error = individual_problem_error
+                # end
+                if (individual_problem_error > individual_problem_max_error)
+                    individual_problem_max_error = individual_problem_error
+                end
+                display("$(i): $(individual_problem_error)")
             end
+            current_error = individual_problem_max_error
+            display("current_error: $current_error")
             push!(all_possible_solutions, possible_cameras[1])
 
             if (current_error < solution_error)
@@ -854,7 +848,96 @@ module CylindersBasedCameraResectioning
             end
         end
 
+        display(solution_error)
+
         return solution_error, all_possible_solutions
+    end
+
+    function best_overall_solution_by_steps!(
+        result,
+        scene,
+        problems;
+        start_error = Inf,
+        intrinsic_configuration = IntrinsicParametersConfigurations.fₓ_fᵧ_skew_cₓ_cᵧ
+    )
+        solution_error, all_possible_solutions = best_intrinsic_rotation_system_solution!(
+            result,
+            scene,
+            problems;
+            start_error=solution_error,
+            intrinsic_configuration,
+        )
+
+        for (i, problem) in enumerate(problems)
+            translation_system, parameters = intrinsic_rotation_translation_system_setup(problem)
+
+            result = solve(
+                translation_system,
+                target_parameters = parameters,
+                start_system = :total_degree,
+            )
+            @info result
+
+            solution_error += best_intrinsic_rotation_translation_system_solution!(result, scene, scene.instances[i], problem)
+            plot_3dcamera(Plot3dCameraInput(
+                problem.camera.euler_rotation,
+                problem.camera.position,
+            ), :green)
+        end
+
+        return solution_error, all_possible_solutions
+    end
+
+    function refine_best_solution!(
+        scene,
+        problems
+    )
+        display("Refine step")
+        intrinsic_inverse = inv(problems[1].camera.intrinsic)
+        refine_problems = [
+            CylinderCameraContoursProblem(
+                CameraProperties(
+                    intrinsic = problems[1].camera.intrinsic,
+                ),
+                problem.lines,
+                problem.noise_free_lines,
+                # vcat([(intrinsic_inverse * line)' for line in eachrow(problem.lines)]...),
+                # vcat([(intrinsic_inverse * line)' for line in eachrow(problem.noise_free_lines)]...),
+                problem.points_at_infinity,
+                problem.dualquadrics,
+                UInt8(IntrinsicParametersConfigurations.none),
+            )
+            for problem in problems
+        ]
+        intrinsic_rotation_system, parameters = intrinsic_rotation_system_setup(refine_problems)
+        # start_solutions = stack_homotopy_parameters(
+        #     [Rotations.params(problem.camera.quaternion_rotation)[2:4] for problem in problems]...
+        # )
+        @info intrinsic_rotation_system
+        result = solve(
+            intrinsic_rotation_system,
+            start_solutions;
+            target_parameters = parameters,
+            start_system = :total_degree,
+        )
+        display("---------------------------")
+        @info result
+        best_overall_solution!(
+            result,
+            scene,
+            refine_problems;
+            intrinsic_configuration=UInt8(IntrinsicParametersConfigurations.none),
+        )
+        for (i, problem) in enumerate(problems)
+            problem.camera.euler_rotation = refine_problems[i].camera.euler_rotation
+            problem.camera.quaternion_rotation = refine_problems[i].camera.quaternion_rotation
+            problem.camera.position = refine_problems[i].camera.position
+            problem.camera.matrix = convert(Matrix{Float64}, build_camera_matrix(
+                problem.camera.intrinsic,
+                problem.camera.quaternion_rotation,
+                problem.camera.position
+            ))
+        end
     end
 
     function plot_reconstructed_scene(scene, problems)
