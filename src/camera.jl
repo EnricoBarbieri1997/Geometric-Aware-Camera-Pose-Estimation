@@ -8,7 +8,6 @@ module Camera
 		position::Vector{Number} = [0, 0, 0]
 		euler_rotation::Vector{Number} = [0, 0, 0]
 		quaternion_rotation::QuatRotation{Float64} = one(QuatRotation)
-		focal_length::Number = 1
 		intrinsic::Matrix{<:Number} = Matrix(I, 3, 3)
 		matrix::Matrix{<:Number} = Matrix(I, 3, 4)
 	end

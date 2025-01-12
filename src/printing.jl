@@ -118,8 +118,6 @@ module Printing
                 original_camera.position
             );
         ]
-        display(data)
-        display(size(data))
         pretty_table_withdefaults(data;
             header = header,
             highlighters = (transparent_first_col, low_value_good, high_value_bad)

@@ -9,12 +9,86 @@ module EquationSystems
 
 	module Problems
 		using ....Camera: CameraProperties
+		module IntrinsicParameters
+			@enum T begin
+				focal_length_x = 0b00001
+				focal_length_y = 0b00010
+				skew = 0b00100
+				principal_point_x = 0b01000
+				principal_point_y = 0b10000
+			end
+			function Base.:|(a::T, b::T)
+				UInt8(a) | UInt8(b)
+			end
+			function Base.:&(a::T, b::T)
+				UInt8(a) & UInt8(b)
+			end
+			function Base.:|(a::Any, b::T)
+				a | UInt8(b)
+			end
+			function Base.:&(a::Any, b::T)
+				a & UInt8(b)
+			end
+			function Base.:|(a::T, b::Any)
+				UInt8(a) | b
+			end
+			function Base.:&(a::T, b::Any)
+				UInt8(a) & b
+			end
+			module has
+				using ..IntrinsicParameters: focal_length_x, focal_length_y, skew as skewParameter, principal_point_x, principal_point_y
+				function fₓ(config::Any)
+					return (UInt8(config) & focal_length_x) != 0
+				end
+				function fᵧ(config::Any)
+					return (UInt8(config) & focal_length_y) != 0
+				end
+				function skew(config::Any)
+					return (UInt8(config) & skewParameter) != 0
+				end
+				function cₓ(config::Any)
+					return (UInt8(config) & principal_point_x) != 0
+				end
+				function cᵧ(config::Any)
+					return (UInt8(config) & principal_point_y) != 0
+				end
+			end
+			module Configurations
+				using ..IntrinsicParameters: focal_length_x, focal_length_y, skew, principal_point_x, principal_point_y
+				@enum T begin
+					fₓ_fᵧ = focal_length_x | focal_length_y
+					fₓ_fᵧ_skew = focal_length_x | focal_length_y | skew
+					fₓ_fᵧ_skew_cₓ = focal_length_x | focal_length_y | skew | principal_point_x
+					fₓ_fᵧ_skew_cᵧ = focal_length_x | focal_length_y | skew | principal_point_y
+					fₓ_fᵧ_cₓ_cᵧ = focal_length_x | focal_length_y | principal_point_x | principal_point_y
+					fₓ_fᵧ_skew_cₓ_cᵧ = focal_length_x | focal_length_y | skew | principal_point_x | principal_point_y
+				end
+			end
+		end
 		mutable struct CylinderCameraContoursProblem
 			camera::CameraProperties
 			lines::Array{Float64, 2}
 			noise_free_lines::Array{Float64, 2}
 			points_at_infinity::Array{Float64, 2}
 			dualquadrics::Array{Float64, 3}
+			intrinsic_configuration::UInt8
+		end
+
+		function CylinderCameraContoursProblem(
+			camera::CameraProperties,
+			lines::Array{Float64, 2},
+			noise_free_lines::Array{Float64, 2},
+			points_at_infinity::Array{Float64, 2},
+			dualquadrics::Array{Float64, 3}
+		)
+			return CylinderCameraContoursProblem(
+				camera,
+				lines,
+				noise_free_lines,
+				points_at_infinity,
+				dualquadrics,
+				IntrinsicParameters.focal_length_x | IntrinsicParameters.focal_length_y | IntrinsicParameters.skew | IntrinsicParameters.principal_point_x | IntrinsicParameters.principal_point_y
+			)
 		end
 	end
 
@@ -39,11 +113,42 @@ module EquationSystems
 			throw(ArgumentError("At least one problem is needed"))
 		end
 
-		@var fₓ fᵧ skew cₓ cᵧ
+		fₓ = fᵧ = 1
+		skew = cₓ = cᵧ = 0
 
 		system_to_solve = []
-		variables::Vector{HomotopyContinuation.ModelKit.Variable} = [fₓ, fᵧ, skew, cₓ, cᵧ]
+		variables::Vector{HomotopyContinuation.ModelKit.Variable} = []
 		parameters::Vector{HomotopyContinuation.ModelKit.Variable} = []
+
+		intrinsic_configuration = problems[1].intrinsic_configuration
+		if Problems.IntrinsicParameters.has.fₓ(intrinsic_configuration)
+			@var fₓ
+			push!(variables, fₓ)
+		end
+		if Problems.IntrinsicParameters.has.fᵧ(intrinsic_configuration)
+			@var fᵧ
+			push!(variables, fᵧ)
+		end
+		if Problems.IntrinsicParameters.has.skew(intrinsic_configuration)
+			@var skew
+			push!(variables, skew)
+		end
+		if Problems.IntrinsicParameters.has.cₓ(intrinsic_configuration)
+			@var cₓ
+			push!(variables, cₓ)
+		end
+		if Problems.IntrinsicParameters.has.cᵧ(intrinsic_configuration)
+			@var cᵧ
+			push!(variables, cᵧ)
+		end
+
+		intrinsic = build_intrinsic_matrix(IntrinsicParameters(
+			focal_length_x = fₓ,
+			focal_length_y = fᵧ,
+			principal_point_x = cₓ,
+			principal_point_y = cᵧ,
+			skew = skew,
+		))
 
 		for (index, problem) in enumerate(problems)
 			lines_count = size(problem.lines)[1]
@@ -59,13 +164,6 @@ module EquationSystems
 				Variable("points_at_infinity$(index)", i, j)
 				for i in 1:lines_count, j in 1:3
 			], lines_count, 3)
-			intrinsic = build_intrinsic_matrix(IntrinsicParameters(
-				focal_length_x = fₓ,
-				focal_length_y = fᵧ,
-				principal_point_x = cₓ,
-				principal_point_y = cᵧ,
-				skew = skew,
-			))
 
 			for line_index in 1:lines_count
 				equation = lines[line_index, :]' * intrinsic * R * points_at_infinity[line_index, :]

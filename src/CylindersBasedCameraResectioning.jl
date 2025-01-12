@@ -8,6 +8,7 @@ module CylindersBasedCameraResectioning
     using .Plotting: initfigure, add_2d_axis!, plot_2dpoints, plot_line_2d, Plot3dCameraInput, plot_3dcamera, Plot3dCylindersInput, plot_3dcylinders, plot_2dcylinders
     using .EquationSystems: stack_homotopy_parameters, build_intrinsic_rotation_conic_system, build_intrinsic_rotation_translation_conic_system, build_camera_matrix_conic_system
     using .EquationSystems.Problems: CylinderCameraContoursProblem
+    using .EquationSystems.Problems.IntrinsicParameters: Configurations as IntrinsicParametersConfigurations, has as isIntrinsicEnabled
     using .Debug
     using .Utils
     using LinearAlgebra: diagm, deg2rad, dot, I, normalize, pinv, svd
@@ -32,10 +33,12 @@ module CylindersBasedCameraResectioning
     end
 
     function main()
-        scene, problems = create_scene_instances_and_problems(
-            number_of_instances=5,
+        intrinsic_configuration = IntrinsicParametersConfigurations.fₓ_fᵧ
+        scene, problems = create_scene_instances_and_problems(;
+            number_of_instances=2,
             number_of_cylinders=2,
             random_seed=12,
+            intrinsic_configuration,
         )
 
         parameters_solutions_pair = nothing
@@ -80,7 +83,13 @@ module CylindersBasedCameraResectioning
             end
             @info result
 
-            solution_error, _ = best_intrinsic_rotation_system_solution!(result, scene, problems; start_error=solution_error)
+            solution_error, _ = best_intrinsic_rotation_system_solution!(
+                result,
+                scene,
+                problems;
+                start_error=solution_error,
+                intrinsic_configuration,
+            )
             if solution_error < Inf
                 try
                     serialize("tmp/chunk_test/best_problems_for_error$(round(solution_error; digits=2)).jld", problems)
@@ -142,7 +151,7 @@ module CylindersBasedCameraResectioning
     end
 
     function save_solutions()
-        scene, problems = create_scene_instances_and_problems(
+        scene, problems = create_scene_instances_and_problems(;
             random_seed=81224,
             number_of_cylinders=4,
             number_of_instances=1,
@@ -316,6 +325,7 @@ module CylindersBasedCameraResectioning
         number_of_cylinders = 4,
         number_of_instances = 5,
         noise = 0,
+        intrinsic_configuration = IntrinsicParametersConfigurations.fₓ_fᵧ_skew_cₓ_cᵧ,
     )
         Random.seed!(random_seed)
 
@@ -365,13 +375,35 @@ module CylindersBasedCameraResectioning
         scene.cylinders = cylinders
 
         instances = []
-        intrinsic = build_intrinsic_matrix(IntrinsicParameters(
-            focal_length_x = rand_in_range(0.1, 4),
-            focal_length_y = rand_in_range(0.1, 4),
-            principal_point_x = rand_in_range(-0.5, 0.5),
-            principal_point_y = rand_in_range(-0.5, 0.5),
-            skew = rand_in_range(0, 1),
+
+        focal_length_x = 1
+        focal_length_y = 1
+        skew = 0
+        principal_point_x = 0
+        principal_point_y = 0
+        if (isIntrinsicEnabled.fₓ(intrinsic_configuration))
+            focal_length_x = rand_in_range(0.1, 4)
+        end
+        if (isIntrinsicEnabled.fᵧ(intrinsic_configuration))
+            focal_length_y = rand_in_range(0.1, 4)
+        end
+        if (isIntrinsicEnabled.skew(intrinsic_configuration))
+            skew = rand_in_range(0, 1)
+        end
+        if (isIntrinsicEnabled.cₓ(intrinsic_configuration))
+            principal_point_x = rand_in_range(-0.5, 0.5)
+        end
+        if (isIntrinsicEnabled.cᵧ(intrinsic_configuration))
+            principal_point_y = rand_in_range(-0.5, 0.5)
+        end
+        intrinsic = build_intrinsic_matrix(IntrinsicParameters(;
+            focal_length_x,
+            focal_length_y,
+            principal_point_x,
+            principal_point_y,
+            skew,
         ))
+
         for i in 1:number_of_instances
             instance = InstanceConfiguration()
             position, rotation_matrix = random_camera_lookingat_center()
@@ -444,10 +476,10 @@ module CylindersBasedCameraResectioning
             plot_2dcylinders(conics_contours, alpha=0.5; axindex = i)
         end
 
-        # 3 line minimum to solve the pose
+        intrinsicparamters_count = count_ones(UInt8(intrinsic_configuration))
         problems::Vector{CylinderCameraContoursProblem} = []
-        numberoflines_tosolvefor_perinstance = 3 + floor(Int, 5/number_of_instances)
-        number_of_extra_picks = 5 % number_of_instances
+        numberoflines_tosolvefor_perinstance = 3 + floor(Int, intrinsicparamters_count/number_of_instances)
+        number_of_extra_picks = intrinsicparamters_count % number_of_instances
         for (instance_number, instance) in enumerate(instances)
             conics_contours = instance.conics_contours
 
@@ -478,6 +510,7 @@ module CylindersBasedCameraResectioning
                 noise_free_lines,
                 points_at_infinity,
                 dualquadrics,
+                UInt8(intrinsic_configuration),
             )
             push!(problems, problem)
             if (noise > 0)
@@ -512,17 +545,47 @@ module CylindersBasedCameraResectioning
         result,
         scene,
         problems;
-        start_error = Inf
+        start_error = Inf,
+        intrinsic_configuration = IntrinsicParametersConfigurations.fₓ_fᵧ_skew_cₓ_cᵧ
     )
+        intrinsicparamters_count = count_ones(UInt8(intrinsic_configuration))
         solution_error = start_error
         solutions_to_try = real_solutions(result)
+        for sol in solutions_to_try
+            display(sol[1:intrinsicparamters_count])
+        end
         all_possible_solutions = []
         for solution in solutions_to_try
-            focal_length_x = solution[1]
-            focal_length_y = solution[2]
-            principal_point_x = solution[4]
-            principal_point_y = solution[5]
-            skew = solution[3]
+            intrinsics_solution = solution[1:intrinsicparamters_count]
+            focal_length_x = focal_length_y = 1
+            principal_point_x = principal_point_y = skew = 0
+            intrinsic_solution_index = 1
+            if (isIntrinsicEnabled.fₓ(intrinsic_configuration))
+                focal_length_x = intrinsics_solution[intrinsic_solution_index]
+                intrinsic_solution_index += 1
+            end
+            if (isIntrinsicEnabled.fᵧ(intrinsic_configuration))
+                focal_length_y = intrinsics_solution[intrinsic_solution_index]
+                intrinsic_solution_index += 1
+            end
+            if (isIntrinsicEnabled.skew(intrinsic_configuration))
+                skew = intrinsics_solution[intrinsic_solution_index]
+                intrinsic_solution_index += 1
+            end
+            if (isIntrinsicEnabled.cₓ(intrinsic_configuration))
+                principal_point_x = intrinsics_solution[intrinsic_solution_index]
+                intrinsic_solution_index += 1
+            end
+            if (isIntrinsicEnabled.cᵧ(intrinsic_configuration))
+                principal_point_y = intrinsics_solution[intrinsic_solution_index]
+                intrinsic_solution_index += 1
+            end
+
+            # Spurious solutions
+            if (focal_length_x == 0 || focal_length_y == 0)
+                continue
+            end
+
             intrinsic = build_intrinsic_matrix(IntrinsicParameters(
                 focal_length_x = focal_length_x,
                 focal_length_y = focal_length_y,
@@ -553,7 +616,7 @@ module CylindersBasedCameraResectioning
                 ]
             end
             intrinsic = intrinsic * intrinsic_correction
-            rotations_solution = solution[6:end]
+            rotations_solution = solution[(intrinsicparamters_count + 1):end]
 
             acceptable = true
             current_error = 0
@@ -606,7 +669,12 @@ module CylindersBasedCameraResectioning
 
         return translation_system, parameters
     end
-    function best_intrinsic_rotation_translation_system_solution!(result, scene, instance, problem)
+    function best_intrinsic_rotation_translation_system_solution!(
+        result,
+        scene,
+        instance,
+        problem
+    )
         solution_error = Inf
         solutions_to_try = real_solutions(result)
         reference_translation_result = nothing
@@ -643,6 +711,150 @@ module CylindersBasedCameraResectioning
         end
 
         return solution_error
+    end
+
+    function best_overall_solution(
+        result,
+        scene,
+        problems;
+        start_error = Inf,
+        intrinsic_configuration = IntrinsicParametersConfigurations.fₓ_fᵧ_skew_cₓ_cᵧ
+    )
+        intrinsicparamters_count = count_ones(UInt8(intrinsic_configuration))
+        solution_error = start_error
+        solutions_to_try = real_solutions(result)
+        all_possible_solutions = []
+        for solution in solutions_to_try
+            intrinsics_solution = solution[1:intrinsicparamters_count]
+            focal_length_x = focal_length_y = 1
+            principal_point_x = principal_point_y = skew = 0
+            intrinsic_solution_index = 1
+            if (isIntrinsicEnabled.fₓ(intrinsic_configuration))
+                focal_length_x = intrinsics_solution[intrinsic_solution_index]
+                intrinsic_solution_index += 1
+            end
+            if (isIntrinsicEnabled.fᵧ(intrinsic_configuration))
+                focal_length_y = intrinsics_solution[intrinsic_solution_index]
+                intrinsic_solution_index += 1
+            end
+            if (isIntrinsicEnabled.skew(intrinsic_configuration))
+                skew = intrinsics_solution[intrinsic_solution_index]
+                intrinsic_solution_index += 1
+            end
+            if (isIntrinsicEnabled.cₓ(intrinsic_configuration))
+                principal_point_x = intrinsics_solution[intrinsic_solution_index]
+                intrinsic_solution_index += 1
+            end
+            if (isIntrinsicEnabled.cᵧ(intrinsic_configuration))
+                principal_point_y = intrinsics_solution[intrinsic_solution_index]
+                intrinsic_solution_index += 1
+            end
+
+            # Spurious solutions
+            if (focal_length_x == 0 || focal_length_y == 0)
+                continue
+            end
+
+            intrinsic = build_intrinsic_matrix(IntrinsicParameters(
+                focal_length_x = focal_length_x,
+                focal_length_y = focal_length_y,
+                principal_point_x = principal_point_x,
+                principal_point_y = principal_point_y,
+                skew = skew,
+            ))
+            intrinsic_correction = I
+            if (focal_length_x < 0)
+                intrinsic_correction *= [
+                    -1 0 0;
+                    0 1 0;
+                    0 0 1;
+                ]
+            end
+            if (focal_length_y < 0)
+                intrinsic_correction *= [
+                    1 2*abs(skew)/abs(focal_length_x) 0;
+                    1 -1 0;
+                    0 0 1;
+                ]
+            end
+            if (skew < 0)
+                intrinsic_correction *= [
+                    1 2*abs(skew)/abs(focal_length_x) 0;
+                    0 1 0;
+                    0 0 1;
+                ]
+            end
+            intrinsic = intrinsic * intrinsic_correction
+            rotations_solution = solution[(intrinsicparamters_count + 1):end]
+
+            acceptable = true
+            current_error = 0
+            possible_cameras = []
+            for (i, problem) in enumerate(problems)
+                camera_extrinsic_rotation = QuatRotation(
+                    1,
+                    rotations_solution[(i-1)*3+1:i*3]...
+                ) * inv(intrinsic_correction)
+
+                problem_upto_translation = CylinderCameraContoursProblem(
+                    CameraProperties(
+                        euler_rotation = rad2deg.(eulerangles_from_rotationmatrix(camera_extrinsic_rotation')),
+                        quaternion_rotation = camera_extrinsic_rotation',
+                        intrinsic = intrinsic,
+                    ),
+                    lines=problem.lines,
+                    noise_free_lines=problem.noise_free_lines,
+                    points_at_infinity=problem.points_at_infinity,
+                    dualquadrics=problem.dualquadrics,
+                    intrinsic_configuration=problem.intrinsic_configuration,
+                )
+
+                translation_system, parameters = intrinsic_rotation_translation_system_setup(problem_upto_translation)
+
+                translation_result = solve(
+                    translation_system,
+                    # parameters_solutions_pair.solutions,
+                    # start_parameters = parameters_solutions_pair.start_parameters,
+                    target_parameters = parameters,
+                    start_system = :total_degree,
+                )
+                @info result
+
+                current_error += best_intrinsic_rotation_translation_system_solution!(
+                    translation_result,
+                    scene,
+                    scene.instances[i],
+                    problem_upto_translation
+                )
+
+                possible_camera = problem_upto_translation.camera
+                push!(possible_cameras, possible_camera)
+
+                for (i, contour) in enumerate(eachslice(scene.instances[i].conics_contours, dims=1))
+                    for line in eachslice(contour, dims=1)
+                        eq = line' * intrinsic * camera_extrinsic_rotation * scene.cylinders[i].singular_point[1:3]
+                        current_error += abs(eq)
+
+                        if (!(eq ≃ 0))
+                            acceptable = false
+                        end
+                    end
+                    if (!acceptable)
+                        break
+                    end
+                end
+            end
+            push!(all_possible_solutions, possible_cameras[1])
+
+            if (current_error < solution_error)
+                solution_error = current_error
+                for (i, problem) in enumerate(problems)
+                    problem.camera = possible_cameras[i]
+                end
+            end
+        end
+
+        return solution_error, all_possible_solutions
     end
 
     function plot_reconstructed_scene(scene, problems)
