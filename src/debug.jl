@@ -17,10 +17,10 @@ module Debug
     end
 
     function plot2dMarkers()
-#     for (i, marker) in enumerate(markers)
-#         projectedMarker = cameraProjectionMatrix * marker
-#         projectedMarker = projectedMarker ./ projectedMarker[3]
-#         scatter!(ax2,(projectedMarker[1], -projectedMarker[2]), color=colors[i])
-#     end
+        for (i, marker) in enumerate(markers)
+            projectedMarker = cameraProjectionMatrix * marker
+            projectedMarker = projectedMarker ./ projectedMarker[3]
+            scatter!(ax2,(projectedMarker[1], -projectedMarker[2]), color=colors[i])
+        end
     end
 end
