@@ -676,14 +676,7 @@ module CylindersBasedCameraResectioning
                 for line in eachslice(contour, dims=1)
                     eq = line' * camera_matrix * scene.cylinders[i].dual_matrix * camera_matrix' * line
                     current_error += abs(eq)
-
-                    # if (!(eq ≃ 0))
-                    #     acceptable = false
-                    # end
                 end
-                # if (!acceptable)
-                #     break
-                # end
             end
             if (current_error < solution_error)
                 solution_error = current_error
@@ -798,8 +791,6 @@ module CylindersBasedCameraResectioning
 
                 translation_result = solve(
                     translation_system,
-                    # parameters_solutions_pair.solutions,
-                    # start_parameters = parameters_solutions_pair.start_parameters,
                     target_parameters = parameters,
                     start_system = :total_degree,
                 )
@@ -819,14 +810,7 @@ module CylindersBasedCameraResectioning
                     for line in eachslice(contour, dims=1)
                         eq = line' * intrinsic * camera_extrinsic_rotation * scene.cylinders[i].singular_point[1:3]
                         individual_problem_error += abs(eq)
-
-                        # if (!(eq ≃ 0))
-                        #     acceptable = false
-                        # end
                     end
-                    # if (!acceptable)
-                    #     break
-                    # end
                 end
                 # if (individual_problem_error < individual_problem_min_error)
                 #     individual_problem_min_error = individual_problem_error
