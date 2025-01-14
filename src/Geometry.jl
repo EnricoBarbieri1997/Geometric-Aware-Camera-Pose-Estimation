@@ -39,7 +39,8 @@ module Geometry
 	end
 
 	function line_to_homogenous(line::Line)
-		return cross([line.origin; 1], [line.origin; 1] + [line.direction*10; 0])
+		homogenous_line = cross([line.origin; 1], [line.origin; 1] + [line.direction*10; 0])
+		return homogenous_line ./ homogenous_line[3]
 	end
 
 	function project_point_into_line(point::Vector{<:Number}, line::Line)
@@ -96,6 +97,10 @@ module Geometry
 		projected_tangentpoint₂ = cameraMatrix * [tangentpoint₂; 1]
 		projected_cylinderaxis = cameraMatrix * [cylinder.axis; 0]
 
+		display("pt1, $projected_tangentpoint₁")
+		display("pt2, $projected_tangentpoint₂")
+		display("pc, $projected_cylinderaxis")
+
 		projected_tangentpoint₁ = projected_tangentpoint₁ ./ projected_tangentpoint₁[3]
 		projected_tangentpoint₂ = projected_tangentpoint₂ ./ projected_tangentpoint₂[3]
 		projected_cylinderaxis = projected_cylinderaxis ./ projected_cylinderaxis[3]
@@ -103,6 +108,10 @@ module Geometry
 		projected_tangentpoint₁ = projected_tangentpoint₁[1:2]
 		projected_tangentpoint₂ = projected_tangentpoint₂[1:2]
 		projected_cylinderaxis = projected_cylinderaxis[1:2]
+
+		display("pt1n, $projected_tangentpoint₁")
+		display("pt2n, $projected_tangentpoint₂")
+		display("pcn, $projected_cylinderaxis")
 
 		contour₁ = Line(projected_cylinderaxis, projected_tangentpoint₁ - projected_cylinderaxis)
 		contour₂ = Line(projected_cylinderaxis, projected_tangentpoint₂ - projected_cylinderaxis)
