@@ -35,9 +35,9 @@ module CylindersBasedCameraResectioning
     function main()
         intrinsic_configuration = IntrinsicParametersConfigurations.fₓ_fᵧ
         scene, problems = create_scene_instances_and_problems(;
-            number_of_instances=1,
-            number_of_cylinders=3,
-            random_seed=13,
+            number_of_instances=2,
+            number_of_cylinders=2,
+            random_seed=14, # 12, 13 meh
             intrinsic_configuration,
         )
 
@@ -117,8 +117,6 @@ module CylindersBasedCameraResectioning
         end
 
         plot_reconstructed_scene(scene, problems)
-
-        display(scene.figure)
     end
 
     function save_solutions()
@@ -492,8 +490,6 @@ module CylindersBasedCameraResectioning
                 plot_2dcylinders(noisy_contours; linestyle=:dashdotdot)
             end
         end
-
-        display(scene.figure)
 
         return scene, problems
     end
