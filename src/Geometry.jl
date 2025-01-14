@@ -97,10 +97,6 @@ module Geometry
 		projected_tangentpoint₂ = cameraMatrix * [tangentpoint₂; 1]
 		projected_cylinderaxis = cameraMatrix * [cylinder.axis; 0]
 
-		display("pt1, $projected_tangentpoint₁")
-		display("pt2, $projected_tangentpoint₂")
-		display("pc, $projected_cylinderaxis")
-
 		projected_tangentpoint₁ = projected_tangentpoint₁ ./ projected_tangentpoint₁[3]
 		projected_tangentpoint₂ = projected_tangentpoint₂ ./ projected_tangentpoint₂[3]
 		projected_cylinderaxis = projected_cylinderaxis ./ projected_cylinderaxis[3]
@@ -108,10 +104,6 @@ module Geometry
 		projected_tangentpoint₁ = projected_tangentpoint₁[1:2]
 		projected_tangentpoint₂ = projected_tangentpoint₂[1:2]
 		projected_cylinderaxis = projected_cylinderaxis[1:2]
-
-		display("pt1n, $projected_tangentpoint₁")
-		display("pt2n, $projected_tangentpoint₂")
-		display("pcn, $projected_cylinderaxis")
 
 		contour₁ = Line(projected_cylinderaxis, projected_tangentpoint₁ - projected_cylinderaxis)
 		contour₂ = Line(projected_cylinderaxis, projected_tangentpoint₂ - projected_cylinderaxis)
