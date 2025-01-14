@@ -35,19 +35,11 @@ module CylindersBasedCameraResectioning
     function main()
         intrinsic_configuration = IntrinsicParametersConfigurations.fₓ_fᵧ
         scene, problems = create_scene_instances_and_problems(;
-            number_of_instances=2,
+            number_of_instances=1,
             number_of_cylinders=3,
             random_seed=13,
             intrinsic_configuration,
         )
-
-        parameters_solutions_pair = nothing
-        try
-            parameters_solutions_pair = deserialize("tmp/intrinsic_rotation_monodromy_solutions.jld")
-        catch
-            error("generate ir monodromy first")
-            return 1
-        end
 
         rotation_intrinsic_system, parameters = intrinsic_rotation_system_setup(problems)
 
@@ -124,7 +116,6 @@ module CylindersBasedCameraResectioning
             ), :green)
         end
 
-        number_of_cylinders = size(scene.cylinders)[1]
         plot_reconstructed_scene(scene, problems)
 
         display(scene.figure)
@@ -136,7 +127,6 @@ module CylindersBasedCameraResectioning
             number_of_cylinders=4,
             number_of_instances=1,
         )
-        parameters_solutions_pair = nothing
 
         rotation_intrinsic_system, parameters = intrinsic_rotation_system_setup(problems)
 
@@ -164,26 +154,24 @@ module CylindersBasedCameraResectioning
 
         current_best_result_error = Inf
         reference_translation_result = nothing
-        for possible_solution in all_possible_solutions
-            for (i, problem) in enumerate(problems)
-                translation_system, parameters = intrinsic_rotation_translation_system_setup(problem)
+        for (i, problem) in enumerate(problems)
+            translation_system, parameters = intrinsic_rotation_translation_system_setup(problem)
 
-                result = solve(
-                    translation_system,
-                    start_system = :total_degree,
-                    target_parameters = parameters,
-                )
-                @info result
+            result = solve(
+                translation_system,
+                start_system = :total_degree,
+                target_parameters = parameters,
+            )
+            @info result
 
-                solution_error = best_intrinsic_rotation_translation_system_solution!(result, scene, scene.instances[i], problem)
-                if (solution_error < current_best_result_error)
-                    reference_translation_result = result
-                end
-                plot_3dcamera(Plot3dCameraInput(
-                    problem.camera.euler_rotation,
-                    problem.camera.position,
-                ), :green)
+            solution_error = best_intrinsic_rotation_translation_system_solution!(result, scene, scene.instances[i], problem)
+            if (solution_error < current_best_result_error)
+                reference_translation_result = result
             end
+            plot_3dcamera(Plot3dCameraInput(
+                problem.camera.euler_rotation,
+                problem.camera.position,
+            ), :green)
         end
 
         serialize(
@@ -362,21 +350,20 @@ module CylindersBasedCameraResectioning
         principal_point_x = 0
         principal_point_y = 0
 
-        focal_length = rand_in_range(0.1, 1.0)
         if (isIntrinsicEnabled.fₓ(intrinsic_configuration))
-            focal_length_x = rand_in_range(1.0, 4.0) * focal_length
+            focal_length_x = rand_in_range(2500.0, 3000.0)
         end
         if (isIntrinsicEnabled.fᵧ(intrinsic_configuration))
-            focal_length_y = rand_in_range(1.0, 4.0) * focal_length
+            focal_length_y = rand_in_range(0.8, 1.0) * focal_length_x
         end
         if (isIntrinsicEnabled.skew(intrinsic_configuration))
             skew = rand_in_range(0, 1)
         end
         if (isIntrinsicEnabled.cₓ(intrinsic_configuration))
-            principal_point_x = rand_in_range(-0.5, 0.5)
+            principal_point_x = rand_in_range(1280, 1440)
         end
         if (isIntrinsicEnabled.cᵧ(intrinsic_configuration))
-            principal_point_y = rand_in_range(-0.5, 0.5)
+            principal_point_y = principal_point_x * (9/16 + rand_in_range(-0.1, 0.1))
         end
         intrinsic = build_intrinsic_matrix(IntrinsicParameters(;
             focal_length_x,
@@ -505,6 +492,8 @@ module CylindersBasedCameraResectioning
                 plot_2dcylinders(noisy_contours; linestyle=:dashdotdot)
             end
         end
+
+        display(scene.figure)
 
         return scene, problems
     end

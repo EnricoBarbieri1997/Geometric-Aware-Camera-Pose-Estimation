@@ -136,7 +136,7 @@ module Plotting
                 line = conic_contours[i, j, :]
                 if line == [0, 0, 0] continue end
                 y1 = function (x) return y(x, line) end
-                xs = -50:1:50
+                xs = -5000:1:5000
                 ys1 = y1.(xs)
                 lines!(ax2_array[axindex], xs, -ys1, color = (colors[i], alpha), linestyle=linestyle)
             end
