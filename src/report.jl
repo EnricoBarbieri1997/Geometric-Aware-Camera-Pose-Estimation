@@ -1,0 +1,192 @@
+module Report
+	using ..Scene: Problem, SceneData, best_overall_solution!, create_scene_instances_and_problems, intrinsic_rotation_system_setup
+	using ..EquationSystems.Problems: CylinderCameraContoursProblem
+	using ..EquationSystems.Problems.IntrinsicParameters: Configurations as IntrinsicParametersConfigurations
+    using ..Utils: vector_difference, matrix_difference, rotations_difference, translations_difference
+	
+	using Dates, Random, Serialization, HomotopyContinuation
+	
+	struct ViewError
+		rotation::Float64
+		translation::Float64
+		cameramatrix::Float64
+	end
+	struct ErrorsReportData
+		intrinsic::Float64
+		views::Vector{ViewError}
+	end
+	struct ReportData
+		seed::Int
+		intrinsic_configuration::IntrinsicParametersConfigurations.T
+		scene::SceneData
+		problems::Vector{CylinderCameraContoursProblem}
+		runingtime::Float64
+		errors::ErrorsReportData
+	end
+	
+	function multiple_seeds_multiple_configuration()
+		Random.seed!(938)
+		seeds = rand(Int, 5)
+		configurations = [
+			IntrinsicParametersConfigurations.none,
+			IntrinsicParametersConfigurations.fₓ,
+			IntrinsicParametersConfigurations.fₓ_fᵧ_cₓ_cᵧ,
+			IntrinsicParametersConfigurations.fₓ_fᵧ_skew_cₓ_cᵧ,
+		]
+
+		cylinder_views_per_config = Dict([
+			(IntrinsicParametersConfigurations.none, [
+				(2, 1),
+			]),
+			(IntrinsicParametersConfigurations.fₓ, [
+				(2, 1),
+			]),
+			(IntrinsicParametersConfigurations.fₓ_fᵧ_cₓ_cᵧ, [
+				(4, 1),
+				(3, 2),
+				# (2, 4),
+			]),
+			(IntrinsicParametersConfigurations.fₓ_fᵧ_skew_cₓ_cᵧ, [
+				(4, 1),
+				(3, 2),
+				# (2, 5),
+			]),
+		])
+
+		results = []
+
+		for seed in seeds
+			for configuration in configurations
+				possible_scene_configurations = get(cylinder_views_per_config, configuration, [(2, 1)])
+				for scene_configuration in possible_scene_configurations
+					display("Seed: $seed. Configuration: $configuration. Scene configuration: $scene_configuration")
+					start = time()
+					try
+						number_of_cylinders, number_of_instances = scene_configuration
+						scene, problems = create_scene_instances_and_problems(;
+							number_of_instances,
+							number_of_cylinders,
+							random_seed=seed,
+							intrinsic_configuration = configuration,
+						)
+
+						rotation_intrinsic_system, parameters = intrinsic_rotation_system_setup(problems)
+
+						solver, starts = solver_startsolutions(
+							rotation_intrinsic_system,
+							start_system = :total_degree;
+							target_parameters = parameters,
+						)
+
+						chunk_size = 500000
+						numberof_start_solutions = length(starts)
+						display("Number of start solutions: $numberof_start_solutions. Number of iterations needed: $(ceil(Int, numberof_start_solutions / chunk_size))")
+						solution_error = Inf
+						for start in Iterators.partition(starts, chunk_size)
+							result = nothing
+							result = solve(
+								solver,
+								start;
+							)
+							@info result
+
+							solution_error, _ = best_overall_solution!(
+								result,
+								scene,
+								problems;
+								start_error=solution_error,
+								intrinsic_configuration=configuration,
+							)
+							if solution_error < 1e-6
+								break
+							end
+						end
+
+						view_errors = []
+						for i in 1:length(scene.instances)
+							original_camera = scene.instances[i].camera
+							calculated_camera = problems[i].camera
+							push!(view_errors, ViewError(
+								rotations_difference(
+									original_camera.quaternion_rotation,
+									calculated_camera.quaternion_rotation
+								),
+								translations_difference(
+									original_camera.position,
+									calculated_camera.position
+								),
+								matrix_difference(
+									original_camera.matrix,
+									calculated_camera.matrix
+								),
+							))
+						end
+
+						push!(results, ReportData(
+							seed,
+							configuration,
+							scene,
+							problems,
+							start - time(),
+							ErrorsReportData(
+								matrix_difference(
+									problems[1].camera.intrinsic,
+									scene.instances[1].camera.intrinsic
+								),
+								view_errors,
+							),
+						))
+					catch e
+						@error e
+						stacktrace(catch_backtrace())
+						push!(results, e)
+					end
+
+					display("------------------------------------")
+				end
+			end
+		end
+
+		if !isdir("./tmp/reports")
+			mkdir("./tmp/reports")
+		end
+		serialize("./tmp/reports/$(now()).jls", results)
+	end
+
+	function report_to_csv(report_path, csv_path)
+		reports = deserialize(report_path)
+		header = [
+			"seed",
+			"intrinsic_configuration",
+			"number_of_cylinders",
+			"number_of_views",
+			"running time",
+			"intrinsic_error",
+			"view",
+			"rotation_error",
+			"translation_error",
+			"cameramatrix_error",
+		]
+
+		data = Matrix{Any}(undef, length(reports), length(header))
+		row = 1
+		for report in reports
+			for (j, view) in enumerate(report.errors.views)
+				data[row, 1] = report.seed
+				data[row, 2] = report.intrinsic_configuration
+				data[row, 3] = length(report.scene.cylinders)
+				data[row, 4] = length(report.scene.instances)
+				data[row, 5] = report.runingtime
+				data[row, 6] = report.errors.intrinsic
+				data[row, 7] = j
+				data[row, 8] = view.rotation
+				data[row, 9] = view.translation
+				data[row, 10] = view.cameramatrix
+
+				row += 1
+			end
+		end
+
+		CSV.write(csv_path, Tables.table(data); header)
+	end
+end
