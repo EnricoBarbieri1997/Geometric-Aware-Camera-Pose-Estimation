@@ -1,10 +1,12 @@
 module Report
-	using ..Scene: Problem, SceneData, best_overall_solution!, create_scene_instances_and_problems, intrinsic_rotation_system_setup
+	using ..Scene: SceneData, best_overall_solution!, create_scene_instances_and_problems, intrinsic_rotation_system_setup, plot_reconstructed_scene
 	using ..EquationSystems.Problems: CylinderCameraContoursProblem
 	using ..EquationSystems.Problems.IntrinsicParameters: Configurations as IntrinsicParametersConfigurations
+	using ..Plotting: rehydrate_figure, plot_3dcamera, Plot3dCameraInput
+	using ..Printing: print_camera_differences
     using ..Utils: vector_difference, matrix_difference, rotations_difference, translations_difference
 	
-	using Dates, Random, Serialization, HomotopyContinuation
+	using CSV, Dates, HomotopyContinuation, Random, Serialization, Tables
 	
 	struct ViewError
 		rotation::Float64
@@ -127,7 +129,7 @@ module Report
 							configuration,
 							scene,
 							problems,
-							start - time(),
+							time() - start,
 							ErrorsReportData(
 								matrix_difference(
 									problems[1].camera.intrinsic,
@@ -167,8 +169,11 @@ module Report
 			"translation_error",
 			"cameramatrix_error",
 		]
-
-		data = Matrix{Any}(undef, length(reports), length(header))
+		height = 0
+		for report in reports
+			height += length(report.errors.views)
+		end
+		data = Matrix{Any}(undef, height, length(header))
 		row = 1
 		for report in reports
 			for (j, view) in enumerate(report.errors.views)
@@ -187,6 +192,15 @@ module Report
 			end
 		end
 
-		CSV.write(csv_path, Tables.table(data); header)
+		transform= function (col,val)
+			if isa(val, Number) && abs(val) < 1
+				return round(val, digits=6)
+			end
+			return val
+		end
+
+		CSV.write(csv_path, Tables.table(data; header); compact=true, transform)
+	end
+
 	end
 end
