@@ -1,10 +1,10 @@
 module Report
-	using ..Scene: SceneData, best_overall_solution!, create_scene_instances_and_problems, intrinsic_rotation_system_setup, plot_reconstructed_scene
+	using ..Scene: SceneData, best_overall_solution!, create_scene_instances_and_problems, intrinsic_rotation_system_setup, plot_scene, plot_reconstructed_scene
 	using ..EquationSystems.Problems: CylinderCameraContoursProblem
 	using ..EquationSystems.Problems.IntrinsicParameters: Configurations as IntrinsicParametersConfigurations
-	using ..Plotting: rehydrate_figure, plot_3dcamera, Plot3dCameraInput
+	using ..Plotting: initfigure, plot_3dcamera, Plot3dCameraInput
 	using ..Printing: print_camera_differences
-    using ..Utils: vector_difference, matrix_difference, rotations_difference, translations_difference
+  using ..Utils: vector_difference, matrix_difference, rotations_difference, translations_difference
 	
 	using CSV, Dates, HomotopyContinuation, Random, Serialization, Tables
 	
@@ -202,5 +202,36 @@ module Report
 		CSV.write(csv_path, Tables.table(data; header); compact=true, transform)
 	end
 
+	function explore_report(report_path, seed, intrinsic_configuration, cylinder_view_configuration)
+		reports = deserialize(report_path)
+		for report in reports
+			if (report.seed == seed &&
+				Int(report.intrinsic_configuration) == intrinsic_configuration &&
+				length(report.scene.cylinders) == cylinder_view_configuration[1] &&
+				length(report.scene.instances) == cylinder_view_configuration[2]
+			)
+				scene = report.scene
+				problems = report.problems
+
+				for (i, instance) in enumerate(scene.instances)
+					display("View $i")
+					print_camera_differences(instance.camera, problems[i].camera)
+					display("--------------------")
+				end
+
+				scene.figure = initfigure()
+				plot_scene(scene, problems)
+		
+				for problem in problems
+					plot_3dcamera(Plot3dCameraInput(
+						problem.camera.euler_rotation,
+						problem.camera.position,
+					), :green)
+				end
+		
+				plot_reconstructed_scene(scene, problems)
+				break
+			end
+		end
 	end
 end

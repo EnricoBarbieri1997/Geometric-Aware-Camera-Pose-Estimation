@@ -1,14 +1,19 @@
 module CylindersBasedCameraResectioning
     include("includes.jl")
 
-    using Serialization
+	using ..Scene: best_overall_solution!, best_overall_solution_by_steps!, create_scene_instances_and_problems, intrinsic_rotation_system_setup, plot_reconstructed_scene
+	using ..EquationSystems.Problems.IntrinsicParameters: Configurations as IntrinsicParametersConfigurations
+    using ..Plotting: plot_3dcamera, Plot3dCameraInput
+	using ..Printing: print_camera_differences
+
+    using HomotopyContinuation, Serialization
 
     function main()
         intrinsic_configuration = IntrinsicParametersConfigurations.fₓ_fᵧ
         scene, problems = create_scene_instances_and_problems(;
             number_of_instances=2,
             number_of_cylinders=2,
-            random_seed=14, # 12, 13 meh
+            random_seed=14,
             intrinsic_configuration,
         )
 
@@ -46,7 +51,7 @@ module CylindersBasedCameraResectioning
             end
             @info result
 
-            solution_error, _ = best_overall_solution_by_steps!(
+            solution_error, _ = best_overall_solution!(
                 result,
                 scene,
                 problems;
@@ -73,13 +78,6 @@ module CylindersBasedCameraResectioning
 
         # refine_best_solution!(scene, problems)
         # plot_reconstructed_scene(scene, problems)
-
-        for problem in problems
-            plot_3dcamera(Plot3dCameraInput(
-                problem.camera.euler_rotation,
-                problem.camera.position,
-            ), :green)
-        end
 
         for (i, instance) in enumerate(scene.instances)
             display("View $i")

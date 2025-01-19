@@ -167,27 +167,6 @@ module Scene
 
 			scene.instances = instances
 
-			plot_3dcylinders(Plot3dCylindersInput(
-					[cylinder.transform for cylinder in cylinders],
-					[cylinder.radiuses for cylinder in cylinders],
-					number_of_cylinders,
-			))
-
-			for (i, instance) in enumerate(instances)
-					camera = instance.camera
-					conics = instance.conics
-					conics_contours = instance.conics_contours
-					plot_3dcamera(Plot3dCameraInput(
-							camera.euler_rotation,
-							camera.position,
-					))
-					if i > 1
-							add_2d_axis!()
-					end
-					plot_2dpoints([(conic.singular_point ./ conic.singular_point[3])[1:2] for conic in conics]; axindex = i)
-					plot_2dcylinders(conics_contours, alpha=0.5; axindex = i)
-			end
-
 			intrinsicparamters_count = count_ones(UInt8(intrinsic_configuration))
 			problems::Vector{CylinderCameraContoursProblem} = []
 			numberoflines_tosolvefor_perinstance = 3 + floor(Int, intrinsicparamters_count/number_of_instances)
@@ -225,18 +204,47 @@ module Scene
 							UInt8(intrinsic_configuration),
 					)
 					push!(problems, problem)
-					if (noise > 0)
-							noisy_contours = vcat(lines)
-							if (size(noisy_contours)[1] % 2 == 1)
-									noisy_contours = vcat(noisy_contours, [0, 0, 0]')
-							end
-							noisy_contours = reshape(noisy_contours, 2, number_of_cylinders, 3)
-							noisy_contours = permutedims(noisy_contours, (2,1,3))
-							plot_2dcylinders(noisy_contours; linestyle=:dashdotdot)
-					end
 			end
 
+			plot_scene(scene, problems; noise)
+
 			return scene, problems
+	end
+
+	function plot_scene(scene, problems; noise = 0)
+		number_of_cylinders = size(scene.cylinders)[1]
+		plot_3dcylinders(Plot3dCylindersInput(
+			[cylinder.transform for cylinder in scene.cylinders],
+			[cylinder.radiuses for cylinder in scene.cylinders],
+			number_of_cylinders,
+		))
+
+		for (i, instance) in enumerate(scene.instances)
+			camera = instance.camera
+			conics = instance.conics
+			conics_contours = instance.conics_contours
+			plot_3dcamera(Plot3dCameraInput(
+					camera.euler_rotation,
+					camera.position,
+			))
+			if i > 1
+					add_2d_axis!()
+			end
+			plot_2dpoints([(conic.singular_point ./ conic.singular_point[3])[1:2] for conic in conics]; axindex = i)
+			plot_2dcylinders(conics_contours, alpha=0.5; axindex = i)
+		end
+
+		if (noise > 0)
+			for problem in problems
+				noisy_contours = vcat(problem.lines)
+				if (size(noisy_contours)[1] % 2 == 1)
+						noisy_contours = vcat(noisy_contours, [0, 0, 0]')
+				end
+				noisy_contours = reshape(noisy_contours, 2, number_of_cylinders, 3)
+				noisy_contours = permutedims(noisy_contours, (2,1,3))
+				plot_2dcylinders(noisy_contours; linestyle=:dashdotdot)
+			end
+		end
 	end
 
 	function splitIntrinsicRotationParameters(
@@ -508,10 +516,8 @@ module Scene
 							if (individual_problem_error > individual_problem_max_error)
 									individual_problem_max_error = individual_problem_error
 							end
-							display("$(i): $(individual_problem_error)")
 					end
 					current_error = individual_problem_max_error
-					display("current_error: $current_error")
 					push!(all_possible_solutions, possible_cameras[1])
 
 					if (current_error < solution_error)
@@ -521,8 +527,6 @@ module Scene
 							end
 					end
 			end
-
-			display(solution_error)
 
 			return solution_error, all_possible_solutions
 	end
