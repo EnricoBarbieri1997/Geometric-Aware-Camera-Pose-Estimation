@@ -20,6 +20,7 @@ module Report
 	struct ReportData
 		seed::Int
 		intrinsic_configuration::IntrinsicParametersConfigurations.T
+		noise::Float64
 		scene::SceneData
 		problems::Vector{CylinderCameraContoursProblem}
 		runingtime::Float64
@@ -55,96 +56,102 @@ module Report
 			]),
 		])
 
+		noise_values = collect(0.0:0.1:1.0)
+
 		results = []
 
 		for seed in seeds
 			for configuration in configurations
 				possible_scene_configurations = get(cylinder_views_per_config, configuration, [(2, 1)])
 				for scene_configuration in possible_scene_configurations
-					display("Seed: $seed. Configuration: $configuration. Scene configuration: $scene_configuration")
-					start = time()
-					try
-						number_of_cylinders, number_of_instances = scene_configuration
-						scene, problems = create_scene_instances_and_problems(;
-							number_of_instances,
-							number_of_cylinders,
-							random_seed=seed,
-							intrinsic_configuration = configuration,
-						)
-
-						rotation_intrinsic_system, parameters = intrinsic_rotation_system_setup(problems)
-
-						solver, starts = solver_startsolutions(
-							rotation_intrinsic_system,
-							start_system = :total_degree;
-							target_parameters = parameters,
-						)
-
-						chunk_size = 500000
-						numberof_start_solutions = length(starts)
-						display("Number of start solutions: $numberof_start_solutions. Number of iterations needed: $(ceil(Int, numberof_start_solutions / chunk_size))")
-						solution_error = Inf
-						for start in Iterators.partition(starts, chunk_size)
-							result = nothing
-							result = solve(
-								solver,
-								start;
+					for noise in noise_values
+						display("Seed: $seed. Configuration: $configuration. Scene configuration: $scene_configuration. Noise: $noise")
+						start = time()
+						try
+							number_of_cylinders, number_of_instances = scene_configuration
+							scene, problems = create_scene_instances_and_problems(;
+								number_of_instances,
+								number_of_cylinders,
+								random_seed=seed,
+								intrinsic_configuration = configuration,
+								noise,
 							)
-							@info result
 
-							solution_error, _ = best_overall_solution!(
-								result,
-								scene,
-								problems;
-								start_error=solution_error,
-								intrinsic_configuration=configuration,
+							rotation_intrinsic_system, parameters = intrinsic_rotation_system_setup(problems)
+
+							solver, starts = solver_startsolutions(
+								rotation_intrinsic_system,
+								start_system = :total_degree;
+								target_parameters = parameters,
 							)
-							if solution_error < 1e-6
-								break
+
+							chunk_size = 500000
+							numberof_start_solutions = length(starts)
+							display("Number of start solutions: $numberof_start_solutions. Number of iterations needed: $(ceil(Int, numberof_start_solutions / chunk_size))")
+							solution_error = Inf
+							for start in Iterators.partition(starts, chunk_size)
+								result = nothing
+								result = solve(
+									solver,
+									start;
+								)
+								@info result
+
+								solution_error, _ = best_overall_solution!(
+									result,
+									scene,
+									problems;
+									start_error=solution_error,
+									intrinsic_configuration=configuration,
+								)
+								if solution_error < 1e-6
+									break
+								end
 							end
-						end
 
-						view_errors = []
-						for i in 1:length(scene.instances)
-							original_camera = scene.instances[i].camera
-							calculated_camera = problems[i].camera
-							push!(view_errors, ViewError(
-								rotations_difference(
-									original_camera.quaternion_rotation,
-									calculated_camera.quaternion_rotation
-								),
-								translations_difference(
-									original_camera.position,
-									calculated_camera.position
-								),
-								matrix_difference(
-									original_camera.matrix,
-									calculated_camera.matrix
+							view_errors = []
+							for i in 1:length(scene.instances)
+								original_camera = scene.instances[i].camera
+								calculated_camera = problems[i].camera
+								push!(view_errors, ViewError(
+									rotations_difference(
+										original_camera.quaternion_rotation,
+										calculated_camera.quaternion_rotation
+									),
+									translations_difference(
+										original_camera.position,
+										calculated_camera.position
+									),
+									matrix_difference(
+										original_camera.matrix,
+										calculated_camera.matrix
+									),
+								))
+							end
+
+							push!(results, ReportData(
+								seed,
+								configuration,
+								noise,
+								scene,
+								problems,
+								time() - start,
+								ErrorsReportData(
+									matrix_difference(
+										problems[1].camera.intrinsic,
+										scene.instances[1].camera.intrinsic
+									),
+									view_errors,
 								),
 							))
+						catch e
+							@error e
+							stacktrace(catch_backtrace())
+							push!(results, e)
 						end
 
-						push!(results, ReportData(
-							seed,
-							configuration,
-							scene,
-							problems,
-							time() - start,
-							ErrorsReportData(
-								matrix_difference(
-									problems[1].camera.intrinsic,
-									scene.instances[1].camera.intrinsic
-								),
-								view_errors,
-							),
-						))
-					catch e
-						@error e
-						stacktrace(catch_backtrace())
-						push!(results, e)
+						display("------------------------------------")
 					end
-
-					display("------------------------------------")
 				end
 			end
 		end
@@ -162,6 +169,7 @@ module Report
 			"intrinsic_configuration",
 			"number_of_cylinders",
 			"number_of_views",
+			"noise",
 			"running time",
 			"intrinsic_error",
 			"view",
@@ -181,12 +189,13 @@ module Report
 				data[row, 2] = report.intrinsic_configuration
 				data[row, 3] = length(report.scene.cylinders)
 				data[row, 4] = length(report.scene.instances)
-				data[row, 5] = report.runingtime
-				data[row, 6] = report.errors.intrinsic
-				data[row, 7] = j
-				data[row, 8] = view.rotation
-				data[row, 9] = view.translation
-				data[row, 10] = view.cameramatrix
+				data[row, 5] = report.noise
+				data[row, 6] = report.runingtime
+				data[row, 7] = report.errors.intrinsic
+				data[row, 8] = j
+				data[row, 9] = view.rotation
+				data[row, 10] = view.translation
+				data[row, 11] = view.cameramatrix
 
 				row += 1
 			end
