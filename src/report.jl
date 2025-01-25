@@ -56,7 +56,7 @@ module Report
 			]),
 		])
 
-		noise_values = collect(0.0:0.1:1.0)
+		noise_values = collect(0.0:0.5:5.0)
 
 		results = []
 
