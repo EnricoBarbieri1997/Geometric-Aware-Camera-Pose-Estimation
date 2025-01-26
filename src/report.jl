@@ -226,7 +226,7 @@ module Report
 				continue
 			end
 			index = findfirst(noise_steps .== report.noise)
-			total_cameramatrix_error = reduce((view, tot) = view.cameramatrix + tot, 0, report.errors.views)
+			total_cameramatrix_error = reduce((view, tot) -> view.cameramatrix + tot, 0, report.errors.views)
 			errors_mean[1:3, index] += report.errors.intrinsic
 			errors_mean[4, index] += total_cameramatrix_error
 			if (norm(errors_max[1:3, index]) < norm(report.errors.intrinsic))
