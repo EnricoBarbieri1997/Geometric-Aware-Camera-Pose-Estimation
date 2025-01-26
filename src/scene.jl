@@ -15,7 +15,7 @@ module Scene
 	using LinearAlgebra: diagm, deg2rad, dot, I, normalize, pinv, svd
 	using HomotopyContinuation, Polynomials, Rotations
 	using Random
-	using GLMakie: Figure
+	using CairoMakie: Figure
 	struct ParametersSolutionsPair
 		start_parameters::Vector{Float64}
 		solutions::Vector{Vector{ComplexF64}}

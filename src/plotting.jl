@@ -5,7 +5,7 @@ module Plotting
 
     using LinearAlgebra: deg2rad
     using Rotations
-    using GLMakie, GLMakie.FileIO
+    using CairoMakie, CairoMakie.FileIO
 
     # f, ax3, ax2
 
