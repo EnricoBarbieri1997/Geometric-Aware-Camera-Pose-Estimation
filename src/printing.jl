@@ -1,5 +1,5 @@
 module Printing
-    export print_camera_differences
+    export print_camera_differences, print_error_analysis
 
     using ..Utils: vector_difference, matrix_difference, rotations_difference, translations_difference
     using PrettyTables
@@ -135,5 +135,19 @@ module Printing
                 header = header,
             )
         end
+    end
+
+    function print_error_analysis(errors::Matrix{<:Number}; noise_steps=(0.0:1.0:10.0))
+        header = vcat(["Metric/Noise"], noise_steps)
+        data = hcat([
+            "Δf",
+            "Δc",
+            "Δskew",
+            "Camera matrix",
+        ], errors)
+        pretty_table_withdefaults(data;
+            header = header,
+            highlighters = (transparent_first_col, low_value_good, high_value_bad)
+        )
     end
 end

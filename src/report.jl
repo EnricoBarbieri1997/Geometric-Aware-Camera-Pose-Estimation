@@ -3,10 +3,11 @@ module Report
 	using ..EquationSystems.Problems: CylinderCameraContoursProblem
 	using ..EquationSystems.Problems.IntrinsicParameters: Configurations as IntrinsicParametersConfigurations
 	using ..Plotting: initfigure, plot_3dcamera, Plot3dCameraInput
-	using ..Printing: print_camera_differences
-  using ..Utils: vector_difference, matrix_difference, rotations_difference, translations_difference
+	using ..Printing: print_camera_differences, print_error_analysis
+  	using ..Utils: vector_difference, intrinsic_difference, matrix_difference, rotations_difference, translations_difference
 	
 	using CSV, Dates, HomotopyContinuation, Random, Serialization, Tables
+	using LinearAlgebra: norm
 	
 	struct ViewError
 		rotation::Float64
@@ -14,7 +15,8 @@ module Report
 		cameramatrix::Float64
 	end
 	struct ErrorsReportData
-		intrinsic::Float64
+		intrinsic::Vector{Float64}
+		intrinsic_matrix::Float64
 		views::Vector{ViewError}
 	end
 	struct ReportData
@@ -31,9 +33,9 @@ module Report
 		Random.seed!(938)
 		seeds = rand(Int, 5)
 		configurations = [
-			IntrinsicParametersConfigurations.none,
-			IntrinsicParametersConfigurations.fₓ,
-			IntrinsicParametersConfigurations.fₓ_fᵧ_cₓ_cᵧ,
+			# IntrinsicParametersConfigurations.none,
+			# IntrinsicParametersConfigurations.fₓ,
+			# IntrinsicParametersConfigurations.fₓ_fᵧ_cₓ_cᵧ,
 			IntrinsicParametersConfigurations.fₓ_fᵧ_skew_cₓ_cᵧ,
 		]
 
@@ -50,13 +52,13 @@ module Report
 				# (2, 4),
 			]),
 			(IntrinsicParametersConfigurations.fₓ_fᵧ_skew_cₓ_cᵧ, [
-				(4, 1),
+				# (4, 1),
 				(3, 2),
 				# (2, 5),
 			]),
 		])
 
-		noise_values = collect(0.0:0.5:5.0)
+		noise_values = collect(0.0:5:10.0)
 
 		results = []
 
@@ -128,7 +130,6 @@ module Report
 									),
 								))
 							end
-
 							push!(results, ReportData(
 								seed,
 								configuration,
@@ -137,6 +138,10 @@ module Report
 								problems,
 								time() - start,
 								ErrorsReportData(
+									intrinsic_difference(
+										problems[1].camera.intrinsic,
+										scene.instances[1].camera.intrinsic
+									),
 									matrix_difference(
 										problems[1].camera.intrinsic,
 										scene.instances[1].camera.intrinsic
@@ -159,7 +164,7 @@ module Report
 		if !isdir("./tmp/reports")
 			mkdir("./tmp/reports")
 		end
-		serialize("./tmp/reports/$(now()).jls", results)
+		serialize("./tmp/reports/$(Dates.format(now(),"dd-mm-yyyy HH-MM")).jls", results)
 	end
 
 	function report_to_csv(report_path, csv_path)
@@ -209,6 +214,47 @@ module Report
 		end
 
 		CSV.write(csv_path, Tables.table(data; header); compact=true, transform)
+	end
+
+	function report_error_analysis(report_path, noise_steps; output_path=nothing)
+		reports = deserialize(report_path)
+		errors_max = zeros(Float64, 4, length(noise_steps))
+		errors_mean = zeros(Float64, 4, length(noise_steps))
+		sample_counts = zeros(Int, length(noise_steps))
+		for report in reports
+			if !isa(report, ReportData)
+				continue
+			end
+			index = findfirst(noise_steps .== report.noise)
+			total_cameramatrix_error = reduce((view, tot) = view.cameramatrix + tot, 0, report.errors.views)
+			errors_mean[1:3, index] += report.errors.intrinsic
+			errors_mean[4, index] += total_cameramatrix_error
+			if (norm(errors_max[1:3, index]) < norm(report.errors.intrinsic))
+				errors_max[1:3, index] = report.errors.intrinsic
+			end
+			if (errors_max[4, index] < total_cameramatrix_error)
+				errors_max[4, index] = total_cameramatrix_error
+			end
+			sample_counts[index] += 1
+		end
+
+		display("Errors tot: $errors_mean")
+		display("Errors max: $sample_counts")
+		errors_mean ./= sample_counts
+		display("Errors mean: $errors_mean")
+
+		if !isnothing(output_path)
+			mean_output_file = output_path * "mean_errors.csv"
+			max_output_file = output_path * "max_errors.csv"
+			CSV.write(mean_output_file, Tables.table(errors_mean; noise_steps); compact=true)
+			CSV.write(max_output_file, Tables.table(errors_max; noise_steps); compact=true)
+		else
+			display("Mean errors")
+			print_error_analysis(errors_mean; noise_steps)
+			display("--------------------")
+			display("Max errors")
+			print_error_analysis(errors_max; noise_steps)
+		end
 	end
 
 	function explore_report(report_path, seed, intrinsic_configuration, cylinder_view_configuration)
