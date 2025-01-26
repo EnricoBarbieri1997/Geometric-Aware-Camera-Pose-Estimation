@@ -1,4 +1,4 @@
-include("Camera.jl")
+include("camera.jl")
 include("utils.jl")
 include("space.jl")
 include("Geometry.jl")
