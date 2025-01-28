@@ -29,9 +29,16 @@ module Report
 		errors::ErrorsReportData
 	end
 	
-	function multiple_seeds_multiple_configuration()
+	function multiple_seeds_multiple_configuration(;
+		seed_index = nothing,
+		noises = nothing,
+	)
 		Random.seed!(938)
 		seeds = rand(Int, 5)
+		if !isnothing(seed_index)
+			seeds = [seeds[seed_index]]
+		end
+
 		configurations = [
 			# IntrinsicParametersConfigurations.none,
 			# IntrinsicParametersConfigurations.fₓ,
@@ -58,7 +65,7 @@ module Report
 			]),
 		])
 
-		noise_values = collect(0.0:5:10.0)
+		noise_values = if isnothing(noises) collect(0.0:5:10.0) else noises end
 
 		results = []
 
