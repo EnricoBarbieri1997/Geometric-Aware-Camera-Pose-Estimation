@@ -2,6 +2,7 @@
 
 for i in {1..5}; do
     for j in {1..10}; do
-        nohup ./run.sh "$i" "$j" &> ./tmp/output_seed_$i_noise_$j.log &
+        pwd
+        nohup ./scripts/run.sh "$i" "$j" &> ./tmp/output_seed_${i}_noise_${j}.log &
     done
 done
