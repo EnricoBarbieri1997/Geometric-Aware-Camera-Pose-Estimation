@@ -32,6 +32,7 @@ module Report
 	function multiple_seeds_multiple_configuration(;
 		seed_index = nothing,
 		noises = nothing,
+		save_in_folder = false,
 	)
 		Random.seed!(938)
 		seeds = rand(Int, 5)
@@ -171,7 +172,13 @@ module Report
 		if !isdir("./tmp/reports")
 			mkdir("./tmp/reports")
 		end
-		serialize("./tmp/reports/$(Dates.format(now(),"dd-mm-yyyy HH-MM")).jls", results)
+		date_string = Dates.format(now(),"dd-mm-yyyy HH-MM")
+		if save_in_folder
+			mkdir("./tmp/reports/$(date_string)")
+			serialize("./tmp/reports/$date_string)/$(seed_index)-$(join(noises, '_')).jls", results)
+		else
+			serialize("./tmp/reports/$(date_string).jls", results)
+		end
 	end
 
 	function report_to_csv(report_path, csv_path)
