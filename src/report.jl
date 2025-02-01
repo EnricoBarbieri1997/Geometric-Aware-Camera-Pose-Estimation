@@ -230,7 +230,7 @@ module Report
 		CSV.write(csv_path, Tables.table(data; header); compact=true, transform)
 	end
 
-	function report_error_analysis(report_path, noise_steps; output_path=nothing)
+	function report_error_analysis(report_path, noise_steps; number_of_samples=5, output_path=nothing)
 		reports = deserialize(report_path)
 		errors_max = zeros(Float64, 4, length(noise_steps))
 		errors_mean = zeros(Float64, 4, length(noise_steps))
@@ -240,7 +240,7 @@ module Report
 				continue
 			end
 			index = findfirst(noise_steps .== report.noise)
-			total_cameramatrix_error = reduce((view, tot) -> view.cameramatrix + tot, 0, report.errors.views)
+			total_cameramatrix_error = reduce((tot, view) -> view.cameramatrix + tot, report.errors.views; init=0)
 			errors_mean[1:3, index] += report.errors.intrinsic
 			errors_mean[4, index] += total_cameramatrix_error
 			if (norm(errors_max[1:3, index]) < norm(report.errors.intrinsic))
@@ -252,22 +252,24 @@ module Report
 			sample_counts[index] += 1
 		end
 
-		display("Errors tot: $errors_mean")
-		display("Errors max: $sample_counts")
-		errors_mean ./= sample_counts
-		display("Errors mean: $errors_mean")
+		errors_mean ./= sample_counts'
+
+		header = []
+		for (i, noise) in enumerate(noise_steps)
+			push!(header, "$noise ($(sample_counts[i])/$number_of_samples)")
+		end
 
 		if !isnothing(output_path)
 			mean_output_file = output_path * "mean_errors.csv"
 			max_output_file = output_path * "max_errors.csv"
-			CSV.write(mean_output_file, Tables.table(errors_mean; noise_steps); compact=true)
-			CSV.write(max_output_file, Tables.table(errors_max; noise_steps); compact=true)
+			CSV.write(mean_output_file, Tables.table(errors_mean; header); compact=true)
+			CSV.write(max_output_file, Tables.table(errors_max; header); compact=true)
 		else
 			display("Mean errors")
-			print_error_analysis(errors_mean; noise_steps)
+			print_error_analysis(errors_mean; header)
 			display("--------------------")
 			display("Max errors")
-			print_error_analysis(errors_max; noise_steps)
+			print_error_analysis(errors_max; header)
 		end
 	end
 
