@@ -19,14 +19,31 @@ module Report
 		intrinsic_matrix::Float64
 		views::Vector{ViewError}
 	end
-	struct ReportData
+	struct ReportConfiguration
 		seed::Int
 		intrinsic_configuration::IntrinsicParametersConfigurations.T
 		noise::Float64
 		scene::SceneData
 		problems::Vector{CylinderCameraContoursProblem}
+	end
+	struct ReportResult
 		runingtime::Float64
 		errors::ErrorsReportData
+	end
+	struct ReportException
+		exception::Exception
+	end
+	struct ReportData
+		configuration::ReportConfiguration
+		result::Union{ReportResult, ReportException}
+	end
+
+	function is_initialized(report)
+		return isa(report, ReportData)
+	end
+
+	function is_terminated_successfully(report)
+		return is_initialized(report) && isa(report.result, ReportResult)
 	end
 	
 	function multiple_seeds_multiple_configuration(;
@@ -81,6 +98,8 @@ module Report
 					for noise in noise_values
 						display("Seed: $seed. Configuration: $configuration. Scene configuration: $scene_configuration. Noise: $noise")
 						start = time()
+						report_configuration = nothing
+						report_result = nothing
 						try
 							number_of_cylinders, number_of_instances = scene_configuration
 							scene, problems = create_scene_instances_and_problems(;
@@ -89,6 +108,14 @@ module Report
 								random_seed=seed,
 								intrinsic_configuration = configuration,
 								noise,
+							)
+
+							report_configuration = ReportConfiguration(
+								seed,
+								configuration,
+								noise,
+								scene,
+								problems,
 							)
 
 							rotation_intrinsic_system, parameters = intrinsic_rotation_system_setup(problems)
@@ -143,28 +170,30 @@ module Report
 								))
 							end
 							push!(results, ReportData(
-								seed,
-								configuration,
-								noise,
-								scene,
-								problems,
-								time() - start,
-								ErrorsReportData(
-									intrinsic_difference(
-										problems[1].camera.intrinsic,
-										scene.instances[1].camera.intrinsic
+								report_configuration,
+								ReportResult(
+									time() - start,
+									ErrorsReportData(
+										intrinsic_difference(
+											problems[1].camera.intrinsic,
+											scene.instances[1].camera.intrinsic
+										),
+										matrix_difference(
+											problems[1].camera.intrinsic,
+											scene.instances[1].camera.intrinsic
+										),
+										view_errors,
 									),
-									matrix_difference(
-										problems[1].camera.intrinsic,
-										scene.instances[1].camera.intrinsic
-									),
-									view_errors,
-								),
+								)
 							))
 						catch e
 							@error e
-							stacktrace(catch_backtrace())
-							push!(results, e)
+							Base.show_backtrace(stdout, backtrace())
+							if isnothing(report_configuration)
+								push!(results, e)
+							else
+								push!(results, ReportData(report_configuration, ReportException(e)))
+							end
 						end
 
 						display("------------------------------------")
@@ -202,7 +231,7 @@ module Report
 		]
 		height = 0
 		for report in reports
-			if !isa(report, ReportData)
+			if !is_terminated_successfully(report)
 				continue
 			end
 			height += length(report.errors.views)
@@ -210,7 +239,7 @@ module Report
 		data = Matrix{Any}(undef, height, length(header))
 		row = 1
 		for report in reports
-			if !isa(report, ReportData)
+			if !is_terminated_successfully(report)
 				continue
 			end
 			for (j, view) in enumerate(report.errors.views)
@@ -246,7 +275,7 @@ module Report
 		errors_mean = zeros(Float64, 4, length(noise_steps))
 		sample_counts = zeros(Int, length(noise_steps))
 		for report in reports
-			if !isa(report, ReportData)
+			if !is_terminated_successfully(report)
 				continue
 			end
 			index = findfirst(noise_steps .== report.noise)
