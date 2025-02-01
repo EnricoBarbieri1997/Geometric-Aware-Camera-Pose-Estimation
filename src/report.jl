@@ -292,6 +292,7 @@ module Report
 				end
 		
 				plot_reconstructed_scene(scene, problems)
+				display(scene.figure)
 				break
 			end
 		end

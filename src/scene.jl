@@ -641,7 +641,5 @@ module Scene
 
 					plot_2dcylinders(reconstructued_contours, linestyle=:dash; axindex = i)
 			end
-
-			display(scene.figure)
 	end
 end
