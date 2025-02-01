@@ -32,8 +32,9 @@ module Report
 	function multiple_seeds_multiple_configuration(;
 		seed_index = nothing,
 		noises = nothing,
+		save_in_folder = false,
 	)
-		Random.seed!(938)
+		Random.seed!(940)
 		seeds = rand(Int, 5)
 		if !isnothing(seed_index)
 			seeds = [seeds[seed_index]]
@@ -42,8 +43,9 @@ module Report
 		configurations = [
 			# IntrinsicParametersConfigurations.none,
 			# IntrinsicParametersConfigurations.fₓ,
-			IntrinsicParametersConfigurations.fₓ_fᵧ_cₓ_cᵧ,
-			# IntrinsicParametersConfigurations.fₓ_fᵧ_skew_cₓ_cᵧ,
+			# IntrinsicParametersConfigurations.fₓ_fᵧ,
+			# IntrinsicParametersConfigurations.fₓ_fᵧ_cₓ_cᵧ,
+			IntrinsicParametersConfigurations.fₓ_fᵧ_skew_cₓ_cᵧ,
 		]
 
 		cylinder_views_per_config = Dict([
@@ -52,6 +54,9 @@ module Report
 			]),
 			(IntrinsicParametersConfigurations.fₓ, [
 				(2, 1),
+			]),
+			(IntrinsicParametersConfigurations.fₓ_fᵧ, [
+				(2, 2),
 			]),
 			(IntrinsicParametersConfigurations.fₓ_fᵧ_cₓ_cᵧ, [
 				# (4, 1),
@@ -171,7 +176,13 @@ module Report
 		if !isdir("./tmp/reports")
 			mkdir("./tmp/reports")
 		end
-		serialize("./tmp/reports/$(Dates.format(now(),"dd-mm-yyyy HH-MM")).jls", results)
+		date_string = Dates.format(now(),"dd-mm-yyyy HH-MM")
+		if save_in_folder
+			mkdir("./tmp/reports/$(date_string)")
+			serialize("./tmp/reports/$date_string)/$(seed_index)-$(join(noises, '_')).jls", results)
+		else
+			serialize("./tmp/reports/$(date_string).jls", results)
+		end
 	end
 
 	function report_to_csv(report_path, csv_path)
@@ -223,7 +234,7 @@ module Report
 		CSV.write(csv_path, Tables.table(data; header); compact=true, transform)
 	end
 
-	function report_error_analysis(report_path, noise_steps; output_path=nothing)
+	function report_error_analysis(report_path, noise_steps; number_of_samples=5, output_path=nothing)
 		reports = deserialize(report_path)
 		errors_max = zeros(Float64, 4, length(noise_steps))
 		errors_mean = zeros(Float64, 4, length(noise_steps))
@@ -233,7 +244,7 @@ module Report
 				continue
 			end
 			index = findfirst(noise_steps .== report.noise)
-			total_cameramatrix_error = reduce((view, tot) -> view.cameramatrix + tot, 0, report.errors.views)
+			total_cameramatrix_error = reduce((tot, view) -> view.cameramatrix + tot, report.errors.views; init=0)
 			errors_mean[1:3, index] += report.errors.intrinsic
 			errors_mean[4, index] += total_cameramatrix_error
 			if (norm(errors_max[1:3, index]) < norm(report.errors.intrinsic))
@@ -245,32 +256,35 @@ module Report
 			sample_counts[index] += 1
 		end
 
-		display("Errors tot: $errors_mean")
-		display("Errors max: $sample_counts")
-		errors_mean ./= sample_counts
-		display("Errors mean: $errors_mean")
+		errors_mean ./= sample_counts'
+
+		header = []
+		for (i, noise) in enumerate(noise_steps)
+			push!(header, "$noise ($(sample_counts[i])/$number_of_samples)")
+		end
 
 		if !isnothing(output_path)
 			mean_output_file = output_path * "mean_errors.csv"
 			max_output_file = output_path * "max_errors.csv"
-			CSV.write(mean_output_file, Tables.table(errors_mean; noise_steps); compact=true)
-			CSV.write(max_output_file, Tables.table(errors_max; noise_steps); compact=true)
+			CSV.write(mean_output_file, Tables.table(errors_mean; header); compact=true)
+			CSV.write(max_output_file, Tables.table(errors_max; header); compact=true)
 		else
 			display("Mean errors")
-			print_error_analysis(errors_mean; noise_steps)
+			print_error_analysis(errors_mean; header)
 			display("--------------------")
 			display("Max errors")
-			print_error_analysis(errors_max; noise_steps)
+			print_error_analysis(errors_max; header)
 		end
 	end
 
-	function explore_report(report_path, seed, intrinsic_configuration, cylinder_view_configuration)
+	function explore_report(report_path, seed, intrinsic_configuration, cylinder_view_configuration, noise)
 		reports = deserialize(report_path)
 		for report in reports
 			if (report.seed == seed &&
 				Int(report.intrinsic_configuration) == intrinsic_configuration &&
 				length(report.scene.cylinders) == cylinder_view_configuration[1] &&
-				length(report.scene.instances) == cylinder_view_configuration[2]
+				length(report.scene.instances) == cylinder_view_configuration[2] &&
+				report.noise == noise
 			)
 				scene = report.scene
 				problems = report.problems
@@ -282,7 +296,7 @@ module Report
 				end
 
 				scene.figure = initfigure()
-				plot_scene(scene, problems)
+				plot_scene(scene, problems; noise=report.noise)
 		
 				for problem in problems
 					plot_3dcamera(Plot3dCameraInput(
@@ -292,6 +306,7 @@ module Report
 				end
 		
 				plot_reconstructed_scene(scene, problems)
+				display(scene.figure)
 				break
 			end
 		end

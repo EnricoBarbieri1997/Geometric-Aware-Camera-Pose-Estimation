@@ -1,7 +1,7 @@
 module Cylinder
 	export CylinderProperties, standard_and_dual, standard, dual, standard_and_dual_random, standard_random, random_dual
 
-	using ..Geometry: Plane, Cylinder as CylinderType, get_tangentpoints_circle_point, project_point_into_plane
+	using ..Geometry: Plane, Cylinder as CylinderType, project_point_into_plane
 	using ..Space, ..Utils, LinearAlgebra, Random
 
 	mutable struct CylinderProperties

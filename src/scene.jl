@@ -1,6 +1,6 @@
 module Scene
 
-	using ..Geometry: Line, Cylinder as CylinderType, line_to_homogenous, get_cylinder_contours
+	using ..Geometry: Line, Cylinder as CylinderType, homogeneous_to_line, line_to_homogenous, homogeneous_line_intercept, get_cylinder_contours
 	using ..Space: transformation, random_transformation, identity_transformation, build_rotation_matrix
 	using ..Camera: CameraProperties, IntrinsicParameters, build_intrinsic_matrix, build_camera_matrix, lookat_rotation
 	using ..Printing: print_camera_differences
@@ -12,7 +12,7 @@ module Scene
 	using ..Scene
 	using ..Cylinder: CylinderProperties, standard_and_dual as standard_and_dual_cylinder
 	using ..Conic: ConicProperties
-	using LinearAlgebra: diagm, deg2rad, dot, I, normalize, pinv, svd
+	using LinearAlgebra: cross, diagm, deg2rad, dot, I, normalize, pinv, svd
 	using HomotopyContinuation, Polynomials, Rotations
 	using Random
 	using CairoMakie: Figure
@@ -46,7 +46,7 @@ module Scene
 			for i in 1:number_of_cylinders
 					cylinder = CylinderProperties()
 					position = normalize(rand(Float64, 3)) * rand_in_range(0.0, 5.0)
-					rotation = rand_in_range((0, 180), 3)
+					rotation = rand_in_range((-90, 90), 3)
 					cylinder.euler_rotation = rotation
 
 					cylinder.transform = transformation(position, cylinder.euler_rotation)
@@ -173,6 +173,22 @@ module Scene
 			number_of_extra_picks = intrinsicparamters_count % number_of_instances
 			for (instance_number, instance) in enumerate(instances)
 					conics_contours = instance.conics_contours
+					noisy_conic_contours = Array{Float64}(undef, size(conics_contours))
+					if noise > 0
+						for i in 1:size(conics_contours)[1]
+							line1 = conics_contours[i, 1, :]
+							line2 = conics_contours[i, 2, :]
+							intersection = cross(line1, line2)
+							intersection = intersection ./ intersection[3]
+							noisy_intersection = intersection + normalize([rand(Float64, 2); 1]) * noise
+							noisy_intersection = noisy_intersection ./ noisy_intersection[3]
+							noisy_line_1 = cross([0, homogeneous_line_intercept(0, line1), 1], noisy_intersection)
+							noisy_line_2 = cross([0, homogeneous_line_intercept(0, line2), 1], noisy_intersection)
+							
+							noisy_conic_contours[i, 1, :] = noisy_line_1 ./ noisy_line_1[3]
+							noisy_conic_contours[i, 2, :] = noisy_line_2 ./ noisy_line_2[3]
+						end
+					end
 
 					numberoflines_tosolvefor = numberoflines_tosolvefor_perinstance + (instance_number <= number_of_extra_picks ? 1 : 0)
 
@@ -189,8 +205,12 @@ module Scene
 
 							line = conics_contours[i, j, :]
 							noise_free_lines[store_index, :] = normalize(line)
-							line = line + if (noise > 0) rand_in_range(noise, noise, 3) else [0, 0, 0] end
-							lines[store_index, :] = normalize(line)
+							noisy_line = noisy_conic_contours[i, j, :]
+							if noise > 0
+								lines[store_index, :] = normalize(noisy_line)
+							else
+								lines[store_index, :] = normalize(line)
+							end
 							points_at_infinity[store_index, :] = normalize(cylinders[i].singular_point[1:3])
 							dualquadrics[store_index, :, :] = cylinders[i].dual_matrix ./ cylinders[i].dual_matrix[4, 4]
 					end
@@ -233,16 +253,23 @@ module Scene
 			plot_2dpoints([(conic.singular_point ./ conic.singular_point[3])[1:2] for conic in conics]; axindex = i)
 			plot_2dcylinders(conics_contours, alpha=0.5; axindex = i)
 		end
-
 		if (noise > 0)
-			for problem in problems
-				noisy_contours = vcat(problem.lines)
+			for (i, problem) in enumerate(problems)
+				ordered_contours = zeros(size(problem.lines))
+				is_first_line = fill(true, size(scene.cylinders)[1])
+				for j in 1:size(problem.lines)[1]
+					cylinder_index = findfirst((cylinder) -> normalize(cylinder.singular_point[1:3]) == problem.points_at_infinity[j, :], scene.cylinders)
+					new_line_index = cylinder_index * 2 - (is_first_line[cylinder_index] ? 1 : 0)
+					is_first_line[cylinder_index] = false
+					ordered_contours[new_line_index, :, :] = problem.lines[j, :, :]
+				end
+				noisy_contours = vcat(ordered_contours)
 				if (size(noisy_contours)[1] % 2 == 1)
-						noisy_contours = vcat(noisy_contours, [0, 0, 0]')
+					noisy_contours = vcat(noisy_contours, [0, 0, 0]')
 				end
 				noisy_contours = reshape(noisy_contours, 2, number_of_cylinders, 3)
 				noisy_contours = permutedims(noisy_contours, (2,1,3))
-				plot_2dcylinders(noisy_contours; linestyle=:dashdotdot)
+				plot_2dcylinders(noisy_contours; linestyle=:dashdotdot, axindex = i)
 			end
 		end
 	end
@@ -641,7 +668,5 @@ module Scene
 
 					plot_2dcylinders(reconstructued_contours, linestyle=:dash; axindex = i)
 			end
-
-			display(scene.figure)
 	end
 end

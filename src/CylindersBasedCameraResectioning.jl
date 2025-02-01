@@ -17,6 +17,8 @@ module CylindersBasedCameraResectioning
             intrinsic_configuration,
         )
 
+        display(scene.figure)
+
         rotation_intrinsic_system, parameters = intrinsic_rotation_system_setup(problems)
 
         solver = nothing
@@ -93,6 +95,8 @@ module CylindersBasedCameraResectioning
         end
 
         plot_reconstructed_scene(scene, problems)
+
+        display(scene.figure)
     end
 
     function save_solutions()
@@ -164,6 +168,8 @@ module CylindersBasedCameraResectioning
         end
 
         plot_reconstructed_scene(scene, problems)
+
+        display(scene.figure)
     end
 
     function generate_monodromy_solutions()
