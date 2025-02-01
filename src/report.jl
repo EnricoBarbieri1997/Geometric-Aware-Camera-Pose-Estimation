@@ -271,13 +271,14 @@ module Report
 		end
 	end
 
-	function explore_report(report_path, seed, intrinsic_configuration, cylinder_view_configuration)
+	function explore_report(report_path, seed, intrinsic_configuration, cylinder_view_configuration, noise)
 		reports = deserialize(report_path)
 		for report in reports
 			if (report.seed == seed &&
 				Int(report.intrinsic_configuration) == intrinsic_configuration &&
 				length(report.scene.cylinders) == cylinder_view_configuration[1] &&
-				length(report.scene.instances) == cylinder_view_configuration[2]
+				length(report.scene.instances) == cylinder_view_configuration[2] &&
+				report.noise == noise
 			)
 				scene = report.scene
 				problems = report.problems
@@ -289,7 +290,7 @@ module Report
 				end
 
 				scene.figure = initfigure()
-				plot_scene(scene, problems)
+				plot_scene(scene, problems; noise=report.noise)
 		
 				for problem in problems
 					plot_3dcamera(Plot3dCameraInput(
