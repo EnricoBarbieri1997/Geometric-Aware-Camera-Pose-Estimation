@@ -202,11 +202,17 @@ module Report
 		]
 		height = 0
 		for report in reports
+			if !isa(report, ReportData)
+				continue
+			end
 			height += length(report.errors.views)
 		end
 		data = Matrix{Any}(undef, height, length(header))
 		row = 1
 		for report in reports
+			if !isa(report, ReportData)
+				continue
+			end
 			for (j, view) in enumerate(report.errors.views)
 				data[row, 1] = report.seed
 				data[row, 2] = report.intrinsic_configuration
