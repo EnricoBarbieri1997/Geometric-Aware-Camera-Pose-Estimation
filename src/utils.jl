@@ -177,7 +177,7 @@ module Utils
 		return [deltaF, deltaUV, deltaSkew]
 	end
 
-	function matrix_difference(m1::AbstractMatrix{T}, m2::AbstractMatrix{T}) where {T<:Number}
+	function matrix_difference(m1, m2)
 		return sqrt(sum((m1 - m2) .^ 2))
 	end
 
