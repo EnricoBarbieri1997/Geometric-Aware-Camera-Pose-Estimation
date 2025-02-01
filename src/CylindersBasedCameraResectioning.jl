@@ -17,6 +17,8 @@ module CylindersBasedCameraResectioning
             intrinsic_configuration,
         )
 
+        display(scene.figure)
+
         rotation_intrinsic_system, parameters = intrinsic_rotation_system_setup(problems)
 
         solver = nothing
