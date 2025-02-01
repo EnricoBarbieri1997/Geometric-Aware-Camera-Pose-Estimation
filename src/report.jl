@@ -34,7 +34,7 @@ module Report
 		noises = nothing,
 		save_in_folder = false,
 	)
-		Random.seed!(938)
+		Random.seed!(940)
 		seeds = rand(Int, 5)
 		if !isnothing(seed_index)
 			seeds = [seeds[seed_index]]
@@ -43,8 +43,9 @@ module Report
 		configurations = [
 			# IntrinsicParametersConfigurations.none,
 			# IntrinsicParametersConfigurations.fₓ,
-			IntrinsicParametersConfigurations.fₓ_fᵧ_cₓ_cᵧ,
-			# IntrinsicParametersConfigurations.fₓ_fᵧ_skew_cₓ_cᵧ,
+			# IntrinsicParametersConfigurations.fₓ_fᵧ,
+			# IntrinsicParametersConfigurations.fₓ_fᵧ_cₓ_cᵧ,
+			IntrinsicParametersConfigurations.fₓ_fᵧ_skew_cₓ_cᵧ,
 		]
 
 		cylinder_views_per_config = Dict([
@@ -53,6 +54,9 @@ module Report
 			]),
 			(IntrinsicParametersConfigurations.fₓ, [
 				(2, 1),
+			]),
+			(IntrinsicParametersConfigurations.fₓ_fᵧ, [
+				(2, 2),
 			]),
 			(IntrinsicParametersConfigurations.fₓ_fᵧ_cₓ_cᵧ, [
 				# (4, 1),
