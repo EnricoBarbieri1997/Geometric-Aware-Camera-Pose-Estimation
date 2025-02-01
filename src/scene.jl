@@ -45,7 +45,7 @@ module Scene
 			cylinders = []
 			for i in 1:number_of_cylinders
 					cylinder = CylinderProperties()
-					position = normalize(rand(Float64, 3)) * rand_in_range(0.0, 5.0)
+					position = normalize(rand(Float64, 3)) * rand_in_range(0.0, 10.0)
 					rotation = rand_in_range((-90, 90), 3)
 					cylinder.euler_rotation = rotation
 
@@ -255,7 +255,7 @@ module Scene
 		end
 		if (noise > 0)
 			for (i, problem) in enumerate(problems)
-				ordered_contours = zeros(size(problem.lines))
+				ordered_contours = zeros(size(scene.cylinders)[1] * 2, 3)
 				is_first_line = fill(true, size(scene.cylinders)[1])
 				for j in 1:size(problem.lines)[1]
 					cylinder_index = findfirst((cylinder) -> normalize(cylinder.singular_point[1:3]) == problem.points_at_infinity[j, :], scene.cylinders)
@@ -264,9 +264,6 @@ module Scene
 					ordered_contours[new_line_index, :, :] = problem.lines[j, :, :]
 				end
 				noisy_contours = vcat(ordered_contours)
-				if (size(noisy_contours)[1] % 2 == 1)
-					noisy_contours = vcat(noisy_contours, [0, 0, 0]')
-				end
 				noisy_contours = reshape(noisy_contours, 2, number_of_cylinders, 3)
 				noisy_contours = permutedims(noisy_contours, (2,1,3))
 				plot_2dcylinders(noisy_contours; linestyle=:dashdotdot, axindex = i)
