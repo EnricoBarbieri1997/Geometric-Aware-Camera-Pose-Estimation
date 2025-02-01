@@ -105,9 +105,10 @@ module Report
 							scene, problems = create_scene_instances_and_problems(;
 								number_of_instances,
 								number_of_cylinders,
-								random_seed=seed,
+								random_seed = seed,
 								intrinsic_configuration = configuration,
 								noise,
+								plot = false,
 							)
 
 							report_configuration = ReportConfiguration(

@@ -37,6 +37,7 @@ module Scene
 		number_of_instances = 5,
 		noise = 0,
 		intrinsic_configuration = IntrinsicParametersConfigurations.fₓ_fᵧ_skew_cₓ_cᵧ,
+		plot = true,
 	)
 			Random.seed!(random_seed)
 
@@ -226,7 +227,9 @@ module Scene
 					push!(problems, problem)
 			end
 
-			plot_scene(scene, problems; noise)
+			if plot
+				plot_scene(scene, problems; noise)
+			end
 
 			return scene, problems
 	end
