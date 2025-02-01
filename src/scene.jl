@@ -243,16 +243,23 @@ module Scene
 			plot_2dpoints([(conic.singular_point ./ conic.singular_point[3])[1:2] for conic in conics]; axindex = i)
 			plot_2dcylinders(conics_contours, alpha=0.5; axindex = i)
 		end
-
 		if (noise > 0)
-			for problem in problems
-				noisy_contours = vcat(problem.lines)
+			for (i, problem) in enumerate(problems)
+				ordered_contours = zeros(size(problem.lines))
+				is_first_line = fill(true, size(scene.cylinders)[1])
+				for j in 1:size(problem.lines)[1]
+					cylinder_index = findfirst((cylinder) -> normalize(cylinder.singular_point[1:3]) == problem.points_at_infinity[j, :], scene.cylinders)
+					new_line_index = cylinder_index * 2 - (is_first_line[cylinder_index] ? 1 : 0)
+					is_first_line[cylinder_index] = false
+					ordered_contours[new_line_index, :, :] = problem.lines[j, :, :]
+				end
+				noisy_contours = vcat(ordered_contours)
 				if (size(noisy_contours)[1] % 2 == 1)
 						noisy_contours = vcat(noisy_contours, [0, 0, 0]')
 				end
 				noisy_contours = reshape(noisy_contours, 2, number_of_cylinders, 3)
 				noisy_contours = permutedims(noisy_contours, (2,1,3))
-				plot_2dcylinders(noisy_contours; linestyle=:dashdotdot)
+				plot_2dcylinders(noisy_contours; linestyle=:dashdotdot, axindex = i)
 			end
 		end
 	end
