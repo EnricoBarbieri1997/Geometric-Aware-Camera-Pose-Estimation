@@ -189,7 +189,17 @@ module Scene
 
 							line = conics_contours[i, j, :]
 							noise_free_lines[store_index, :] = normalize(line)
-							line = line + if (noise > 0) rand_in_range(noise, noise, 3) else [0, 0, 0] end
+							if (noise > 0)
+								canonical_line = homogeneous_to_line(line)
+								rotation_noise = Angle2d(rand_in_range(-π/2, π/2) * noise)
+								translation_noise = canonical_line.origin .* rand_in_range(-noise, noise, 2)
+								line = line_to_homogenous(
+									Line(
+										canonical_line.origin + translation_noise,
+										Vector(rotation_noise * canonical_line.direction)
+									)
+								)
+							end
 							lines[store_index, :] = normalize(line)
 							points_at_infinity[store_index, :] = normalize(cylinders[i].singular_point[1:3])
 							dualquadrics[store_index, :, :] = cylinders[i].dual_matrix ./ cylinders[i].dual_matrix[4, 4]
