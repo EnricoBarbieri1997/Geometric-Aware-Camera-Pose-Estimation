@@ -163,21 +163,21 @@ module Utils
 	function normalized_diff(calculated, truth)
 		if (calculated == 0 && truth == 0) return 0.0 end
 		denominator = if (truth != 0) truth else calculated end
-		return (abs(calculated - truth)/denominator)/2
+		return (abs(calculated - truth)/denominator)
 	end
 
 	function intrinsic_difference(calculated::AbstractMatrix{T}, truth::AbstractMatrix{T}) where {T<:Real}
 		fₓ, fᵧ, cₓ, cᵧ, skew = calculated[1, 1], calculated[2, 2], calculated[1, 3], calculated[2, 3], calculated[1, 2]
 		fₓₜ, fᵧₜ, cₓₜ, cᵧₜ, skewₜ = truth[1, 1], truth[2, 2], truth[1, 3], truth[2, 3], truth[1, 2]
 
-		deltaF = normalized_diff(fₓ, fₓₜ) + normalized_diff(fᵧ, fᵧₜ)
-		deltaUV = normalized_diff(cₓ, cₓₜ) + normalized_diff(cᵧ, cᵧₜ)
+		deltaF = normalized_diff(fₓ, fₓₜ)/2 + normalized_diff(fᵧ, fᵧₜ)/2
+		deltaUV = normalized_diff(cₓ, cₓₜ)/2 + normalized_diff(cᵧ, cᵧₜ)/2
 		deltaSkew = 2 * abs(skew - skewₜ)
 
 		return [deltaF, deltaUV, deltaSkew]
 	end
 
-	function matrix_difference(m1::AbstractMatrix{T}, m2::AbstractMatrix{T}) where {T<:Real}
+	function matrix_difference(m1::AbstractMatrix{T}, m2::AbstractMatrix{T}) where {T<:Number}
 		return sqrt(sum((m1 - m2) .^ 2))
 	end
 
