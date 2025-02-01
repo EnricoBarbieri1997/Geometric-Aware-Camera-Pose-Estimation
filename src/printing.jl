@@ -1,7 +1,7 @@
 module Printing
     export print_camera_differences, print_error_analysis
 
-    using ..Utils: vector_difference, matrix_difference, rotations_difference, translations_difference
+    using ..Utils: vector_difference, matrix_difference, rotations_difference, translations_difference, intrinsic_difference
     using PrettyTables
     using Rotations: params as rotations_params
 
@@ -118,6 +118,22 @@ module Printing
                 original_camera.position
             );
         ]
+        pretty_table_withdefaults(data;
+            header = header,
+            highlighters = (transparent_first_col, low_value_good, high_value_bad)
+        )
+
+        header = (
+            ["Metric", "Error"],
+        )
+        data = hcat([
+            "Δf",
+            "Δc",
+            "Δskew",
+        ], intrinsic_difference(
+            calculated_camera.intrinsic,
+            original_camera.intrinsic
+        ))
         pretty_table_withdefaults(data;
             header = header,
             highlighters = (transparent_first_col, low_value_good, high_value_bad)
