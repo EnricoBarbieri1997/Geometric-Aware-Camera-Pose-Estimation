@@ -137,8 +137,8 @@ module Printing
         end
     end
 
-    function print_error_analysis(errors::Matrix{<:Number}; noise_steps=(0.0:1.0:10.0))
-        header = vcat(["Metric/Noise"], noise_steps)
+    function print_error_analysis(errors::Matrix{<:Number}; header=nothing, noise_steps=(0.0:1.0:10.0))
+        header = vcat(["Metric/Noise"], something(header, noise_steps))
         data = hcat([
             "Δf",
             "Δc",
