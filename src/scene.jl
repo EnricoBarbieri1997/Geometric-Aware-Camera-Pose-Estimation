@@ -5,10 +5,10 @@ module Scene
 	using ..Camera: CameraProperties, IntrinsicParameters, build_intrinsic_matrix, build_camera_matrix, lookat_rotation
 	using ..Printing: print_camera_differences
 	using ..Plotting: initfigure, add_2d_axis!, plot_2dpoints, plot_line_2d, Plot3dCameraInput, plot_3dcamera, Plot3dCylindersInput, plot_3dcylinders, plot_2dcylinders
-	using ..EquationSystems: stack_homotopy_parameters, build_intrinsic_rotation_translation_conic_system, build_camera_matrix_conic_system
+	using ..EquationSystems: stack_homotopy_parameters, build_intrinsic_rotation_conic_system, build_intrinsic_rotation_translation_conic_system, build_camera_matrix_conic_system
 	using ..EquationSystems.Problems: CylinderCameraContoursProblem
 	using ..EquationSystems.Problems.IntrinsicParameters: Configurations as IntrinsicParametersConfigurations, has as isIntrinsicEnabled
-	using ..EquationSystems.Minimization: build_intrinsic_rotation_conic_system
+	# using ..EquationSystems.Minimization: build_intrinsic_rotation_conic_system
 	using ..Utils
 	using ..Scene
 	using ..Cylinder: CylinderProperties, standard_and_dual as standard_and_dual_cylinder
@@ -286,15 +286,15 @@ module Scene
 			principal_point_x = principal_point_y = skew = 0
 			intrinsic_solution_index = 1
 			if (isIntrinsicEnabled.fₓ(intrinsic_configuration))
-					focal_length_x = intrinsics_solution[intrinsic_solution_index]
+					focal_length_x = intrinsics_solution[intrinsic_solution_index]^2
 					intrinsic_solution_index += 1
 			end
 			if (isIntrinsicEnabled.fᵧ(intrinsic_configuration))
-					focal_length_y = intrinsics_solution[intrinsic_solution_index]
+					focal_length_y = intrinsics_solution[intrinsic_solution_index]^2
 					intrinsic_solution_index += 1
 			end
 			if (isIntrinsicEnabled.skew(intrinsic_configuration))
-					skew = intrinsics_solution[intrinsic_solution_index]
+					skew = intrinsics_solution[intrinsic_solution_index]^2
 					intrinsic_solution_index += 1
 			end
 			if (isIntrinsicEnabled.cₓ(intrinsic_configuration))
@@ -319,27 +319,27 @@ module Scene
 					skew = skew,
 			))
 			intrinsic_correction = I
-			if (focal_length_x < 0)
-					intrinsic_correction *= [
-							-1 0 0;
-							0 1 0;
-							0 0 1;
-					]
-			end
-			if (focal_length_y < 0)
-					intrinsic_correction *= [
-							1 2*abs(skew)/abs(focal_length_x) 0;
-							1 -1 0;
-							0 0 1;
-					]
-			end
-			if (skew < 0)
-					intrinsic_correction *= [
-							1 2*abs(skew)/abs(focal_length_x) 0;
-							0 1 0;
-							0 0 1;
-					]
-			end
+			# if (focal_length_x < 0)
+			# 		intrinsic_correction *= [
+			# 				-1 0 0;
+			# 				0 1 0;
+			# 				0 0 1;
+			# 		]
+			# end
+			# if (focal_length_y < 0)
+			# 		intrinsic_correction *= [
+			# 				1 2*abs(skew)/abs(focal_length_x) 0;
+			# 				1 -1 0;
+			# 				0 0 1;
+			# 		]
+			# end
+			# if (skew < 0)
+			# 		intrinsic_correction *= [
+			# 				1 2*abs(skew)/abs(focal_length_x) 0;
+			# 				0 1 0;
+			# 				0 0 1;
+			# 		]
+			# end
 			intrinsic_solution = intrinsic * intrinsic_correction
 			rotations_solution = solution[(intrinsicparamters_count + 1):end]
 
@@ -575,12 +575,8 @@ module Scene
 					intrinsic_configuration,
 			)
 
-			display(solution_error)
-			display(problems)
-
 			for (i, problem) in enumerate(problems)
 					display("Problem $i")
-					display(problem.camera.intrinsic)
 					translation_system, parameters = intrinsic_rotation_translation_system_setup(problem)
 
 					result = solve(

@@ -146,7 +146,7 @@ module Report
 								)
 								@info result
 
-								solution_error, _ = best_overall_solution!(
+								solution_error, _ = best_overall_solution_by_steps!(
 									result,
 									scene,
 									problems;
