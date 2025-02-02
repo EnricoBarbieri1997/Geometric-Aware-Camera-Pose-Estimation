@@ -11,6 +11,7 @@ services:
       - ./tmp:/app/tmp
       - ./Project.toml:/app/Project.toml
       - ./Manifest.toml:/app/Manifest.toml
+      - ./juliacache:/root/.julia
       - \\wsl.localhost\Ubuntu-18.04\tmp\.X11-unix:/tmp/.X11-unix
       - \\wsl.localhost\Ubuntu-18.04\mnt\wslg:/mnt/wslg
     environment:
@@ -21,6 +22,8 @@ services:
     deploy:
       resources:
         reservations:
+          cpus: '4.0'
+          memory: 32g
           devices:
             - driver: nvidia
               count: 1

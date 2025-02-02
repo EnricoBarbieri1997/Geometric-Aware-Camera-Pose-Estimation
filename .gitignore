@@ -27,3 +27,4 @@ julia/**/*
 
 .DS_Store
 tmp
+juliacache

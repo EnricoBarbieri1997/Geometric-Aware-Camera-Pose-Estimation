@@ -60,9 +60,9 @@ module Report
 		configurations = [
 			# IntrinsicParametersConfigurations.none,
 			# IntrinsicParametersConfigurations.fₓ,
-			# IntrinsicParametersConfigurations.fₓ_fᵧ,
+			IntrinsicParametersConfigurations.fₓ_fᵧ,
 			# IntrinsicParametersConfigurations.fₓ_fᵧ_cₓ_cᵧ,
-			IntrinsicParametersConfigurations.fₓ_fᵧ_skew_cₓ_cᵧ,
+			# IntrinsicParametersConfigurations.fₓ_fᵧ_skew_cₓ_cᵧ,
 		]
 
 		cylinder_views_per_config = Dict([
@@ -121,10 +121,17 @@ module Report
 
 							rotation_intrinsic_system, parameters = intrinsic_rotation_system_setup(problems)
 
+							display("A")
 							solver, starts = solver_startsolutions(
 								rotation_intrinsic_system,
 								start_system = :total_degree;
 								target_parameters = parameters,
+								endgame_options = EndgameOptions(;
+									sing_accuracy = 1e100,
+								),
+								tracker_options = TrackerOptions(;
+									automatic_differentiation = 3,
+								)
 							)
 
 							chunk_size = 500000
@@ -188,7 +195,7 @@ module Report
 								)
 							))
 						catch e
-							@error e
+							throw(e)
 							Base.show_backtrace(stdout, backtrace())
 							if isnothing(report_configuration)
 								push!(results, e)
@@ -248,7 +255,7 @@ module Report
 				data[row, 2] = report.configuration.intrinsic_configuration
 				data[row, 3] = length(report.configuration.scene.cylinders)
 				data[row, 4] = length(report.configuration.scene.instances)
-				data[row, 5] = report.noise
+				data[row, 5] = report.configuration.noise
 				data[row, 6] = report.result.runingtime
 				data[row, 7] = report.result.errors.intrinsic
 				data[row, 8] = j
@@ -325,14 +332,16 @@ module Report
 				scene = report.configuration.scene
 				problems = report.configuration.problems
 
+				scene.figure = initfigure()
+				plot_scene(scene, problems; noise=report.configuration.noise)
+
+				display(scene.figure)
+
 				for (i, instance) in enumerate(scene.instances)
 					display("View $i")
 					print_camera_differences(instance.camera, problems[i].camera)
 					display("--------------------")
 				end
-
-				scene.figure = initfigure()
-				plot_scene(scene, problems; noise=report.configuration.noise)
 		
 				for problem in problems
 					plot_3dcamera(Plot3dCameraInput(

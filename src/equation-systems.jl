@@ -110,11 +110,16 @@ module EquationSystems
 		end
 	end
 
-	function build_intrinsic_rotation_conic_system(problems::Vector{Problems.CylinderCameraContoursProblem})
+	function build_intrinsic_rotation_conic_system(
+		problems::Vector{Problems.CylinderCameraContoursProblem};
+		focal_guess = 1.0	
+	)
 		problems_count = length(problems)
 		if problems_count == 0
 			throw(ArgumentError("At least one problem is needed"))
 		end
+
+		# @var focal_guess_enforcer
 
 		fₓ = fᵧ = 1
 		skew = cₓ = cᵧ = 0
@@ -144,7 +149,6 @@ module EquationSystems
 			@var cᵧ
 			push!(variables, cᵧ)
 		end
-			
 
 		intrinsic = build_intrinsic_matrix(IntrinsicParameters(
 			focal_length_x = fₓ,
@@ -158,7 +162,9 @@ module EquationSystems
 			intrinsic = problems[1].camera.intrinsic
 		end
 
+		noises = []
 		for (index, problem) in enumerate(problems)
+			noise = Variable("noise", index)
 			lines_count = size(problem.lines)[1]
 			Rparams = [
 				Variable("R$(index)", i) for i in 1:3
@@ -180,7 +186,14 @@ module EquationSystems
 
 			variables = stack_homotopy_parameters(variables, Rparams)
 			parameters = stack_homotopy_parameters(parameters, lines, points_at_infinity)
+			# push!(noises, noise)
+			# push!(system_to_solve, noise)
 		end
+
+		# display("focal_guess_enforcer: $focal_guess")
+		# push!(system_to_solve, fₓ+fᵧ+focal_guess_enforcer - focal_guess)
+		# variables = stack_homotopy_parameters(variables, [focal_guess_enforcer])
+		# variables = stack_homotopy_parameters(variables, noises)
 
 		return System(system_to_solve, variables = variables, parameters = parameters)
 	end
@@ -250,14 +263,17 @@ module EquationSystems
 			end
 			return best_solution
 		end
-		function build_intrinsic_rotation_conic_system(problems::Vector{Problems.CylinderCameraContoursProblem})
-			sys = EquationSystems.build_intrinsic_rotation_conic_system(problems)
+		function build_intrinsic_rotation_conic_system(
+			problems::Vector{Problems.CylinderCameraContoursProblem};
+			args...,
+		)
+			sys = EquationSystems.build_intrinsic_rotation_conic_system(problems; args...)
 			expressions = sys.expressions
 			minimizer = sum(expressions.^2)
 			variables = sys.variables
 			parameters = sys.parameters
 
-			diff = differentiate(minimizer, variables)
+			diff = expand.(differentiate(minimizer, variables))
 
 			return System(diff, variables = variables, parameters = parameters)
 		end
