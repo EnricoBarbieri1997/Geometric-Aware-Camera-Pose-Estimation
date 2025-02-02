@@ -60,9 +60,9 @@ module Report
 		configurations = [
 			# IntrinsicParametersConfigurations.none,
 			# IntrinsicParametersConfigurations.fₓ,
-			# IntrinsicParametersConfigurations.fₓ_fᵧ,
+			IntrinsicParametersConfigurations.fₓ_fᵧ,
 			# IntrinsicParametersConfigurations.fₓ_fᵧ_cₓ_cᵧ,
-			IntrinsicParametersConfigurations.fₓ_fᵧ_skew_cₓ_cᵧ,
+			# IntrinsicParametersConfigurations.fₓ_fᵧ_skew_cₓ_cᵧ,
 		]
 
 		cylinder_views_per_config = Dict([
@@ -105,9 +105,10 @@ module Report
 							scene, problems = create_scene_instances_and_problems(;
 								number_of_instances,
 								number_of_cylinders,
-								random_seed=seed,
+								random_seed = seed,
 								intrinsic_configuration = configuration,
 								noise,
+								plot = false,
 							)
 
 							report_configuration = ReportConfiguration(
@@ -120,10 +121,17 @@ module Report
 
 							rotation_intrinsic_system, parameters = intrinsic_rotation_system_setup(problems)
 
+							display("A")
 							solver, starts = solver_startsolutions(
 								rotation_intrinsic_system,
 								start_system = :total_degree;
 								target_parameters = parameters,
+								endgame_options = EndgameOptions(;
+									sing_accuracy = 1e100,
+								),
+								tracker_options = TrackerOptions(;
+									automatic_differentiation = 3,
+								)
 							)
 
 							chunk_size = 500000
@@ -187,7 +195,7 @@ module Report
 								)
 							))
 						catch e
-							@error e
+							throw(e)
 							Base.show_backtrace(stdout, backtrace())
 							if isnothing(report_configuration)
 								push!(results, e)
@@ -234,7 +242,7 @@ module Report
 			if !is_terminated_successfully(report)
 				continue
 			end
-			height += length(report.errors.views)
+			height += length(report.result.errors.views)
 		end
 		data = Matrix{Any}(undef, height, length(header))
 		row = 1
@@ -242,14 +250,14 @@ module Report
 			if !is_terminated_successfully(report)
 				continue
 			end
-			for (j, view) in enumerate(report.errors.views)
-				data[row, 1] = report.seed
-				data[row, 2] = report.intrinsic_configuration
-				data[row, 3] = length(report.scene.cylinders)
-				data[row, 4] = length(report.scene.instances)
-				data[row, 5] = report.noise
-				data[row, 6] = report.runingtime
-				data[row, 7] = report.errors.intrinsic
+			for (j, view) in enumerate(report.result.errors.views)
+				data[row, 1] = report.configuration.seed
+				data[row, 2] = report.configuration.intrinsic_configuration
+				data[row, 3] = length(report.configuration.scene.cylinders)
+				data[row, 4] = length(report.configuration.scene.instances)
+				data[row, 5] = report.configuration.noise
+				data[row, 6] = report.result.runingtime
+				data[row, 7] = report.result.errors.intrinsic
 				data[row, 8] = j
 				data[row, 9] = view.rotation
 				data[row, 10] = view.translation
@@ -278,12 +286,12 @@ module Report
 			if !is_terminated_successfully(report)
 				continue
 			end
-			index = findfirst(noise_steps .== report.noise)
-			total_cameramatrix_error = reduce((tot, view) -> view.cameramatrix + tot, report.errors.views; init=0)
-			errors_mean[1:3, index] += report.errors.intrinsic
+			index = findfirst(noise_steps .== report.configuration.noise)
+			total_cameramatrix_error = reduce((tot, view) -> view.cameramatrix + tot, report.result.errors.views; init=0)
+			errors_mean[1:3, index] += report.result.errors.intrinsic
 			errors_mean[4, index] += total_cameramatrix_error
-			if (norm(errors_max[1:3, index]) < norm(report.errors.intrinsic))
-				errors_max[1:3, index] = report.errors.intrinsic
+			if (norm(errors_max[1:3, index]) < norm(report.result.errors.intrinsic))
+				errors_max[1:3, index] = report.result.errors.intrinsic
 			end
 			if (errors_max[4, index] < total_cameramatrix_error)
 				errors_max[4, index] = total_cameramatrix_error
@@ -315,23 +323,25 @@ module Report
 	function explore_report(report_path, seed, intrinsic_configuration, cylinder_view_configuration, noise)
 		reports = deserialize(report_path)
 		for report in reports
-			if (report.seed == seed &&
-				Int(report.intrinsic_configuration) == intrinsic_configuration &&
-				length(report.scene.cylinders) == cylinder_view_configuration[1] &&
-				length(report.scene.instances) == cylinder_view_configuration[2] &&
-				report.noise == noise
+			if (report.configuration.seed == seed &&
+				Int(report.configuration.intrinsic_configuration) == intrinsic_configuration &&
+				length(report.configuration.scene.cylinders) == cylinder_view_configuration[1] &&
+				length(report.configuration.scene.instances) == cylinder_view_configuration[2] &&
+				report.configuration.noise == noise
 			)
-				scene = report.scene
-				problems = report.problems
+				scene = report.configuration.scene
+				problems = report.configuration.problems
+
+				scene.figure = initfigure()
+				plot_scene(scene, problems; noise=report.configuration.noise)
+
+				display(scene.figure)
 
 				for (i, instance) in enumerate(scene.instances)
 					display("View $i")
 					print_camera_differences(instance.camera, problems[i].camera)
 					display("--------------------")
 				end
-
-				scene.figure = initfigure()
-				plot_scene(scene, problems; noise=report.noise)
 		
 				for problem in problems
 					plot_3dcamera(Plot3dCameraInput(

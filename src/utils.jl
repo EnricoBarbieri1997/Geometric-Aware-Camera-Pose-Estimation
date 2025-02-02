@@ -166,7 +166,7 @@ module Utils
 		return (abs(calculated - truth)/denominator)
 	end
 
-	function intrinsic_difference(calculated::AbstractMatrix{T}, truth::AbstractMatrix{T}) where {T<:Real}
+	function intrinsic_difference(calculated, truth)
 		fₓ, fᵧ, cₓ, cᵧ, skew = calculated[1, 1], calculated[2, 2], calculated[1, 3], calculated[2, 3], calculated[1, 2]
 		fₓₜ, fᵧₜ, cₓₜ, cᵧₜ, skewₜ = truth[1, 1], truth[2, 2], truth[1, 3], truth[2, 3], truth[1, 2]
 

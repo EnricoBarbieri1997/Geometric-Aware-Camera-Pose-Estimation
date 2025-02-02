@@ -5,9 +5,10 @@ module Scene
 	using ..Camera: CameraProperties, IntrinsicParameters, build_intrinsic_matrix, build_camera_matrix, lookat_rotation
 	using ..Printing: print_camera_differences
 	using ..Plotting: initfigure, add_2d_axis!, plot_2dpoints, plot_line_2d, Plot3dCameraInput, plot_3dcamera, Plot3dCylindersInput, plot_3dcylinders, plot_2dcylinders
-	using ..EquationSystems: stack_homotopy_parameters, build_intrinsic_rotation_conic_system, build_intrinsic_rotation_translation_conic_system, build_camera_matrix_conic_system
+	using ..EquationSystems: stack_homotopy_parameters, build_intrinsic_rotation_translation_conic_system, build_camera_matrix_conic_system
 	using ..EquationSystems.Problems: CylinderCameraContoursProblem
 	using ..EquationSystems.Problems.IntrinsicParameters: Configurations as IntrinsicParametersConfigurations, has as isIntrinsicEnabled
+	using ..EquationSystems.Minimization: build_intrinsic_rotation_conic_system
 	using ..Utils
 	using ..Scene
 	using ..Cylinder: CylinderProperties, standard_and_dual as standard_and_dual_cylinder
@@ -37,6 +38,7 @@ module Scene
 		number_of_instances = 5,
 		noise = 0,
 		intrinsic_configuration = IntrinsicParametersConfigurations.fₓ_fᵧ_skew_cₓ_cᵧ,
+		plot = true,
 	)
 			Random.seed!(random_seed)
 
@@ -45,7 +47,7 @@ module Scene
 			cylinders = []
 			for i in 1:number_of_cylinders
 					cylinder = CylinderProperties()
-					position = normalize(rand(Float64, 3)) * rand_in_range(0.0, 5.0)
+					position = normalize(rand(Float64, 3)) * rand_in_range(0.0, 10.0)
 					rotation = rand_in_range((-90, 90), 3)
 					cylinder.euler_rotation = rotation
 
@@ -226,7 +228,9 @@ module Scene
 					push!(problems, problem)
 			end
 
-			plot_scene(scene, problems; noise)
+			if plot
+				plot_scene(scene, problems; noise)
+			end
 
 			return scene, problems
 	end
@@ -255,7 +259,7 @@ module Scene
 		end
 		if (noise > 0)
 			for (i, problem) in enumerate(problems)
-				ordered_contours = zeros(size(problem.lines))
+				ordered_contours = zeros(size(scene.cylinders)[1] * 2, 3)
 				is_first_line = fill(true, size(scene.cylinders)[1])
 				for j in 1:size(problem.lines)[1]
 					cylinder_index = findfirst((cylinder) -> normalize(cylinder.singular_point[1:3]) == problem.points_at_infinity[j, :], scene.cylinders)
@@ -264,9 +268,6 @@ module Scene
 					ordered_contours[new_line_index, :, :] = problem.lines[j, :, :]
 				end
 				noisy_contours = vcat(ordered_contours)
-				if (size(noisy_contours)[1] % 2 == 1)
-					noisy_contours = vcat(noisy_contours, [0, 0, 0]')
-				end
 				noisy_contours = reshape(noisy_contours, 2, number_of_cylinders, 3)
 				noisy_contours = permutedims(noisy_contours, (2,1,3))
 				plot_2dcylinders(noisy_contours; linestyle=:dashdotdot, axindex = i)
@@ -307,7 +308,7 @@ module Scene
 
 			# Spurious solutions
 			if (focal_length_x ≃ 0 || focal_length_y ≃ 0)
-					throw(ArgumentError("Spurious solution"))
+				throw(ArgumentError("Spurious solution"))
 			end
 
 			intrinsic = build_intrinsic_matrix(IntrinsicParameters(
@@ -346,14 +347,17 @@ module Scene
 	end
 
 	function intrinsic_rotation_system_setup(problems)
-			rotation_intrinsic_system = build_intrinsic_rotation_conic_system(problems)
+			rotation_intrinsic_system = build_intrinsic_rotation_conic_system(
+				problems;
+				focal_guess = 2000.0
+			)
 			parameters = []
 			for problem in problems
-					parameters = stack_homotopy_parameters(
-							parameters,
-							problem.lines,
-							problem.points_at_infinity,
-					)
+				parameters = stack_homotopy_parameters(
+					parameters,
+					problem.lines,
+					problem.points_at_infinity,
+				)
 			end
 			parameters = convert(Vector{Float64}, parameters)
 
@@ -373,12 +377,12 @@ module Scene
 			for solution in solutions_to_try
 					intrinsic = rotations_solution = intrinsic_correction = nothing
 					try
-							intrinsic, rotations_solution, intrinsic_correction = splitIntrinsicRotationParameters(
-									solution,
-									intrinsic_configuration
-							)
+						intrinsic, rotations_solution, intrinsic_correction = splitIntrinsicRotationParameters(
+							solution,
+							intrinsic_configuration
+						)
 					catch
-							continue
+						continue
 					end
 
 					current_error = 0
@@ -386,10 +390,9 @@ module Scene
 					individual_problem_max_error = -Inf
 					for i in 1:length(problems)
 							individual_problem_error = 0
-							camera_extrinsic_rotation = QuatRotation(
-									1,
-									rotations_solution[(i-1)*3+1:i*3]...
-							) * inv(intrinsic_correction)
+							quat = [1; rotations_solution[(i-1)*3+1:i*3]]
+							quat = quat / norm(quat)
+							camera_extrinsic_rotation = QuatRotation(quat) * inv(intrinsic_correction)
 
 							possible_camera = CameraProperties(
 									euler_rotation = rad2deg.(eulerangles_from_rotationmatrix(camera_extrinsic_rotation')),
@@ -480,12 +483,12 @@ module Scene
 			for solution in solutions_to_try
 					intrinsic = rotations_solution = intrinsic_correction = nothing
 					try
-							intrinsic, rotations_solution, intrinsic_correction = splitIntrinsicRotationParameters(
-									solution,
-									intrinsic_configuration
-							)
+						intrinsic, rotations_solution, intrinsic_correction = splitIntrinsicRotationParameters(
+							solution,
+							intrinsic_configuration
+						)
 					catch
-							continue
+						continue
 					end
 
 					current_error = 0
@@ -494,10 +497,9 @@ module Scene
 					individual_problem_max_error = -Inf
 					for (i, problem) in enumerate(problems)
 							individual_problem_error = 0
-							camera_extrinsic_rotation = QuatRotation(
-									1,
-									rotations_solution[(i-1)*3+1:i*3]...
-							) * inv(intrinsic_correction)
+							quat = [1; rotations_solution[(i-1)*3+1:i*3]]
+							quat = quat / norm(quat)
+							camera_extrinsic_rotation = QuatRotation(quat) * inv(intrinsic_correction)
 
 							problem_upto_translation = CylinderCameraContoursProblem(
 									CameraProperties(
