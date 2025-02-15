@@ -13,13 +13,14 @@ module Scene
 	using ..Scene
 	using ..Cylinder: CylinderProperties, standard_and_dual as standard_and_dual_cylinder
 	using ..Conic: ConicProperties
+	using Serialization
 	using LinearAlgebra: cross, diagm, deg2rad, dot, I, normalize, pinv, svd
 	using HomotopyContinuation, Polynomials, Rotations
 	using Random
 	using GLMakie: Figure
 	struct ParametersSolutionsPair
 		start_parameters::Vector{Float64}
-		solutions::Vector{Vector{ComplexF64}}
+		solutions::Union{Vector{Vector{ComplexF64}}, Vector{Vector{Vector{ComplexF64}}}}
 	end
 	@kwdef mutable struct InstanceConfiguration
 		camera::CameraProperties = CameraProperties()
@@ -33,14 +34,15 @@ module Scene
 	end
 
 	function create_scene_instances_and_problems(;
-		random_seed = 7, 
+		random_seed = 7,
+		cylinders_random_seed = random_seed,
 		number_of_cylinders = 4,
 		number_of_instances = 5,
 		noise = 0,
 		intrinsic_configuration = IntrinsicParametersConfigurations.fₓ_fᵧ_skew_cₓ_cᵧ,
 		plot = true,
 	)
-			Random.seed!(random_seed)
+			Random.seed!(cylinders_random_seed)
 
 			scene = SceneData()
 
@@ -86,6 +88,8 @@ module Scene
 			end
 
 			scene.cylinders = cylinders
+
+			Random.seed!(random_seed)
 
 			instances = []
 
@@ -326,7 +330,7 @@ module Scene
 							0 0 1;
 					]
 			end
-			if (focal_length_y < 0 && skew < 0)
+			if (focal_length_y < 0 && skew <= 0)
 					intrinsic_correction *= [
 							1 0 0;
 							1 -1 0;
@@ -349,7 +353,6 @@ module Scene
 				parameters = stack_homotopy_parameters(
 					parameters,
 					problem.lines,
-					problem.points_at_infinity,
 				)
 			end
 			parameters = convert(Vector{Float64}, parameters)
@@ -422,7 +425,7 @@ module Scene
 			translation_system = build_intrinsic_rotation_translation_conic_system(
 					problem
 			)
-			parameters = stack_homotopy_parameters(problem.lines[1:3, :], problem.dualquadrics[1:3, :, :])
+			parameters = stack_homotopy_parameters(problem.lines[1:3, :])
 
 			return translation_system, parameters
 	end
@@ -509,8 +512,20 @@ module Scene
 
 							translation_system, parameters = intrinsic_rotation_translation_system_setup(problem_upto_translation)
 
+							start_solutions = nothing
+							start_parameters = nothing
+							try
+									parameters_solutions_pair = deserialize("tmp/translation_monodromy_solutions.jld")
+									start_solutions = parameters_solutions_pair.solutions
+									start_parameters = parameters_solutions_pair.start_parameters
+							catch
+									display("No translation monodromy")
+							end
+
 							translation_result = solve(
 									translation_system,
+									start_solutions;
+            			start_parameters,
 									target_parameters = parameters,
 									start_system = :total_degree,
 							)
@@ -572,8 +587,21 @@ module Scene
 					display("Problem $i")
 					translation_system, parameters = intrinsic_rotation_translation_system_setup(problem)
 
+					start_solutions = nothing
+					start_parameters = nothing
+					try
+							parameters_solutions_pair = deserialize("tmp/translation_monodromy_solutions.jld")
+							start_solutions = parameters_solutions_pair.solutions
+							start_parameters = parameters_solutions_pair.start_parameters
+					catch e
+							display(e)
+							display("No translation monodromy")
+					end
+
 					result = solve(
 							translation_system,
+							start_solutions;
+							start_parameters,
 							target_parameters = parameters,
 							start_system = :total_degree,
 					)
