@@ -13,9 +13,8 @@ module CylindersBasedCameraResectioning
         scene, problems = create_scene_instances_and_problems(;
             number_of_instances=2,
             number_of_cylinders=2,
-            random_seed=-452731926325343105, #14
+            random_seed=14,
             intrinsic_configuration,
-            noise=0.1,
         )
 
         display(scene.figure)
@@ -54,7 +53,7 @@ module CylindersBasedCameraResectioning
             end
             @info result
 
-            solution_error, _ = best_overall_solution_by_steps!(
+            solution_error, _ = best_overall_solution!(
                 result,
                 scene,
                 problems;

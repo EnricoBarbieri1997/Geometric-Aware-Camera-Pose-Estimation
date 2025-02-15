@@ -286,15 +286,15 @@ module Scene
 			principal_point_x = principal_point_y = skew = 0
 			intrinsic_solution_index = 1
 			if (isIntrinsicEnabled.fₓ(intrinsic_configuration))
-					focal_length_x = intrinsics_solution[intrinsic_solution_index]^2
+					focal_length_x = intrinsics_solution[intrinsic_solution_index]
 					intrinsic_solution_index += 1
 			end
 			if (isIntrinsicEnabled.fᵧ(intrinsic_configuration))
-					focal_length_y = intrinsics_solution[intrinsic_solution_index]^2
+					focal_length_y = intrinsics_solution[intrinsic_solution_index]
 					intrinsic_solution_index += 1
 			end
 			if (isIntrinsicEnabled.skew(intrinsic_configuration))
-					skew = intrinsics_solution[intrinsic_solution_index]^2
+					skew = intrinsics_solution[intrinsic_solution_index]
 					intrinsic_solution_index += 1
 			end
 			if (isIntrinsicEnabled.cₓ(intrinsic_configuration))
@@ -319,27 +319,20 @@ module Scene
 					skew = skew,
 			))
 			intrinsic_correction = I
-			# if (focal_length_x < 0)
-			# 		intrinsic_correction *= [
-			# 				-1 0 0;
-			# 				0 1 0;
-			# 				0 0 1;
-			# 		]
-			# end
-			# if (focal_length_y < 0)
-			# 		intrinsic_correction *= [
-			# 				1 2*abs(skew)/abs(focal_length_x) 0;
-			# 				1 -1 0;
-			# 				0 0 1;
-			# 		]
-			# end
-			# if (skew < 0)
-			# 		intrinsic_correction *= [
-			# 				1 2*abs(skew)/abs(focal_length_x) 0;
-			# 				0 1 0;
-			# 				0 0 1;
-			# 		]
-			# end
+			if (focal_length_x < 0)
+					intrinsic_correction *= [
+							-1 0 0;
+							0 1 0;
+							0 0 1;
+					]
+			end
+			if (focal_length_y < 0 && skew < 0)
+					intrinsic_correction *= [
+							1 0 0;
+							1 -1 0;
+							0 0 1;
+					]
+			end
 			intrinsic_solution = intrinsic * intrinsic_correction
 			rotations_solution = solution[(intrinsicparamters_count + 1):end]
 
