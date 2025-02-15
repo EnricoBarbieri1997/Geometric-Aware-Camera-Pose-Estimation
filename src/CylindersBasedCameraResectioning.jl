@@ -1,13 +1,15 @@
 module CylindersBasedCameraResectioning
     include("includes.jl")
 
-	using ..Scene: ParametersSolutionsPair, best_overall_solution!, best_overall_solution_by_steps!, create_scene_instances_and_problems, intrinsic_rotation_system_setup, intrinsic_rotation_translation_system_setup, plot_reconstructed_scene
+	using ..Scene: ParametersSolutionsPair, best_overall_solution!, best_overall_solution_by_steps!, best_intrinsic_rotation_translation_system_solution!, camera_from_solution, create_scene_instances_and_problems, intrinsic_rotation_system_setup, intrinsic_rotation_translation_system_setup, plot_interactive_scene, plot_reconstructed_scene, split_intrinsic_rotation_parameters
 	using ..EquationSystems: stack_homotopy_parameters
     using ..EquationSystems.Problems.IntrinsicParameters: Configurations as IntrinsicParametersConfigurations
-    using ..Plotting: plot_3dcamera, Plot3dCameraInput
+    using ..Plotting: add_slider!, initfigure, plot_3dcamera, Plot3dCameraInput
 	using ..Printing: print_camera_differences
-
-    using HomotopyContinuation, Random, Serialization
+    using ..Camera: build_camera_matrix
+    
+    using Makie: lift
+    using HomotopyContinuation, Observables, Random, Serialization
 
     function main()
         intrinsic_configuration = IntrinsicParametersConfigurations.fₓ_fᵧ
@@ -169,5 +171,105 @@ module CylindersBasedCameraResectioning
         # )
     end
 
-    export main, monodromy
+    function explore_path()
+        intrinsic_configuration = IntrinsicParametersConfigurations.fₓ_fᵧ
+        scene_target, problems_target = create_scene_instances_and_problems(;
+            number_of_instances=2,
+            number_of_cylinders=2,
+            random_seed=14,
+            intrinsic_configuration,
+            plot=false,
+        )
+        scene_start, problems_start = create_scene_instances_and_problems(;
+            number_of_instances=2,
+            number_of_cylinders=2,
+            random_seed=67,
+            cylinders_random_seed=14,
+            intrinsic_configuration,
+            plot=false,
+        )
+
+        rotation_intrinsic_system_start, parameters_start = intrinsic_rotation_system_setup(problems_start)
+        rotation_intrinsic_system_target, parameters_target = intrinsic_rotation_system_setup(problems_target)
+        homotopy = ParameterHomotopy(rotation_intrinsic_system_start, parameters_start, parameters_target)
+        tracker = Tracker(homotopy)
+
+        fₓ, _, _, skew, fᵧ, _, cₓ, cᵧ, _ = vec(scene_start.instances[1].camera.intrinsic)
+        startingsolution = [fₓ, fᵧ]
+        for instance in scene_start.instances
+            camera = instance.camera
+            rot = Rotations.params(camera.quaternion_rotation')
+            rot = rot / rot[1]
+            rot = rot[2:end]
+            startingsolution = stack_homotopy_parameters(
+                startingsolution,
+                rot,
+            )
+        end
+
+        pts = []
+        for (x, t) in iterator(tracker, startingsolution, 1.0, 0.0)
+            push!(pts, real.(x))
+        end
+
+        current_figure = initfigure()
+        slider = add_slider!(;
+            start=1,
+            stop=length(pts),
+            step=1,
+        )
+        observable_instances = lift(slider.value) do solution_index
+            instances = []
+            solution = pts[solution_index]
+            intrinsic = rotations_solution = intrinsic_correction = nothing
+            try
+                intrinsic, rotations_solution, intrinsic_correction = split_intrinsic_rotation_parameters(
+                    solution,
+                    intrinsic_configuration
+                )
+            catch e
+                @error e
+            end
+            for (i, instance) in enumerate(scene_start.instances)
+                push!(instances, deepcopy(instance))
+                if solution_index != 1
+                    camera = camera_from_solution(
+                        intrinsic,
+                        rotations_solution,
+                        intrinsic_correction,
+                        i
+                    )
+                    problem = deepcopy(problems_start[i])
+                    problem.camera = camera
+                    translation_system, parameters = intrinsic_rotation_translation_system_setup(problem)
+
+                    translation_result = solve(
+                        translation_system,
+                        target_parameters = parameters,
+                        start_system = :total_degree,
+                    )
+                    @info translation_result
+
+                    best_intrinsic_rotation_translation_system_solution!(
+                        translation_result,
+                        scene_start,
+                        instances[i],
+                        problem
+                    )
+                    instances[i].camera = problem.camera
+                end
+            end
+            instances
+        end
+
+        plot_interactive_scene(;
+            scene=scene_start,
+            problems=problems_start,
+            observable_instances,
+            figure=current_figure,
+        )
+        display(current_figure)
+    end
+
+    export explore_path, main, monodromy
 end

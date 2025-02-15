@@ -1,5 +1,5 @@
 module Plotting
-    export initfigure, add_2d_axis!, plot_2dpoints, plot_line_2d, Plot3dCameraInput, plot_3dcamera, Plot3dCylindersInput, plot_cylinders_contours, plot_3dcylinders, plot_2dcylinders
+    export initfigure, add_2d_axis!, add_slider!, clean_plots!, get_or_add_2d_axis!, plot_2dpoints, plot_line_2d, Plot3dCameraInput, plot_3dcamera, Plot3dCylindersInput, plot_cylinders_contours, plot_3dcylinders, plot_2dcylinders
 
     using ..Geometry: Line
 
@@ -26,8 +26,35 @@ module Plotting
         push!(ax2_array, ax)
     end
 
+    function get_or_add_2d_axis!(index)
+        if index > length(ax2_array)
+            add_2d_axis!()
+        end
+        return ax2_array[index]
+    end
+
+    function add_slider!(;
+        start = 0.0,
+        stop = 1.0,
+        step = 0.01,
+    )
+        global f
+        Box(f[2, :]; height=50)
+        slider = Slider(f[2, :]; startvalue=start, range=start:step:stop)
+        return slider
+    end
+
+    function clean_plots!()
+        global f, ax3, ax2_array
+        for ax2 in ax2_array
+            empty!(ax2)
+        end
+        empty!(ax3)
+    end
+
     function initfigure()
         global f, ax3, grid_2d, ax2_array
+        display(":(")
         f = Figure(size=(1200, 800))
         ax3 = Axis3(f[1, 1], title = "Cylinders", aspect = :data, perspectiveness = 1.0)
         grid_2d = f[1, 2] = GridLayout()

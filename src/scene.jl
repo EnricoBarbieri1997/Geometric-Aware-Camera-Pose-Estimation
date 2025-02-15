@@ -4,7 +4,7 @@ module Scene
 	using ..Space: transformation, random_transformation, identity_transformation, build_rotation_matrix
 	using ..Camera: CameraProperties, IntrinsicParameters, build_intrinsic_matrix, build_camera_matrix, lookat_rotation
 	using ..Printing: print_camera_differences
-	using ..Plotting: initfigure, add_2d_axis!, plot_2dpoints, plot_line_2d, Plot3dCameraInput, plot_3dcamera, Plot3dCylindersInput, plot_3dcylinders, plot_2dcylinders
+	using ..Plotting: initfigure, get_or_add_2d_axis!, clean_plots!, plot_2dpoints, plot_line_2d, Plot3dCameraInput, plot_3dcamera, Plot3dCylindersInput, plot_3dcylinders, plot_2dcylinders
 	using ..EquationSystems: stack_homotopy_parameters, build_intrinsic_rotation_conic_system, build_intrinsic_rotation_translation_conic_system, build_camera_matrix_conic_system
 	using ..EquationSystems.Problems: CylinderCameraContoursProblem
 	using ..EquationSystems.Problems.IntrinsicParameters: Configurations as IntrinsicParametersConfigurations, has as isIntrinsicEnabled
@@ -15,7 +15,7 @@ module Scene
 	using ..Conic: ConicProperties
 	using Serialization
 	using LinearAlgebra: cross, diagm, deg2rad, dot, I, normalize, pinv, svd
-	using HomotopyContinuation, Polynomials, Rotations
+	using HomotopyContinuation, Observables, Polynomials, Rotations
 	using Random
 	using GLMakie: Figure
 	struct ParametersSolutionsPair
@@ -255,9 +255,7 @@ module Scene
 					camera.euler_rotation,
 					camera.position,
 			))
-			if i > 1
-					add_2d_axis!()
-			end
+			get_or_add_2d_axis!(i)
 			plot_2dpoints([(conic.singular_point ./ conic.singular_point[3])[1:2] for conic in conics]; axindex = i)
 			plot_2dcylinders(conics_contours, alpha=0.5; axindex = i)
 		end
@@ -279,7 +277,30 @@ module Scene
 		end
 	end
 
-	function splitIntrinsicRotationParameters(
+	function plot_interactive_scene(;
+			scene,
+			problems,
+			noise = 0,
+			observable_instances,
+			figure,
+		)
+		on(observable_instances) do instances
+			display(typeof(instances))
+			try
+				observable_scene = SceneData(;
+					figure,
+					cylinders = scene.cylinders,
+					instances,
+				)
+				clean_plots!()
+				plot_scene(observable_scene, problems; noise)
+			catch e
+				@error e
+			end
+		end
+	end
+
+	function split_intrinsic_rotation_parameters(
 			solution,
 			intrinsic_configuration = IntrinsicParametersConfigurations.fₓ_fᵧ_skew_cₓ_cᵧ
 	)
@@ -343,6 +364,23 @@ module Scene
 			return intrinsic_solution, rotations_solution, intrinsic_correction
 	end
 
+	function camera_from_solution(
+		intrinsic,
+		rotations_solution,
+		intrinsic_correction,
+		index,
+	)
+		quat = [1; rotations_solution[(index-1)*3+1:index*3]]
+		quat = quat / norm(quat)
+		camera_extrinsic_rotation = QuatRotation(quat) * inv(intrinsic_correction)
+
+		return CameraProperties(
+				euler_rotation = rad2deg.(eulerangles_from_rotationmatrix(camera_extrinsic_rotation')),
+				quaternion_rotation = camera_extrinsic_rotation',
+				intrinsic = intrinsic,
+		)
+	end
+
 	function intrinsic_rotation_system_setup(problems)
 			rotation_intrinsic_system = build_intrinsic_rotation_conic_system(
 				problems;
@@ -370,10 +408,11 @@ module Scene
 			solution_error = start_error
 			solutions_to_try = real_solutions(result)
 			all_possible_solutions = []
+			best_solution = nothing
 			for solution in solutions_to_try
 					intrinsic = rotations_solution = intrinsic_correction = nothing
 					try
-						intrinsic, rotations_solution, intrinsic_correction = splitIntrinsicRotationParameters(
+						intrinsic, rotations_solution, intrinsic_correction = split_intrinsic_rotation_parameters(
 							solution,
 							intrinsic_configuration
 						)
@@ -390,10 +429,11 @@ module Scene
 							quat = quat / norm(quat)
 							camera_extrinsic_rotation = QuatRotation(quat) * inv(intrinsic_correction)
 
-							possible_camera = CameraProperties(
-									euler_rotation = rad2deg.(eulerangles_from_rotationmatrix(camera_extrinsic_rotation')),
-									quaternion_rotation = camera_extrinsic_rotation',
-									intrinsic = intrinsic,
+							possible_camera = camera_from_solution(
+								intrinsic,
+								rotations_solution,
+								intrinsic_correction,
+								i
 							)
 							push!(possible_cameras, possible_camera)
 
@@ -412,10 +452,17 @@ module Scene
 
 					if (current_error < solution_error)
 							solution_error = current_error
+							best_solution = solution
 							for (i, problem) in enumerate(problems)
 									problem.camera = possible_cameras[i]
 							end
 					end
+			end
+
+			if (!isnothing(best_solution))
+				paths = path_results(result)
+				best_path = paths[findall(x -> real.(x.solution) == best_solution, paths)[1]]
+				display("The best starting solution was $(best_path.start_solution)")
 			end
 
 			return solution_error, all_possible_solutions
@@ -479,7 +526,7 @@ module Scene
 			for solution in solutions_to_try
 					intrinsic = rotations_solution = intrinsic_correction = nothing
 					try
-						intrinsic, rotations_solution, intrinsic_correction = splitIntrinsicRotationParameters(
+						intrinsic, rotations_solution, intrinsic_correction = split_intrinsic_rotation_parameters(
 							solution,
 							intrinsic_configuration
 						)
