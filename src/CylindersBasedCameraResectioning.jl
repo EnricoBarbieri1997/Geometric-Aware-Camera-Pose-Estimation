@@ -4,9 +4,10 @@ module CylindersBasedCameraResectioning
 	using ..Scene: ParametersSolutionsPair, best_overall_solution!, best_overall_solution_by_steps!, best_intrinsic_rotation_translation_system_solution!, camera_from_solution, create_scene_instances_and_problems, intrinsic_rotation_system_setup, intrinsic_rotation_translation_system_setup, plot_interactive_scene, plot_reconstructed_scene, split_intrinsic_rotation_parameters
 	using ..EquationSystems: stack_homotopy_parameters
     using ..EquationSystems.Problems.IntrinsicParameters: Configurations as IntrinsicParametersConfigurations
-    using ..Plotting: add_slider!, initfigure, plot_3dcamera, Plot3dCameraInput
+    using ..Plotting: add_slider!, initfigure, add_camera_rotation_axis!, plot_3dcamera, Plot3dCameraInput
 	using ..Printing: print_camera_differences
     using ..Camera: build_camera_matrix
+    using ..Homotopies: ParameterHomotopy as MyParameterHomotopy
     
     using Makie: lift
     using HomotopyContinuation, Observables, Random, Serialization
@@ -35,13 +36,22 @@ module CylindersBasedCameraResectioning
             display("No intrinsic-rotation monodromy")
         end
 
-        solver, starts = solver_startsolutions(
-            rotation_intrinsic_system,
-            start_solutions;
-            start_parameters,
-            target_parameters = parameters,
-            start_system = :total_degree,
-        )
+        solver = starts = nothing
+
+        if isnothing(start_parameters)
+            solver, starts = solver_startsolutions(
+                rotation_intrinsic_system;
+                target_parameters = parameters,
+                start_system = :total_degree,
+            )
+        else
+            display("Using parameter homotopy")
+            geometric_homotopy = MyParameterHomotopy(rotation_intrinsic_system, start_parameters, parameters)
+            solver, starts = solver_startsolutions(
+                geometric_homotopy,
+                start_solutions;
+            )
+        end
 
         chunk_size = 500000
         numberof_start_solutions = length(starts)
@@ -110,6 +120,10 @@ module CylindersBasedCameraResectioning
         end
 
         startingsolution = convert(Vector{Float64}, startingsolution)
+
+        u = zeros(ComplexF64, 8)
+        display("a = $(evaluate!(u, rotation_intrinsic_system, startingsolution, parameters))")
+
         push!(intrinsic_rotations_monodromy_solutions, startingsolution)
 
         while true
@@ -145,15 +159,11 @@ module CylindersBasedCameraResectioning
             #     translations_monodromy_solutions = unique(translations_monodromy_solutions)
             # end
 
-            display("$new_solution_count, $old_solution_count")
-
             if new_solution_count == old_solution_count
                 break
             end
         end 
 
-        display(intrinsic_rotations_monodromy_solutions)
-        display(translations_monodromy_solutions)
         serialize(
             "tmp/intrinsic_rotation_monodromy_solutions.jld",
             ParametersSolutionsPair(
@@ -218,6 +228,9 @@ module CylindersBasedCameraResectioning
             stop=length(pts),
             step=1,
         )
+        for i in 1:length(scene_start.instances)
+            add_camera_rotation_axis!()
+        end
         observable_instances = lift(slider.value) do solution_index
             instances = []
             solution = pts[solution_index]
@@ -241,21 +254,21 @@ module CylindersBasedCameraResectioning
                     )
                     problem = deepcopy(problems_start[i])
                     problem.camera = camera
-                    translation_system, parameters = intrinsic_rotation_translation_system_setup(problem)
+                    # translation_system, parameters = intrinsic_rotation_translation_system_setup(problem)
 
-                    translation_result = solve(
-                        translation_system,
-                        target_parameters = parameters,
-                        start_system = :total_degree,
-                    )
-                    @info translation_result
+                    # translation_result = solve(
+                    #     translation_system,
+                    #     target_parameters = parameters,
+                    #     start_system = :total_degree,
+                    # )
+                    # @info translation_result
 
-                    best_intrinsic_rotation_translation_system_solution!(
-                        translation_result,
-                        scene_start,
-                        instances[i],
-                        problem
-                    )
+                    # best_intrinsic_rotation_translation_system_solution!(
+                    #     translation_result,
+                    #     scene_start,
+                    #     instances[i],
+                    #     problem
+                    # )
                     instances[i].camera = problem.camera
                 end
             end
@@ -263,7 +276,7 @@ module CylindersBasedCameraResectioning
         end
 
         plot_interactive_scene(;
-            scene=scene_start,
+            scene=scene_target,
             problems=problems_start,
             observable_instances,
             figure=current_figure,

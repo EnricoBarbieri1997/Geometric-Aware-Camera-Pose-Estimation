@@ -4,7 +4,7 @@ module Scene
 	using ..Space: transformation, random_transformation, identity_transformation, build_rotation_matrix
 	using ..Camera: CameraProperties, IntrinsicParameters, build_intrinsic_matrix, build_camera_matrix, lookat_rotation
 	using ..Printing: print_camera_differences
-	using ..Plotting: initfigure, get_or_add_2d_axis!, clean_plots!, plot_2dpoints, plot_line_2d, Plot3dCameraInput, plot_3dcamera, Plot3dCylindersInput, plot_3dcylinders, plot_2dcylinders
+	using ..Plotting: initfigure, get_or_add_2d_axis!, clean_plots!, plot_2dpoints, plot_line_2d, Plot3dCameraInput, plot_3dcamera, plot_3dcamera_rotation, Plot3dCylindersInput, plot_3dcylinders, plot_2dcylinders
 	using ..EquationSystems: stack_homotopy_parameters, build_intrinsic_rotation_conic_system, build_intrinsic_rotation_translation_conic_system, build_camera_matrix_conic_system
 	using ..EquationSystems.Problems: CylinderCameraContoursProblem
 	using ..EquationSystems.Problems.IntrinsicParameters: Configurations as IntrinsicParametersConfigurations, has as isIntrinsicEnabled
@@ -285,7 +285,6 @@ module Scene
 			figure,
 		)
 		on(observable_instances) do instances
-			display(typeof(instances))
 			try
 				observable_scene = SceneData(;
 					figure,
@@ -294,6 +293,16 @@ module Scene
 				)
 				clean_plots!()
 				plot_scene(observable_scene, problems; noise)
+				for (i, instance) in enumerate(instances)
+					plot_3dcamera_rotation(Plot3dCameraInput(
+							scene.instances[i].camera.euler_rotation,
+							scene.instances[i].camera.position,
+					); axindex = i)
+					plot_3dcamera_rotation(Plot3dCameraInput(
+							instance.camera.euler_rotation,
+							instance.camera.position,
+					); color=:green, axindex = i)
+				end
 			catch e
 				@error e
 			end

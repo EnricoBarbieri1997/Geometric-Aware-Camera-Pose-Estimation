@@ -121,7 +121,6 @@ module Report
 
 							rotation_intrinsic_system, parameters = intrinsic_rotation_system_setup(problems)
 
-							display("A")
 							solver, starts = solver_startsolutions(
 								rotation_intrinsic_system,
 								start_system = :total_degree;

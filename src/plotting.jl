@@ -1,5 +1,5 @@
 module Plotting
-    export initfigure, add_2d_axis!, add_slider!, clean_plots!, get_or_add_2d_axis!, plot_2dpoints, plot_line_2d, Plot3dCameraInput, plot_3dcamera, Plot3dCylindersInput, plot_cylinders_contours, plot_3dcylinders, plot_2dcylinders
+    export initfigure, add_2d_axis!, add_slider!, clean_plots!, get_or_add_2d_axis!, get_or_add_camera_rotation_axis!, plot_2dpoints, plot_line_2d, Plot3dCameraInput, plot_3dcamera, plot_3dcamera_rotation, Plot3dCylindersInput, plot_cylinders_contours, plot_3dcylinders, plot_2dcylinders
 
     using ..Geometry: Line
 
@@ -39,9 +39,27 @@ module Plotting
         step = 0.01,
     )
         global f
-        Box(f[2, :]; height=50)
-        slider = Slider(f[2, :]; startvalue=start, range=start:step:stop)
+        Box(f[3, :]; height=50)
+        slider = Slider(f[3, :]; startvalue=start, range=start:step:stop)
         return slider
+    end
+
+    function add_camera_rotation_axis!()
+        index = length(camera_rotation_axes) + 1
+        row = ceil(Int, index / 3)
+        col = index % 3
+        if col == 0
+            col = 3
+        end
+        ax = Axis3(camera_roation_layout[row, col], aspect = :data, perspectiveness = 1.0)
+        push!(camera_rotation_axes, ax)
+    end
+
+    function get_or_add_camera_rotation_axis!(index)
+        if index > length(camera_rotation_axes)
+            add_camera_rotation_axis!()
+        end
+        return camera_rotation_axes[index]
     end
 
     function clean_plots!()
@@ -49,18 +67,22 @@ module Plotting
         for ax2 in ax2_array
             empty!(ax2)
         end
+        for ax_camera in camera_rotation_axes
+            empty!(ax_camera)
+        end
         empty!(ax3)
     end
 
     function initfigure()
-        global f, ax3, grid_2d, ax2_array
-        display(":(")
+        global f, ax3, grid_2d, ax2_array, camera_roation_layout, camera_rotation_axes
         f = Figure(size=(1200, 800))
         ax3 = Axis3(f[1, 1], title = "Cylinders", aspect = :data, perspectiveness = 1.0)
         grid_2d = f[1, 2] = GridLayout()
         Label(grid_2d[:, :, Top()], "Conics")
         ax2_array = []
         add_2d_axis!()
+        camera_roation_layout = f[2, :] = GridLayout()
+        camera_rotation_axes = []
         return f
     end
 
@@ -87,6 +109,21 @@ module Plotting
                 info.cameraTranslation[3],
             )
         )
+    end
+
+    function plot_3dcamera_rotation(info::Plot3dCameraInput; color = :black, axindex = nothing)
+        ax = if !isnothing(axindex) camera_rotation_axes[axindex] else ax3 end
+        cameraModel = load("./assets/camera.stl")
+        cameraMesh = mesh!(
+            ax,
+            cameraModel,
+            color = color,
+        )
+        cameraRotationRad = deg2rad.(info.cameraRotation)
+        cameraRotation = RotXYZ(cameraRotationRad...)
+        cameraRotationAxis = rotation_axis(cameraRotation)
+        cameraRotationAngle = rotation_angle(cameraRotation)
+        rotate!(cameraMesh, cameraRotationAxis, cameraRotationAngle)
     end
 
     struct Plot3dCylindersInput
