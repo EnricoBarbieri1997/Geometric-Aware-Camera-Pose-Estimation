@@ -204,7 +204,7 @@ module Scene
 					dualquadrics = Array{Float64}(undef, numberoflines_tosolvefor, 4, 4)
 					possible_picks = collect(1:(number_of_cylinders*2))
 					for store_index in (1:numberoflines_tosolvefor)
-							line_index = rand(possible_picks)
+							line_index = store_index # rand(possible_picks)
 							possible_picks = filter(x -> x != line_index, possible_picks)
 							i = ceil(Int, line_index / 2)
 							j = (line_index - 1) % 2 + 1

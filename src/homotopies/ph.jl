@@ -67,8 +67,6 @@ end
 
 function tp!(H::ParameterHomotopy, t::Union{ComplexF64,Float64})
     t == H.t_cache[] && return H.taylor_pt
-    display("A")
-
     if imag(t) == 0
         let t = real(t)
             @inbounds for i = 1:length(H.taylor_pt)
@@ -89,23 +87,33 @@ function tp!(H::ParameterHomotopy, t::Union{ComplexF64,Float64})
     H.taylor_pt
 end
 
+function round_u!(u)
+    for i in eachindex(u)
+        if norm(u[i]) < 1e-6
+            u[i] = 0.0 + 0.0im
+        end
+    end
+end
+
 function ModelKit.evaluate!(u, H::ParameterHomotopy, x, t)
     tp!(H, t)
-    a = evaluate!(u, H.F, x, H.pt)
-    display(u)
-    display(x)
-    display(H.pt)
-    display(t)
-    sleep(100)
-    a
+    evaluate!(u, H.F, x, H.pt)
+    round_u!(u)
+    # if sum(abs, u) != 0
+    #     display(u)
+    # end
+    u
 end
 
 function ModelKit.evaluate_and_jacobian!(u, U, H::ParameterHomotopy, x, t)
     tp!(H, t)
     evaluate_and_jacobian!(u, U, H.F, x, H.pt)
+    round_u!(u)
+    u
 end
 
 function ModelKit.taylor!(u, v::Val, H::ParameterHomotopy, tx, t)
     taylor!(u, v, H.F, tx, tp!(H, t))
+    round_u!(u)
     u
 end

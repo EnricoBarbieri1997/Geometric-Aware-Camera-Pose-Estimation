@@ -32,7 +32,8 @@ module CylindersBasedCameraResectioning
             parameters_solutions_pair = deserialize("tmp/intrinsic_rotation_monodromy_solutions.jld")
             start_solutions = parameters_solutions_pair.solutions
             start_parameters = parameters_solutions_pair.start_parameters
-        catch
+        catch e
+            @error e
             display("No intrinsic-rotation monodromy")
         end
 
@@ -105,6 +106,7 @@ module CylindersBasedCameraResectioning
         )
 
         rotation_intrinsic_system, parameters = intrinsic_rotation_system_setup(problems)
+        _, total_degree_solutions = total_degree(rotation_intrinsic_system; target_parameters = parameters)
 
         fₓ, _, _, skew, fᵧ, _, cₓ, cᵧ, _ = vec(scene.instances[1].camera.intrinsic)
         startingsolution = [fₓ, fᵧ]
@@ -120,9 +122,7 @@ module CylindersBasedCameraResectioning
         end
 
         startingsolution = convert(Vector{Float64}, startingsolution)
-
-        u = zeros(ComplexF64, 8)
-        display("a = $(evaluate!(u, rotation_intrinsic_system, startingsolution, parameters))")
+        # parameters = convert(Vector{Float64}, parameters)
 
         push!(intrinsic_rotations_monodromy_solutions, startingsolution)
 
@@ -162,7 +162,17 @@ module CylindersBasedCameraResectioning
             if new_solution_count == old_solution_count
                 break
             end
-        end 
+        end
+
+        for sol in intrinsic_rotations_monodromy_solutions
+            e = evaluate(rotation_intrinsic_system, sol, parameters)
+            tot_error = sum(abs.(e))
+            if tot_error > 1e-6
+                @error "Error: $tot_error"
+            end
+        end
+
+        append!(intrinsic_rotations_monodromy_solutions, collect(total_degree_solutions))
 
         serialize(
             "tmp/intrinsic_rotation_monodromy_solutions.jld",
