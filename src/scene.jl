@@ -4,22 +4,23 @@ module Scene
 	using ..Space: transformation, random_transformation, identity_transformation, build_rotation_matrix
 	using ..Camera: CameraProperties, IntrinsicParameters, build_intrinsic_matrix, build_camera_matrix, lookat_rotation
 	using ..Printing: print_camera_differences
-	using ..Plotting: initfigure, add_2d_axis!, plot_2dpoints, plot_line_2d, Plot3dCameraInput, plot_3dcamera, Plot3dCylindersInput, plot_3dcylinders, plot_2dcylinders
-	using ..EquationSystems: stack_homotopy_parameters, build_intrinsic_rotation_translation_conic_system, build_camera_matrix_conic_system
+	using ..Plotting: initfigure, get_or_add_2d_axis!, clean_plots!, plot_2dpoints, plot_line_2d, Plot3dCameraInput, plot_3dcamera, plot_3dcamera_rotation, Plot3dCylindersInput, plot_3dcylinders, plot_2dcylinders
+	using ..EquationSystems: stack_homotopy_parameters, build_intrinsic_rotation_conic_system, build_intrinsic_rotation_translation_conic_system, build_camera_matrix_conic_system
 	using ..EquationSystems.Problems: CylinderCameraContoursProblem
 	using ..EquationSystems.Problems.IntrinsicParameters: Configurations as IntrinsicParametersConfigurations, has as isIntrinsicEnabled
-	using ..EquationSystems.Minimization: build_intrinsic_rotation_conic_system
+	# using ..EquationSystems.Minimization: build_intrinsic_rotation_conic_system
 	using ..Utils
 	using ..Scene
 	using ..Cylinder: CylinderProperties, standard_and_dual as standard_and_dual_cylinder
 	using ..Conic: ConicProperties
+	using Serialization
 	using LinearAlgebra: cross, diagm, deg2rad, dot, I, normalize, pinv, svd
-	using HomotopyContinuation, Polynomials, Rotations
+	using HomotopyContinuation, Observables, Polynomials, Rotations
 	using Random
 	using CairoMakie: Figure
 	struct ParametersSolutionsPair
 		start_parameters::Vector{Float64}
-		solutions::Vector{Vector{ComplexF64}}
+		solutions::Union{Vector{Vector{ComplexF64}}, Vector{Vector{Vector{ComplexF64}}}}
 	end
 	@kwdef mutable struct InstanceConfiguration
 		camera::CameraProperties = CameraProperties()
@@ -33,14 +34,15 @@ module Scene
 	end
 
 	function create_scene_instances_and_problems(;
-		random_seed = 7, 
+		random_seed = 7,
+		cylinders_random_seed = random_seed,
 		number_of_cylinders = 4,
 		number_of_instances = 5,
 		noise = 0,
 		intrinsic_configuration = IntrinsicParametersConfigurations.fₓ_fᵧ_skew_cₓ_cᵧ,
 		plot = true,
 	)
-			Random.seed!(random_seed)
+			Random.seed!(cylinders_random_seed)
 
 			scene = SceneData()
 
@@ -86,6 +88,8 @@ module Scene
 			end
 
 			scene.cylinders = cylinders
+
+			Random.seed!(random_seed)
 
 			instances = []
 
@@ -200,7 +204,7 @@ module Scene
 					dualquadrics = Array{Float64}(undef, numberoflines_tosolvefor, 4, 4)
 					possible_picks = collect(1:(number_of_cylinders*2))
 					for store_index in (1:numberoflines_tosolvefor)
-							line_index = rand(possible_picks)
+							line_index = store_index # rand(possible_picks)
 							possible_picks = filter(x -> x != line_index, possible_picks)
 							i = ceil(Int, line_index / 2)
 							j = (line_index - 1) % 2 + 1
@@ -251,9 +255,7 @@ module Scene
 					camera.euler_rotation,
 					camera.position,
 			))
-			if i > 1
-					add_2d_axis!()
-			end
+			get_or_add_2d_axis!(i)
 			plot_2dpoints([(conic.singular_point ./ conic.singular_point[3])[1:2] for conic in conics]; axindex = i)
 			plot_2dcylinders(conics_contours, alpha=0.5; axindex = i)
 		end
@@ -275,7 +277,39 @@ module Scene
 		end
 	end
 
-	function splitIntrinsicRotationParameters(
+	function plot_interactive_scene(;
+			scene,
+			problems,
+			noise = 0,
+			observable_instances,
+			figure,
+		)
+		on(observable_instances) do instances
+			try
+				observable_scene = SceneData(;
+					figure,
+					cylinders = scene.cylinders,
+					instances,
+				)
+				clean_plots!()
+				plot_scene(observable_scene, problems; noise)
+				for (i, instance) in enumerate(instances)
+					plot_3dcamera_rotation(Plot3dCameraInput(
+							scene.instances[i].camera.euler_rotation,
+							scene.instances[i].camera.position,
+					); axindex = i)
+					plot_3dcamera_rotation(Plot3dCameraInput(
+							instance.camera.euler_rotation,
+							instance.camera.position,
+					); color=:green, axindex = i)
+				end
+			catch e
+				@error e
+			end
+		end
+	end
+
+	function split_intrinsic_rotation_parameters(
 			solution,
 			intrinsic_configuration = IntrinsicParametersConfigurations.fₓ_fᵧ_skew_cₓ_cᵧ
 	)
@@ -326,17 +360,10 @@ module Scene
 							0 0 1;
 					]
 			end
-			if (focal_length_y < 0)
+			if (focal_length_y < 0 && skew <= 0)
 					intrinsic_correction *= [
-							1 2*abs(skew)/abs(focal_length_x) 0;
+							1 0 0;
 							1 -1 0;
-							0 0 1;
-					]
-			end
-			if (skew < 0)
-					intrinsic_correction *= [
-							1 2*abs(skew)/abs(focal_length_x) 0;
-							0 1 0;
 							0 0 1;
 					]
 			end
@@ -344,6 +371,23 @@ module Scene
 			rotations_solution = solution[(intrinsicparamters_count + 1):end]
 
 			return intrinsic_solution, rotations_solution, intrinsic_correction
+	end
+
+	function camera_from_solution(
+		intrinsic,
+		rotations_solution,
+		intrinsic_correction,
+		index,
+	)
+		quat = [1; rotations_solution[(index-1)*3+1:index*3]]
+		quat = quat / norm(quat)
+		camera_extrinsic_rotation = QuatRotation(quat) * inv(intrinsic_correction)
+
+		return CameraProperties(
+				euler_rotation = rad2deg.(eulerangles_from_rotationmatrix(camera_extrinsic_rotation')),
+				quaternion_rotation = camera_extrinsic_rotation',
+				intrinsic = intrinsic,
+		)
 	end
 
 	function intrinsic_rotation_system_setup(problems)
@@ -356,7 +400,6 @@ module Scene
 				parameters = stack_homotopy_parameters(
 					parameters,
 					problem.lines,
-					problem.points_at_infinity,
 				)
 			end
 			parameters = convert(Vector{Float64}, parameters)
@@ -374,10 +417,11 @@ module Scene
 			solution_error = start_error
 			solutions_to_try = real_solutions(result)
 			all_possible_solutions = []
+			best_solution = nothing
 			for solution in solutions_to_try
 					intrinsic = rotations_solution = intrinsic_correction = nothing
 					try
-						intrinsic, rotations_solution, intrinsic_correction = splitIntrinsicRotationParameters(
+						intrinsic, rotations_solution, intrinsic_correction = split_intrinsic_rotation_parameters(
 							solution,
 							intrinsic_configuration
 						)
@@ -394,10 +438,11 @@ module Scene
 							quat = quat / norm(quat)
 							camera_extrinsic_rotation = QuatRotation(quat) * inv(intrinsic_correction)
 
-							possible_camera = CameraProperties(
-									euler_rotation = rad2deg.(eulerangles_from_rotationmatrix(camera_extrinsic_rotation')),
-									quaternion_rotation = camera_extrinsic_rotation',
-									intrinsic = intrinsic,
+							possible_camera = camera_from_solution(
+								intrinsic,
+								rotations_solution,
+								intrinsic_correction,
+								i
 							)
 							push!(possible_cameras, possible_camera)
 
@@ -416,10 +461,17 @@ module Scene
 
 					if (current_error < solution_error)
 							solution_error = current_error
+							best_solution = solution
 							for (i, problem) in enumerate(problems)
 									problem.camera = possible_cameras[i]
 							end
 					end
+			end
+
+			if (!isnothing(best_solution))
+				paths = path_results(result)
+				best_path = paths[findall(x -> real.(x.solution) == best_solution, paths)[1]]
+				display("The best starting solution was $(best_path.start_solution)")
 			end
 
 			return solution_error, all_possible_solutions
@@ -429,7 +481,7 @@ module Scene
 			translation_system = build_intrinsic_rotation_translation_conic_system(
 					problem
 			)
-			parameters = stack_homotopy_parameters(problem.lines[1:3, :], problem.dualquadrics[1:3, :, :])
+			parameters = stack_homotopy_parameters(problem.lines[1:3, :])
 
 			return translation_system, parameters
 	end
@@ -483,7 +535,7 @@ module Scene
 			for solution in solutions_to_try
 					intrinsic = rotations_solution = intrinsic_correction = nothing
 					try
-						intrinsic, rotations_solution, intrinsic_correction = splitIntrinsicRotationParameters(
+						intrinsic, rotations_solution, intrinsic_correction = split_intrinsic_rotation_parameters(
 							solution,
 							intrinsic_configuration
 						)
@@ -516,8 +568,20 @@ module Scene
 
 							translation_system, parameters = intrinsic_rotation_translation_system_setup(problem_upto_translation)
 
+							start_solutions = nothing
+							start_parameters = nothing
+							try
+									parameters_solutions_pair = deserialize("tmp/translation_monodromy_solutions.jld")
+									start_solutions = parameters_solutions_pair.solutions
+									start_parameters = parameters_solutions_pair.start_parameters
+							catch
+									display("No translation monodromy")
+							end
+
 							translation_result = solve(
 									translation_system,
+									start_solutions;
+            			start_parameters,
 									target_parameters = parameters,
 									start_system = :total_degree,
 							)
@@ -575,16 +639,25 @@ module Scene
 					intrinsic_configuration,
 			)
 
-			display(solution_error)
-			display(problems)
-
 			for (i, problem) in enumerate(problems)
 					display("Problem $i")
-					display(problem.camera.intrinsic)
 					translation_system, parameters = intrinsic_rotation_translation_system_setup(problem)
+
+					start_solutions = nothing
+					start_parameters = nothing
+					try
+							parameters_solutions_pair = deserialize("tmp/translation_monodromy_solutions.jld")
+							start_solutions = parameters_solutions_pair.solutions
+							start_parameters = parameters_solutions_pair.start_parameters
+					catch e
+							display(e)
+							display("No translation monodromy")
+					end
 
 					result = solve(
 							translation_system,
+							start_solutions;
+							start_parameters,
 							target_parameters = parameters,
 							start_system = :total_degree,
 					)

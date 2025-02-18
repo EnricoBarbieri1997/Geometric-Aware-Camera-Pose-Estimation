@@ -1,5 +1,5 @@
 module Geometry
-	export Plane, Line, Point, Circle, Cylinder, issame_line, homogeneous_to_line, line_to_homogenous, homogeneous_line_intercept, project_point_into_line, project_point_into_plane, get_tangentpoints_circle_point, get_cylinder_contours
+	export Plane, Line, Point, Circle, Cylinder, issame_line, homogeneous_to_line, line_to_homogenous, homogeneous_line_intercept, homogeneous_anglebetween, project_point_into_line, project_point_into_plane, get_tangentpoints_circle_point, get_cylinder_contours
 
 	using ..Utils
 	using LinearAlgebra: cross, dot, norm, normalize
@@ -55,6 +55,10 @@ module Geometry
 
 	function homogeneous_line_intercept(x, line)
 		return -line[1]/line[2] * x - line[3]/line[2]
+	end
+
+	function homogeneous_anglebetween(a, b)
+		return atan((b[1]*a[2]-a[1]*b[2])/(a[1]*b[1]+a[2]*b[2]))
 	end
 
 	function project_point_into_line(point::Vector{<:Number}, line::Line)

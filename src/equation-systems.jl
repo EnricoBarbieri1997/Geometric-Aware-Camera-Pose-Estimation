@@ -162,9 +162,7 @@ module EquationSystems
 			intrinsic = problems[1].camera.intrinsic
 		end
 
-		noises = []
 		for (index, problem) in enumerate(problems)
-			noise = Variable("noise", index)
 			lines_count = size(problem.lines)[1]
 			Rparams = [
 				Variable("R$(index)", i) for i in 1:3
@@ -174,26 +172,15 @@ module EquationSystems
 				Variable("lines$(index)", i, j)
 				for i in 1:lines_count, j in 1:3
 			], lines_count, 3)
-			points_at_infinity = reshape([
-				Variable("points_at_infinity$(index)", i, j)
-				for i in 1:lines_count, j in 1:3
-			], lines_count, 3)
 
 			for line_index in 1:lines_count
-				equation = lines[line_index, :]' * intrinsic * R * points_at_infinity[line_index, :]
+				equation = lines[line_index, :]' * intrinsic * R * problem.points_at_infinity[line_index, :]
 				push!(system_to_solve, equation)
 			end
 
 			variables = stack_homotopy_parameters(variables, Rparams)
-			parameters = stack_homotopy_parameters(parameters, lines, points_at_infinity)
-			# push!(noises, noise)
-			# push!(system_to_solve, noise)
+			parameters = stack_homotopy_parameters(parameters, lines)
 		end
-
-		# display("focal_guess_enforcer: $focal_guess")
-		# push!(system_to_solve, fₓ+fᵧ+focal_guess_enforcer - focal_guess)
-		# variables = stack_homotopy_parameters(variables, [focal_guess_enforcer])
-		# variables = stack_homotopy_parameters(variables, noises)
 
 		return System(system_to_solve, variables = variables, parameters = parameters)
 	end
@@ -201,7 +188,7 @@ module EquationSystems
 	function build_intrinsic_rotation_translation_conic_system(problem::Problems.CylinderCameraContoursProblem)
 		lines_count = 3
 		@var tx ty tz
-		@var lines[1:lines_count, 1:3] dual_quadrics[1:lines_count, 1:4, 1:4]
+		@var lines[1:lines_count, 1:3]
 		P = build_camera_matrix(
 			problem.camera.intrinsic, 
 			problem.camera.quaternion_rotation,
@@ -210,10 +197,10 @@ module EquationSystems
 
 		system_to_solve = []
 		for i in 1:lines_count
-				equation = lines[i, :]' * P * dual_quadrics[i, :, :] * P' * lines[i, :]
+				equation = lines[i, :]' * P * problem.dualquadrics[i, :, :] * P' * lines[i, :]
 				push!(system_to_solve, equation)
 		end
-		parameters::Vector{HomotopyContinuation.ModelKit.Variable} = stack_homotopy_parameters(lines, dual_quadrics)
+		parameters::Vector{HomotopyContinuation.ModelKit.Variable} = stack_homotopy_parameters(lines)
 		return System(system_to_solve, variables=[tx, ty, tz], parameters=parameters)
 	end
 
@@ -225,7 +212,7 @@ module EquationSystems
 		@var R[1:3, 1:3]
 		@var f
 		@var t[1:3]
-		@var lines[1:input_count, 1:3] points_at_infinity[1:input_count, 1:3] dual_quadrics[1:translation_equations_count, 1:4, 1:4]
+		@var lines[1:input_count, 1:3] points_at_infinity[1:input_count, 1:3]
 		intrinsic = build_intrinsic_matrix(f)
 		P = build_camera_matrix(intrinsic, R, t; use_rotation_as_is = true)
 
@@ -236,11 +223,11 @@ module EquationSystems
 			push!(system_to_solve, equation)
 		end
 		for i in 1:translation_equations_count
-			equation = lines[i, :]' * P * dual_quadrics[i, :, :] * P' * lines[i, :]
+			equation = lines[i, :]' * P * problem.dualquadrics[i, :, :] * P' * lines[i, :]
 			push!(system_to_solve, equation)
 		end
 		variables::Vector{HomotopyContinuation.ModelKit.Variable} = stack_homotopy_parameters([f], R, t)
-		parameters::Vector{HomotopyContinuation.ModelKit.Variable} = stack_homotopy_parameters(lines, points_at_infinity, dual_quadrics)
+		parameters::Vector{HomotopyContinuation.ModelKit.Variable} = stack_homotopy_parameters(lines, points_at_infinity)
 		return System(system_to_solve, variables=variables, parameters=parameters)
 	end
 
