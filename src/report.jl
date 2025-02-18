@@ -52,17 +52,17 @@ module Report
 		save_in_folder = false,
 	)
 		Random.seed!(940)
-		seeds = rand(Int, 5)
+		seeds = rand(Int, 1)
 		if !isnothing(seed_index)
 			seeds = [seeds[seed_index]]
 		end
 
 		configurations = [
-			# IntrinsicParametersConfigurations.none,
+			IntrinsicParametersConfigurations.none,
 			# IntrinsicParametersConfigurations.fₓ,
 			IntrinsicParametersConfigurations.fₓ_fᵧ,
-			# IntrinsicParametersConfigurations.fₓ_fᵧ_cₓ_cᵧ,
-			# IntrinsicParametersConfigurations.fₓ_fᵧ_skew_cₓ_cᵧ,
+			IntrinsicParametersConfigurations.fₓ_fᵧ_cₓ_cᵧ,
+			IntrinsicParametersConfigurations.fₓ_fᵧ_skew_cₓ_cᵧ,
 		]
 
 		cylinder_views_per_config = Dict([
