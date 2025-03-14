@@ -155,12 +155,19 @@ module Printing
 
     function print_error_analysis(errors::Matrix{<:Number}; header=nothing, noise_steps=(0.0:1.0:10.0))
         header = vcat(["Metric/Noise"], something(header, noise_steps))
-        data = hcat([
+        data_rows = [
             "Δf",
             "Δc",
             "Δskew",
             "Camera matrix",
-        ], errors)
+        ]
+        if (length(errors) > 4)
+            data_rows = vcat(data_rows, [
+                "ΔR",
+                "ΔT",
+            ])
+        end
+        data = hcat(data_rows, errors)
         pretty_table_withdefaults(data;
             header = header,
             highlighters = (transparent_first_col, low_value_good, high_value_bad)
