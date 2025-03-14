@@ -319,6 +319,61 @@ module Report
 		end
 	end
 
+	function report_error_configuration_analysis(report_path, configurations; number_of_samples=5, output_path=nothing)
+		reports = deserialize(report_path)
+		errors_max = zeros(Float64, 6, length(configurations))
+		errors_mean = zeros(Float64, 6, length(configurations))
+		sample_counts = zeros(Int, length(configurations))
+		for report in reports
+			if !is_terminated_successfully(report)
+				continue
+			end
+			display(configurations)
+			display(report.configuration.intrinsic_configuration)
+			index = findfirst(configurations .== UInt8(report.configuration.intrinsic_configuration))
+			total_rotation_error = reduce((tot, view) -> view.rotation + tot, report.result.errors.views; init=0)
+			total_translation_error = reduce((tot, view) -> view.translation + tot, report.result.errors.views; init=0)
+			total_cameramatrix_error = reduce((tot, view) -> view.cameramatrix + tot, report.result.errors.views; init=0)
+			errors_mean[1:3, index] += report.result.errors.intrinsic
+			errors_mean[4, index] += total_cameramatrix_error
+			errors_mean[5, index] += total_rotation_error
+			errors_mean[6, index] += total_translation_error
+			if (norm(errors_max[1:3, index]) < norm(report.result.errors.intrinsic))
+				errors_max[1:3, index] = report.result.errors.intrinsic
+			end
+			if (errors_max[4, index] < total_cameramatrix_error)
+				errors_max[4, index] = total_cameramatrix_error
+			end
+			if (errors_max[5, index] < total_rotation_error)
+				errors_max[5, index] = total_rotation_error
+			end
+			if (errors_max[6, index] < total_translation_error)
+				errors_max[6, index] = total_translation_error
+			end
+			sample_counts[index] += 1
+		end
+
+		errors_mean ./= sample_counts'
+
+		header = []
+		for (i, configuration) in enumerate(configurations)
+			push!(header, "$configuration ($(sample_counts[i])/$number_of_samples)")
+		end
+
+		if !isnothing(output_path)
+			mean_output_file = output_path * "mean_errors.csv"
+			max_output_file = output_path * "max_errors.csv"
+			CSV.write(mean_output_file, Tables.table(errors_mean; header); compact=true)
+			CSV.write(max_output_file, Tables.table(errors_max; header); compact=true)
+		else
+			display("Mean errors")
+			print_error_analysis(errors_mean; header)
+			display("--------------------")
+			display("Max errors")
+			print_error_analysis(errors_max; header)
+		end
+	end
+
 	function explore_report(report_path, seed, intrinsic_configuration, cylinder_view_configuration, noise)
 		reports = deserialize(report_path)
 		for report in reports
