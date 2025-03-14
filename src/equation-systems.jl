@@ -1,11 +1,11 @@
 module EquationSystems
-	export stack_homotopy_parameters, build_intrinsic_rotation_conic_system, build_intrinsic_rotation_translation_conic_system, build_camera_matrix_conic_system
+	export stack_homotopy_parameters, build_intrinsic_rotation_conic_system, build_intrinsic_rotation_translation_conic_system, build_camera_matrix_conic_system, variables_jacobian_rank, joint_jacobian_rank
 
 	using ..Camera: IntrinsicParameters, build_intrinsic_matrix, build_camera_matrix
 	using ..Space: build_rotation_matrix
 
 	using HomotopyContinuation
-	using LinearAlgebra: det, I
+	using LinearAlgebra: det, I, rank
 
 	module Problems
 		using ....Camera: CameraProperties
@@ -229,6 +229,28 @@ module EquationSystems
 		variables::Vector{HomotopyContinuation.ModelKit.Variable} = stack_homotopy_parameters([f], R, t)
 		parameters::Vector{HomotopyContinuation.ModelKit.Variable} = stack_homotopy_parameters(lines, points_at_infinity)
 		return System(system_to_solve, variables=variables, parameters=parameters)
+	end
+
+	function variables_jacobian(F::System, solution, parameters)
+		jacobian = differentiate(F.expressions, F.variables)
+		return evaluate(jacobian, F.variables => solution, F.parameters => parameters)
+	end
+
+	function variables_jacobian_rank(F::System, solution, parameters)
+		return rank(variables_jacobian(F, solution, parameters))
+	end
+
+	function parameters_jacobian(F::System, solution, parameters)
+		jacobian = differentiate(F.expressions, F.parameters)
+		return evaluate(jacobian, F.variables => solution, F.parameters => parameters)
+	end
+
+	function parameters_jacobian_rank(F::System, solution, parameters)
+		return rank(parameters_jacobian(F, solution, parameters))
+	end
+
+	function joint_jacobian_rank(F::System, solution, parameters)
+		return rank(hcat(parameters_jacobian(F, solution, parameters), variables_jacobian(F, solution, parameters)))
 	end
 
 	module Minimization

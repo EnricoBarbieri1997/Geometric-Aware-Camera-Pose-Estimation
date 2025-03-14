@@ -2,7 +2,7 @@ module CylindersBasedCameraResectioning
     include("includes.jl")
 
 	using ..Scene: ParametersSolutionsPair, best_overall_solution!, best_overall_solution_by_steps!, best_intrinsic_rotation_translation_system_solution!, camera_from_solution, create_scene_instances_and_problems, intrinsic_rotation_system_setup, intrinsic_rotation_translation_system_setup, plot_interactive_scene, plot_reconstructed_scene, split_intrinsic_rotation_parameters
-	using ..EquationSystems: stack_homotopy_parameters
+	using ..EquationSystems: stack_homotopy_parameters, variables_jacobian_rank, joint_jacobian_rank
     using ..EquationSystems.Problems.IntrinsicParameters: Configurations as IntrinsicParametersConfigurations
     using ..Plotting: add_slider!, initfigure, add_camera_rotation_axis!, plot_3dcamera, Plot3dCameraInput
 	using ..Printing: print_camera_differences
@@ -110,6 +110,7 @@ module CylindersBasedCameraResectioning
 
         fₓ, _, _, skew, fᵧ, _, cₓ, cᵧ, _ = vec(scene.instances[1].camera.intrinsic)
         startingsolution = [fₓ, fᵧ]
+
         for instance in scene.instances
             camera = instance.camera
             rot = Rotations.params(camera.quaternion_rotation')
@@ -120,6 +121,10 @@ module CylindersBasedCameraResectioning
                 rot,
             )
         end
+
+        @info "Jacobians rank"
+        @info variables_jacobian_rank(rotation_intrinsic_system, startingsolution, parameters)
+        @info joint_jacobian_rank(rotation_intrinsic_system, startingsolution, parameters)
 
         startingsolution = convert(Vector{Float64}, startingsolution)
         # parameters = convert(Vector{Float64}, parameters)
