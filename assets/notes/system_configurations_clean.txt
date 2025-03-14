@@ -1,0 +1,19 @@
+Configuration: none. Scene configuration: (2, 1)
+┌ Info: System of 3 equations
+│  3 variables: R1₁, R1₂, R1₃
+└  9 parameters: lines1₁₋₁, lines1₂₋₁, lines1₃₋₁, lines1₁₋₂, lines1₂₋₂, lines1₃₋₂, lines1₁₋₃, lines1₂₋₃, lines1₃₋₃
+
+Configuration: fₓ_fᵧ. Scene configuration: (2, 2)
+┌ Info: System of 8 equations
+│  8 variables: fₓ, fᵧ, R1₁, R1₂, R1₃, R2₁, R2₂, R2₃
+└  24 parameters: lines1₁₋₁, lines1₂₋₁, lines1₃₋₁, lines1₄₋₁, lines1₁₋₂, lines1₂₋₂, lines1₃₋₂, lines1₄₋₂, lines1₁₋₃, lines1₂₋₃, lines1₃₋₃, lines1₄₋₃, lines2₁₋₁, lines2₂₋₁, lines2₃₋₁, lines2₄₋₁, lines2₁₋₂, lines2₂₋₂, lines2₃₋₂, lines2₄₋₂, lines2₁₋₃, lines2₂₋₃, lines2₃₋₃, lines2₄₋₃
+
+Configuration: fₓ_fᵧ_cₓ_cᵧ. Scene configuration: (3, 2)
+┌ Info: System of 10 equations
+│  10 variables: fₓ, fᵧ, cₓ, cᵧ, R1₁, R1₂, R1₃, R2₁, R2₂, R2₃
+└  30 parameters: lines1₁₋₁, lines1₂₋₁, lines1₃₋₁, lines1₄₋₁, lines1₅₋₁, lines1₁₋₂, lines1₂₋₂, lines1₃₋₂, lines1₄₋₂, lines1₅₋₂, lines1₁₋₃, lines1₂₋₃, lines1₃₋₃, lines1₄₋₃, lines1₅₋₃, lines2₁₋₁, lines2₂₋₁, lines2₃₋₁, lines2₄₋₁, lines2₅₋₁, lines2₁₋₂, lines2₂₋₂, lines2₃₋₂, lines2₄₋₂, lines2₅₋₂, lines2₁₋₃, lines2₂₋₃, lines2₃₋₃, lines2₄₋₃, lines2₅₋₃
+
+Configuration: fₓ_fᵧ_skew_cₓ_cᵧ. Scene configuration: (3, 2)
+┌ Info: System of 11 equations
+│  11 variables: fₓ, fᵧ, skew, cₓ, cᵧ, R1₁, R1₂, R1₃, R2₁, R2₂, R2₃
+└  33 parameters: lines1₁₋₁, lines1₂₋₁, lines1₃₋₁, lines1₄₋₁, lines1₅₋₁, lines1₆₋₁, lines1₁₋₂, lines1₂₋₂, lines1₃₋₂, lines1₄₋₂, lines1₅₋₂, lines1₆₋₂, lines1₁₋₃, lines1₂₋₃, lines1₃₋₃, lines1₄₋₃, lines1₅₋₃, lines1₆₋₃, lines2₁₋₁, lines2₂₋₁, lines2₃₋₁, lines2₄₋₁, lines2₅₋₁, lines2₁₋₂, lines2₂₋₂, lines2₃₋₂, lines2₄₋₂, lines2₅₋₂, lines2₁₋₃, lines2₂₋₃, lines2₃₋₃, lines2₄₋₃, lines2₅₋₃
