@@ -281,8 +281,10 @@ module Report
 		errors_max = zeros(Float64, 4, length(noise_steps))
 		errors_mean = zeros(Float64, 4, length(noise_steps))
 		sample_counts = zeros(Int, length(noise_steps))
+		errored = []
 		for report in reports
 			if !is_terminated_successfully(report)
+				push!(errored, report)
 				continue
 			end
 			index = findfirst(noise_steps .== report.configuration.noise)
@@ -322,6 +324,9 @@ module Report
 			json_results = []
 			for i in eachindex(noise_steps)
 				push!(json_results, create_single_noise_result("ours", noise_steps[i], errors_mean[1:3, i]...))
+			end
+			for report in errored
+				push!(json_results, create_single_noise_result("ours", report.configuration.noise, [], [], []))
 			end
 			save_results_to_json("assets/methods_compare/ours_results.json", json_results)
 		end
