@@ -1,8 +1,8 @@
 module Printing
-    export print_camera_differences, print_error_analysis
+    export print_camera_differences, print_error_analysis, create_single_noise_result, save_results_to_json
 
     using ..Utils: vector_difference, matrix_difference, rotations_difference, translations_difference, intrinsic_difference
-    using PrettyTables
+    using PrettyTables, JSON
     using Rotations: params as rotations_params
 
     transparent_first_col = Highlighter(
@@ -173,4 +173,48 @@ module Printing
             highlighters = (transparent_first_col, low_value_good, high_value_bad)
         )
     end
+
+    """
+    Ensure value is always a Vector.
+    If already a vector, return it.
+    If scalar, wrap in a 1-element vector.
+    """
+    function ensure_vector(x)
+        return x isa AbstractVector ? x : [x]
+    end
+
+    """
+    Creates a single noise-level calibration result in the format:
+    {
+        "noise": 0.1,
+        "method": "ours",
+        "delta_f": [1.2],
+        "delta_uv": [0.2, 0.3],
+        "delta_skew": []
+    }
+    Handles scalar or vector inputs and nulls.
+    """
+    function create_single_noise_result(method::String, noise::Float64;
+        delta_f=nothing, delta_uv=nothing, delta_skew=nothing)
+
+        result = Dict(
+            "noise" => noise,
+            "method" => method,
+            "delta_f" => delta_f === nothing ? [] : [x === missing || x === nothing ? nothing : x for x in ensure_vector(delta_f)],
+            "delta_uv" => delta_uv === nothing ? [] : [x === missing || x === nothing ? nothing : x for x in ensure_vector(delta_uv)],
+            "delta_skew" => delta_skew === nothing ? [] : [x === missing || x === nothing ? nothing : x for x in ensure_vector(delta_skew)]
+        )
+
+        return result
+    end
+
+    """
+    Saves a list of results (vector of Dicts) to a JSON file.
+    """
+    function save_results_to_json(filename::String, results::Vector{Dict})
+        open(filename, "w") do io
+            JSON.print(io, results; indent=2)
+        end
+    end
+
 end

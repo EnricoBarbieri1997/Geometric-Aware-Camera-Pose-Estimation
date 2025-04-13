@@ -1,0 +1,103 @@
+[
+  {
+    "noise": 0.0,
+    "method": "right_cylinder",
+    "delta_f": [
+      0.6940951587577084
+    ],
+    "delta_uv": [
+      36.547226687661656
+    ],
+    "delta_skew": [
+      0.0
+    ]
+  },
+  {
+    "noise": 0.05,
+    "method": "right_cylinder",
+    "delta_f": [],
+    "delta_uv": [],
+    "delta_skew": []
+  },
+  {
+    "noise": 0.1,
+    "method": "right_cylinder",
+    "delta_f": [],
+    "delta_uv": [],
+    "delta_skew": []
+  },
+  {
+    "noise": 0.15000000000000002,
+    "method": "right_cylinder",
+    "delta_f": [
+      0.8787101595729544
+    ],
+    "delta_uv": [
+      41.27937610736586
+    ],
+    "delta_skew": [
+      0.0
+    ]
+  },
+  {
+    "noise": 0.2,
+    "method": "right_cylinder",
+    "delta_f": [
+      0.6143128981334712
+    ],
+    "delta_uv": [
+      160.82237693768366
+    ],
+    "delta_skew": [
+      0.0
+    ]
+  },
+  {
+    "noise": 0.25,
+    "method": "right_cylinder",
+    "delta_f": [],
+    "delta_uv": [],
+    "delta_skew": []
+  },
+  {
+    "noise": 0.30000000000000004,
+    "method": "right_cylinder",
+    "delta_f": [],
+    "delta_uv": [],
+    "delta_skew": []
+  },
+  {
+    "noise": 0.35000000000000003,
+    "method": "right_cylinder",
+    "delta_f": [],
+    "delta_uv": [],
+    "delta_skew": []
+  },
+  {
+    "noise": 0.4,
+    "method": "right_cylinder",
+    "delta_f": [
+      0.7284616904697969
+    ],
+    "delta_uv": [
+      22.66791055822383
+    ],
+    "delta_skew": [
+      0.0
+    ]
+  },
+  {
+    "noise": 0.45,
+    "method": "right_cylinder",
+    "delta_f": [],
+    "delta_uv": [],
+    "delta_skew": []
+  },
+  {
+    "noise": 0.5,
+    "method": "right_cylinder",
+    "delta_f": [],
+    "delta_uv": [],
+    "delta_skew": []
+  }
+]

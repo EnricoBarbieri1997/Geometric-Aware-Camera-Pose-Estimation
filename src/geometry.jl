@@ -105,11 +105,11 @@ module Geometry
 		throw(ArgumentError("No tangent line possible"))
 	end
 
-	function get_cylinder_contours(cylinder::Cylinder, point::Vector{<:Number}, cameraMatrix::Matrix{<:Number})
-		circlecenter = project_point_into_line(point, Line(cylinder.center, cylinder.axis))
+	function get_cylinder_contours(cylinder::Cylinder, cameraCenter::Vector{<:Number}, cameraMatrix::Matrix{<:Number})
+		circlecenter = project_point_into_line(cameraCenter, Line(cylinder.center, cylinder.axis))
 		tangentpoint₁, tangentpoint₂ = get_tangentpoints_circle_point(
 			Circle(circlecenter, cylinder.radius, cylinder.axis),
-			point
+			cameraCenter
 		)
 		projected_tangentpoint₁ = cameraMatrix * [tangentpoint₁; 1]
 		projected_tangentpoint₂ = cameraMatrix * [tangentpoint₂; 1]

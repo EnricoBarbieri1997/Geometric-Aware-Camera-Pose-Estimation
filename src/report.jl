@@ -3,8 +3,8 @@ module Report
 	using ..EquationSystems.Problems: CylinderCameraContoursProblem
 	using ..EquationSystems.Problems.IntrinsicParameters: Configurations as IntrinsicParametersConfigurations
 	using ..Plotting: initfigure, plot_3dcamera, Plot3dCameraInput
-	using ..Printing: print_camera_differences, print_error_analysis
-  	using ..Utils: vector_difference, intrinsic_difference, matrix_difference, rotations_difference, translations_difference
+	using ..Printing: print_camera_differences, print_error_analysis, create_single_noise_result, save_results_to_json
+  using ..Utils: vector_difference, intrinsic_difference, matrix_difference, rotations_difference, translations_difference
 	
 	using CSV, Dates, HomotopyContinuation, Random, Serialization, Tables
 	using LinearAlgebra: norm
@@ -52,16 +52,16 @@ module Report
 		save_in_folder = false,
 	)
 		Random.seed!(940)
-		seeds = rand(Int, 1)
+		seeds = rand(Int, 2)
 		if !isnothing(seed_index)
 			seeds = [seeds[seed_index]]
 		end
 
 		configurations = [
-			IntrinsicParametersConfigurations.none,
+			# IntrinsicParametersConfigurations.none,
 			# IntrinsicParametersConfigurations.fₓ,
-			IntrinsicParametersConfigurations.fₓ_fᵧ,
-			IntrinsicParametersConfigurations.fₓ_fᵧ_cₓ_cᵧ,
+			# IntrinsicParametersConfigurations.fₓ_fᵧ,
+			# IntrinsicParametersConfigurations.fₓ_fᵧ_cₓ_cᵧ,
 			IntrinsicParametersConfigurations.fₓ_fᵧ_skew_cₓ_cᵧ,
 		]
 
@@ -87,7 +87,7 @@ module Report
 			]),
 		])
 
-		noise_values = if isnothing(noises) collect(0.0:1.0:10.0) else noises end
+		noise_values = if isnothing(noises) collect(0.0:0.05:0.5) else noises end
 
 		results = []
 
@@ -276,7 +276,7 @@ module Report
 		CSV.write(csv_path, Tables.table(data; header); compact=true, transform)
 	end
 
-	function report_error_analysis(report_path, noise_steps; number_of_samples=5, output_path=nothing)
+	function report_error_analysis(report_path, noise_steps; number_of_samples=5, output_path=nothing, save_json=false)
 		reports = deserialize(report_path)
 		errors_max = zeros(Float64, 4, length(noise_steps))
 		errors_mean = zeros(Float64, 4, length(noise_steps))
@@ -316,6 +316,14 @@ module Report
 			display("--------------------")
 			display("Max errors")
 			print_error_analysis(errors_max; header)
+		end
+
+		if save_json
+			json_results = []
+			for i in eachindex(noise_steps)
+				push!(json_results, create_single_noise_result("ours", noise_steps[i], errors_mean[1:3, i]...))
+			end
+			save_results_to_json("assets/methods_compare/ours_results.json", json_results)
 		end
 	end
 
