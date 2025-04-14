@@ -2,6 +2,27 @@
 import json
 import os
 import glob
+import numpy as np
+
+def iterations_results_to_metrics(iterations_results):
+    delta_f = [res[0] for res in iterations_results]
+    delta_uv = [res[1] for res in iterations_results]
+    delta_skew = [res[2] for res in iterations_results]
+
+    return delta_f, delta_uv, delta_skew
+
+def generate_K():
+    # Intrinsic matrix with noise
+    fx = 3500 + np.random.normal(0, 50)
+    fy = 3500 + np.random.normal(0, 50)
+    cx = 1750 + np.random.normal(0, 10)
+    cy = 1750 + np.random.normal(0, 10)
+    K = np.array([
+        [fx,  0, cx],
+        [0,  fy, cy],
+        [0,   0,  1]
+    ])
+    return K
 
 def normalized_diff(calculated, truth):
     if calculated == 0 and truth == 0:

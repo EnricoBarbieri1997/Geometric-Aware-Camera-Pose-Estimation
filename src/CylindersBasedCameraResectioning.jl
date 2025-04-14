@@ -94,97 +94,110 @@ module CylindersBasedCameraResectioning
     end
 
     function monodromy()
-        intrinsic_rotations_monodromy_solutions::Vector{Vector{ComplexF64}} = []
-        translations_monodromy_solutions::Vector{Vector{ComplexF64}} = []
+        paramters_solutions_pairs::Vector{ParametersSolutionsPair} = []
+        Random.seed!(67)
 
-        scene, problems = create_scene_instances_and_problems(
-            number_of_instances=2,
-            number_of_cylinders=2,
-            random_seed=67,
-            cylinders_random_seed=14,
-            intrinsic_configuration=IntrinsicParametersConfigurations.fₓ_fᵧ,
-        )
-
-        rotation_intrinsic_system, parameters = intrinsic_rotation_system_setup(problems)
-        _, total_degree_solutions = total_degree(rotation_intrinsic_system; target_parameters = parameters)
-
-        fₓ, _, _, skew, fᵧ, _, cₓ, cᵧ, _ = vec(scene.instances[1].camera.intrinsic)
-        startingsolution = [fₓ, fᵧ]
-
-        for instance in scene.instances
-            camera = instance.camera
-            rot = Rotations.params(camera.quaternion_rotation')
-            rot = rot / rot[1]
-            rot = rot[2:end]
-            startingsolution = stack_homotopy_parameters(
-                startingsolution,
-                rot,
-            )
-        end
-
-        @info "Jacobians rank"
-        @info variables_jacobian_rank(rotation_intrinsic_system, startingsolution, parameters)
-        @info joint_jacobian_rank(rotation_intrinsic_system, startingsolution, parameters)
-
-        startingsolution = convert(Vector{Float64}, startingsolution)
-        # parameters = convert(Vector{Float64}, parameters)
-
-        push!(intrinsic_rotations_monodromy_solutions, startingsolution)
-
-        while true
-            old_solution_count = length(intrinsic_rotations_monodromy_solutions)
-            monodromy_solutions = monodromy_solve(
-                rotation_intrinsic_system,
-                intrinsic_rotations_monodromy_solutions,
-                parameters;
-            )
-            @info monodromy_solutions
-            push!(intrinsic_rotations_monodromy_solutions, solutions(monodromy_solutions)...)
-            intrinsic_rotations_monodromy_solutions = unique(intrinsic_rotations_monodromy_solutions)
-            new_solution_count = length(intrinsic_rotations_monodromy_solutions)
-
+        for try_index in 1:1000
             try
-                mkdir("tmp")
-            catch
-            end
+                intrinsic_rotations_monodromy_solutions::Vector{Vector{ComplexF64}} = []
+                translations_monodromy_solutions::Vector{Vector{ComplexF64}} = []
 
-            # for (i, problem) in enumerate(problems)
-            #     problem.camera.intrinsic = scene.instances[i].camera.intrinsic
-            #     problem.camera.quaternion_rotation = scene.instances[i].camera.quaternion_rotation
-            #     translation_system, parameters = intrinsic_rotation_translation_system_setup(problem)
-            #     startingsolution = scene.instances[i].camera.position
-            #     startingsolution = convert(Vector{Float64}, startingsolution)
-            #     monodromy_solutions = monodromy_solve(
-            #         translation_system,
-            #         startingsolution,
-            #         parameters
-            #     )
-            #     @info monodromy_solutions
-            #     push!(translations_monodromy_solutions, solutions(monodromy_solutions)...)
-            #     translations_monodromy_solutions = unique(translations_monodromy_solutions)
-            # end
+                camera_random_seed = rand(Int)
+                scene, problems = create_scene_instances_and_problems(;
+                    number_of_instances=2,
+                    number_of_cylinders=3,
+                    random_seed=camera_random_seed,
+                    cylinders_random_seed=14,
+                    intrinsic_configuration=IntrinsicParametersConfigurations.fₓ_fᵧ_cₓ_cᵧ,
+                )
 
-            if new_solution_count == old_solution_count
-                break
+                rotation_intrinsic_system, parameters = intrinsic_rotation_system_setup(problems)
+                # _, total_degree_solutions = total_degree(rotation_intrinsic_system; target_parameters = parameters)
+
+                fₓ, _, _, skew, fᵧ, _, cₓ, cᵧ, _ = vec(scene.instances[1].camera.intrinsic)
+                startingsolution = [fₓ, fᵧ, cₓ, cᵧ]
+
+                for instance in scene.instances
+                    camera = instance.camera
+                    rot = Rotations.params(camera.quaternion_rotation')
+                    rot = rot / rot[1]
+                    rot = rot[2:end]
+                    startingsolution = stack_homotopy_parameters(
+                        startingsolution,
+                        rot,
+                    )
+                end
+
+                @info "Jacobians rank"
+                @info variables_jacobian_rank(rotation_intrinsic_system, startingsolution, parameters)
+                @info joint_jacobian_rank(rotation_intrinsic_system, startingsolution, parameters)
+
+                startingsolution = convert(Vector{Float64}, startingsolution)
+                # parameters = convert(Vector{Float64}, parameters)
+
+                push!(intrinsic_rotations_monodromy_solutions, startingsolution)
+
+                while true
+                    old_solution_count = length(intrinsic_rotations_monodromy_solutions)
+                    monodromy_solutions = monodromy_solve(
+                        rotation_intrinsic_system,
+                        intrinsic_rotations_monodromy_solutions,
+                        parameters;
+                    )
+                    @info monodromy_solutions
+                    push!(intrinsic_rotations_monodromy_solutions, solutions(monodromy_solutions)...)
+                    intrinsic_rotations_monodromy_solutions = unique(intrinsic_rotations_monodromy_solutions)
+                    new_solution_count = length(intrinsic_rotations_monodromy_solutions)
+
+                    try
+                        mkdir("tmp")
+                    catch
+                    end
+
+                    # for (i, problem) in enumerate(problems)
+                    #     problem.camera.intrinsic = scene.instances[i].camera.intrinsic
+                    #     problem.camera.quaternion_rotation = scene.instances[i].camera.quaternion_rotation
+                    #     translation_system, parameters = intrinsic_rotation_translation_system_setup(problem)
+                    #     startingsolution = scene.instances[i].camera.position
+                    #     startingsolution = convert(Vector{Float64}, startingsolution)
+                    #     monodromy_solutions = monodromy_solve(
+                    #         translation_system,
+                    #         startingsolution,
+                    #         parameters
+                    #     )
+                    #     @info monodromy_solutions
+                    #     push!(translations_monodromy_solutions, solutions(monodromy_solutions)...)
+                    #     translations_monodromy_solutions = unique(translations_monodromy_solutions)
+                    # end
+
+                    if new_solution_count == old_solution_count
+                        break
+                    end
+                end
+
+                for sol in intrinsic_rotations_monodromy_solutions
+                    e = evaluate(rotation_intrinsic_system, sol, parameters)
+                    tot_error = sum(abs.(e))
+                    if tot_error > 1e-6
+                        @error "Error: $tot_error"
+                    end
+                end
+
+                # append!(intrinsic_rotations_monodromy_solutions, collect(total_degree_solutions))
+
+                push!(paramters_solutions_pairs, ParametersSolutionsPair(
+                    parameters,
+                    intrinsic_rotations_monodromy_solutions
+                ))
+            catch e
+                @error e
+                display("No intrinsic-rotation monodromy")
             end
         end
-
-        for sol in intrinsic_rotations_monodromy_solutions
-            e = evaluate(rotation_intrinsic_system, sol, parameters)
-            tot_error = sum(abs.(e))
-            if tot_error > 1e-6
-                @error "Error: $tot_error"
-            end
-        end
-
-        append!(intrinsic_rotations_monodromy_solutions, collect(total_degree_solutions))
 
         serialize(
             "tmp/intrinsic_rotation_monodromy_solutions.jld",
-            ParametersSolutionsPair(
-                parameters,
-                intrinsic_rotations_monodromy_solutions
-            )
+            paramters_solutions_pairs
         )
 
         # serialize(

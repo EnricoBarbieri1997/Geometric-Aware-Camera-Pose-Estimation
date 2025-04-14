@@ -2,22 +2,9 @@ import numpy as np
 import cv2
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
-from calib_results import create_single_noise_result, save_results_to_json, intrinsic_difference
+from calib_results import create_single_noise_result, save_results_to_json, intrinsic_difference, iterations_results_to_metrics, generate_K
 
 np.random.seed(42)
-
-def generate_K():
-    # Intrinsic matrix with noise
-    fx = 3500 + np.random.normal(0, 50)
-    fy = 3500 + np.random.normal(0, 50)
-    cx = 0 + np.random.normal(0, 10)
-    cy = 0 + np.random.normal(0, 10)
-    K = np.array([
-        [fx,  0, cx],
-        [0,  fy, cy],
-        [0,   0,  1]
-    ])
-    return K
 
 def generate_camera(K):
     # Camera position (random, but looking at world origin)
@@ -243,118 +230,121 @@ def add_noise_to_lines(line1, line2, noise):
 
     return noisy_line_1, noisy_line_2
 
-debug = 1
+debug = 0
 
 results = []
 
 for noise in np.arange(0.0, 0.55, 0.05):
   print(f"Noise: {noise:.2f}")
 
-  K = generate_K()
-  base1, base2, Q1, Q2, Q3, Q4 = generate_cylinder(center=np.random.uniform(-100, 100, 3))
-  P1 = base1[:, 0]
-  P2 = base2[:, 0]
-  Qs = [Q1, Q2, Q3, Q4]
+  iterations_results = []
+  for i in range(50):
+    K = generate_K()
+    base1, base2, Q1, Q2, Q3, Q4 = generate_cylinder(center=np.random.uniform(-100, 100, 3))
+    P1 = base1[:, 0]
+    P2 = base2[:, 0]
+    Qs = [Q1, Q2, Q3, Q4]
 
-  cylinder_3D = np.hstack([base1, base2])
+    cylinder_3D = np.hstack([base1, base2])
 
-  cameras = []
-  for _ in range(4):
-    cameras.append(generate_camera(K))
-
-  if debug >= 1:
-    plot_3d_scene(base1, base2, cameras)
-
-
-  views = []
-  for camera in cameras:
-    P, R, t = camera
-    qs_2D = [project_points(P, q.reshape(3, 1))[:, 0] for q in Qs]
-
-    # Get vanishing points
-    l1 = fit_line(qs_2D[0], qs_2D[2])
-    l2 = fit_line(qs_2D[1], qs_2D[3])
-
-    if noise > 0:
-      # Add noise to lines
-      l1, l2 = add_noise_to_lines(l1, l2, noise)
-
-    v1 = line_intersection(l1, l2)
-
-    q1q2 = fit_line(qs_2D[0], qs_2D[1])
-    q3q4 = fit_line(qs_2D[2], qs_2D[3])
-    v2 = line_intersection(q1q2, q3q4)
-
-    p1_2D = project_points(P, P1.reshape(3,1))[:, 0]
-    p2_2D = project_points(P, P2.reshape(3,1))[:, 0]
-    
-    views.append((v1, v2, p1_2D, p2_2D))
-
-    if (debug >= 2):
-      proj_points = project_points(P, cylinder_3D)
-      plot_projection(proj_points, base1, base2)
-
-  rows = []
-  for (v1, v2, _, _) in views:
-    x1, y1, w1 = v1
-    x2, y2, w2 = v2
-    row = [
-      x1 * x2,                         # w11
-      0,                               # w12 (skew zero)
-      x1 * w2 + w1 * x2,               # w13
-      y1 * y2,                         # w22
-      y1 * w2 + w1 * y2,               # w23
-      w1 * w2                          # w33
-    ]
-    rows.append(row)
-
-  A = np.array(rows)
-  _, _, Vt = np.linalg.svd(A)
-  omega_vec = Vt[-1]  # Last row = solution to A x = 0
-
-  # Reconstruct symmetric omega matrix
-  omega = np.array([
-    [omega_vec[0], 0, omega_vec[2]/2],
-    [0, omega_vec[3], omega_vec[4]/2],
-    [omega_vec[2]/2, omega_vec[4]/2, omega_vec[5]]
-  ])
-
-  try:
-    A_inv = np.linalg.cholesky(omega).T  # since omega = A⁻ᵀ A⁻¹
-    A = np.linalg.inv(A_inv)
-
-    delta_f, delta_uv, delta_skew = intrinsic_difference(A, K)
-
-    results.append(create_single_noise_result("right_cylinder", noise, delta_f, delta_uv, delta_skew))
-    
-    print_intrinsics_comparison(K, A, debug)
+    cameras = []
+    for _ in range(4):
+      cameras.append(generate_camera(K))
 
     if debug >= 1:
-      for i, (v1, v2, p1_2D, p2_2D) in enumerate(views):
-          R_est, t_est = estimate_extrinsics(A, v1, v2, p1_2D, p2_2D)
-          _, R_gt, t_gt = cameras[i]
+      plot_3d_scene(base1, base2, cameras)
 
-          print(f"\n📷 Camera {i+1} Comparison")
 
-          print("Ground Truth Rotation Matrix R:")
-          print(np.round(R_gt, 3))
+    views = []
+    for camera in cameras:
+      P, R, t = camera
+      qs_2D = [project_points(P, q.reshape(3, 1))[:, 0] for q in Qs]
 
-          print("Estimated Rotation Matrix R:")
-          print(np.round(R_est, 3))
+      # Get vanishing points
+      l1 = fit_line(qs_2D[0], qs_2D[2])
+      l2 = fit_line(qs_2D[1], qs_2D[3])
 
-          print("Rotation Difference (R_gt.T @ R_est):")
-          print(np.round(R_gt.T @ R_est, 3))
+      if noise > 0:
+        # Add noise to lines
+        l1, l2 = add_noise_to_lines(l1, l2, noise)
 
-          print("Ground Truth Translation Vector t (normalized):")
-          print(np.round(t_gt.flatten() / np.linalg.norm(t_gt), 3))
+      v1 = line_intersection(l1, l2)
 
-          print("Estimated Translation Vector t:")
-          print(np.round(t_est.flatten(), 3))
-  except np.linalg.LinAlgError:
-    results.append(create_single_noise_result("right_cylinder", noise, [], [], []))
-    print("Cholesky decomposition failed. Matrix may not be positive definite.")
-    print("This could be due to noise or other numerical issues.")
-  
+      q1q2 = fit_line(qs_2D[0], qs_2D[1])
+      q3q4 = fit_line(qs_2D[2], qs_2D[3])
+      v2 = line_intersection(q1q2, q3q4)
+
+      p1_2D = project_points(P, P1.reshape(3,1))[:, 0]
+      p2_2D = project_points(P, P2.reshape(3,1))[:, 0]
+      
+      views.append((v1, v2, p1_2D, p2_2D))
+
+      if (debug >= 2):
+        proj_points = project_points(P, cylinder_3D)
+        plot_projection(proj_points, base1, base2)
+
+    rows = []
+    for (v1, v2, _, _) in views:
+      x1, y1, w1 = v1
+      x2, y2, w2 = v2
+      row = [
+        x1 * x2,                         # w11
+        0,                               # w12 (skew zero)
+        x1 * w2 + w1 * x2,               # w13
+        y1 * y2,                         # w22
+        y1 * w2 + w1 * y2,               # w23
+        w1 * w2                          # w33
+      ]
+      rows.append(row)
+
+    A = np.array(rows)
+    _, _, Vt = np.linalg.svd(A)
+    omega_vec = Vt[-1]  # Last row = solution to A x = 0
+
+    # Reconstruct symmetric omega matrix
+    omega = np.array([
+      [omega_vec[0], 0, omega_vec[2]/2],
+      [0, omega_vec[3], omega_vec[4]/2],
+      [omega_vec[2]/2, omega_vec[4]/2, omega_vec[5]]
+    ])
+
+    try:
+      A_inv = np.linalg.cholesky(omega).T  # since omega = A⁻ᵀ A⁻¹
+      A = np.linalg.inv(A_inv)
+
+      iterations_results.append(intrinsic_difference(A, K))
+      
+      print_intrinsics_comparison(K, A, debug)
+
+      if debug >= 1:
+        for i, (v1, v2, p1_2D, p2_2D) in enumerate(views):
+            R_est, t_est = estimate_extrinsics(A, v1, v2, p1_2D, p2_2D)
+            _, R_gt, t_gt = cameras[i]
+
+            print(f"\n📷 Camera {i+1} Comparison")
+
+            print("Ground Truth Rotation Matrix R:")
+            print(np.round(R_gt, 3))
+
+            print("Estimated Rotation Matrix R:")
+            print(np.round(R_est, 3))
+
+            print("Rotation Difference (R_gt.T @ R_est):")
+            print(np.round(R_gt.T @ R_est, 3))
+
+            print("Ground Truth Translation Vector t (normalized):")
+            print(np.round(t_gt.flatten() / np.linalg.norm(t_gt), 3))
+
+            print("Estimated Translation Vector t:")
+            print(np.round(t_est.flatten(), 3))
+    except np.linalg.LinAlgError as e:
+      # iterations_results.append([100, 100, 100])
+      print("Cholesky decomposition failed. Matrix may not be positive definite.")
+      print("This could be due to noise or other numerical issues.")
+      print(e)
+
+  results.append(create_single_noise_result("right_cylinder", noise, *iterations_results_to_metrics(iterations_results)))
+
   print("\n" + "="*50 + "\n")
 
 # Save results to JSON

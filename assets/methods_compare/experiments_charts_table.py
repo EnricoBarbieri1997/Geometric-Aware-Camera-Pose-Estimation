@@ -1,8 +1,15 @@
 import json
 import numpy as np
 import matplotlib.pyplot as plt
+import matplotlib.ticker as ticker
 from collections import defaultdict
 import os
+
+def customPlotFun(y, pos):
+    if y == 0.0001:
+        return "≤ 0.0001"
+    else:
+        return format(y)
 
 # Label maps
 method_labels = {
@@ -60,7 +67,16 @@ for metric in metrics:
         for noise in noise_levels:
             vals = grouped[metric][method][noise]
             if vals:
-                means.append(np.mean(vals))
+                vals = [max(v, 0.0001) for v in vals]
+                mean = np.mean(vals)
+                variance = np.var(vals)
+                min_val = np.min(vals)
+                max_val = np.max(vals)
+                means.append(mean)
+                plt.errorbar(
+                    noise, mean, yerr=np.sqrt(variance), fmt='o', color=colors[idx]
+                )
+                plt.vlines(noise, min_val, max_val, color=colors[idx], alpha=0.5)
             else:
                 means.append(np.nan)
 
@@ -75,9 +91,11 @@ for metric in metrics:
 
     plt.xlabel("Noise Level")
     plt.ylabel(metric_labels[metric])
+    plt.yscale("log")
+    plt.gca().yaxis.set_major_formatter(customPlotFun)
     plt.title(f"{metric_labels[metric]} vs Noise")
     plt.legend()
-    plt.grid(True)
+    plt.grid(True, which="both", linestyle="--", linewidth=0.5)
     plt.tight_layout()
     os.makedirs("plots", exist_ok=True)
     plt.savefig(f"plots/{metric}.pdf")

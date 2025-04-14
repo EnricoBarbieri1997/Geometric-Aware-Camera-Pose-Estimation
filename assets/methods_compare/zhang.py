@@ -1,7 +1,7 @@
 import numpy as np
 import cv2
 import matplotlib.pyplot as plt
-from calib_results import create_single_noise_result, save_results_to_json, intrinsic_difference
+from calib_results import create_single_noise_result, save_results_to_json, intrinsic_difference, iterations_results_to_metrics, generate_K
 
 def plot_img_points(image_points, image_size=(640, 480)):
     img = np.zeros((image_size[1], image_size[0], 3), dtype=np.uint8)
@@ -19,11 +19,9 @@ def generate_object_points(board_size=(9, 6), square_size=1.0):
     return objp
 
 # 2. Simulate a known camera
-def simulate_camera(fx=800, fy=800, cx=320, cy=240, skew=0, noise_std=0.0, num_views=4, debug=1):
+def simulate_camera(noise_std=0.0, num_views=4, debug=1):
     # Intrinsics
-    K = np.array([[fx, skew, cx],
-                  [0, fy, cy],
-                  [0,  0,  1]])
+    K = generate_K()
     dist_coeffs = np.zeros(5)  # No distortion
     object_points = []
     image_points = []
@@ -72,8 +70,8 @@ debug = 1
 
 fx = 3500 + np.random.normal(0, 50)
 fy = 3500 + np.random.normal(0, 50)
-cx = 0 + np.random.normal(0, 10)
-cy = 0 + np.random.normal(0, 10)
+cx = 1750 + np.random.normal(0, 10)
+cy = 1750 + np.random.normal(0, 10)
 skew = 0 + np.random.normal(0, 0.1)
 
 results = []
@@ -90,29 +88,26 @@ views_for_variant = {
 
 for noise in np.arange(0, 5.5, 0.5):
     for variant in zhang_variants:
-        obj_pts, img_pts, gt_K = simulate_camera(
-            fx=fx,
-            fy=fy,
-            cx=cx,
-            cy=cy,
-            skew=skew,
-            noise_std=noise / 10.0,
-            num_views=views_for_variant[variant],
-            debug=debug
-        )
-        est_K, _, error = run_calibration(obj_pts, img_pts)
-        delta_f, delta_uv, delta_skew = intrinsic_difference(est_K, gt_K)
+        iteration_results = []
+        for i in range(50):
+            obj_pts, img_pts, gt_K = simulate_camera(
+                noise_std=noise / 10.0,
+                num_views=views_for_variant[variant],
+                debug=debug
+            )
+            est_K, _, error = run_calibration(obj_pts, img_pts)
+            iteration_results.append(intrinsic_difference(est_K, gt_K))
+            print(f"Noise STD: {noise:.1f} - Reprojection Error: {error:.4f}")
+            print_intrinsics_comparison(gt_K, est_K)
+            print("\n========================================\n")
+        
+
         results.append(
             create_single_noise_result(
                 variant,
                 noise / 10.0,
-                delta_f,
-                delta_uv,
-                delta_skew,
+                *iterations_results_to_metrics(iteration_results),
             )
         )
-        print(f"Noise STD: {noise:.1f} - Reprojection Error: {error:.4f}")
-        print_intrinsics_comparison(gt_K, est_K)
-        print("\n========================================\n")
 
 save_results_to_json("zhang_results.json", results)
