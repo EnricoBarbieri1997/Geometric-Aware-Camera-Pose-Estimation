@@ -161,7 +161,7 @@ module Printing
             "Δskew",
             "Camera matrix",
         ]
-        if (length(errors) > 4)
+        if (size(errors)[1] > 4)
             data_rows = vcat(data_rows, [
                 "ΔR",
                 "ΔT",
@@ -194,7 +194,7 @@ module Printing
     }
     Handles scalar or vector inputs and nulls.
     """
-    function create_single_noise_result(method::String, noise::Float64;
+    function create_single_noise_result(method::String, noise::Float64,
         delta_f=nothing, delta_uv=nothing, delta_skew=nothing)
 
         result = Dict(
@@ -213,7 +213,7 @@ module Printing
     """
     function save_results_to_json(filename::String, results::Vector{Dict})
         open(filename, "w") do io
-            JSON.print(io, results; indent=2)
+            JSON.print(io, results, 2)
         end
     end
 

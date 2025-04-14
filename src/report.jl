@@ -321,7 +321,7 @@ module Report
 		end
 
 		if save_json
-			json_results = []
+			json_results::Vector{Dict} = []
 			for i in eachindex(noise_steps)
 				push!(json_results, create_single_noise_result("ours", noise_steps[i], errors_mean[1:3, i]...))
 			end

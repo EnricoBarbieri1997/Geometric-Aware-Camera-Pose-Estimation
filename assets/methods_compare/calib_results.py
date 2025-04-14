@@ -3,6 +3,29 @@ import json
 import os
 import glob
 
+def normalized_diff(calculated, truth):
+    if calculated == 0 and truth == 0:
+        return 0.0
+    denominator = truth if truth != 0 else calculated
+    return abs(calculated - truth) / abs(denominator)
+
+def intrinsic_difference(calculated, truth):
+    truth = truth / truth[2, 2]
+    calculated = calculated / calculated[2, 2]
+    fx, fy = calculated[0, 0], calculated[1, 1]
+    cx, cy = calculated[0, 2], calculated[1, 2]
+    skew = calculated[0, 1]
+
+    fx_t, fy_t = truth[0, 0], truth[1, 1]
+    cx_t, cy_t = truth[0, 2], truth[1, 2]
+    skew_t = truth[0, 1]
+
+    deltaF = (normalized_diff(fx, fx_t) + normalized_diff(fy, fy_t)) / 2
+    deltaUV = (normalized_diff(cx, cx_t) + normalized_diff(cy, cy_t)) / 2
+    deltaSkew = normalized_diff(skew, skew_t)
+
+    return [deltaF, deltaUV, deltaSkew]
+
 def create_single_noise_result(method_code, noise_value, delta_f, delta_uv, delta_skew):
     """
     Creates a result entry for one noise level.

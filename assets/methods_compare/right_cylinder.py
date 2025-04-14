@@ -2,7 +2,7 @@ import numpy as np
 import cv2
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
-from calib_results import create_single_noise_result, save_results_to_json
+from calib_results import create_single_noise_result, save_results_to_json, intrinsic_difference
 
 np.random.seed(42)
 
@@ -216,7 +216,7 @@ def intrinsic_difference(calculated, truth):
 
     deltaF = (normalized_diff(fx, fx_t) + normalized_diff(fy, fy_t)) / 2
     deltaUV = (normalized_diff(cx, cx_t) + normalized_diff(cy, cy_t)) / 2
-    deltaSkew = 2 * abs(skew - skew_t)
+    deltaSkew = abs(skew - skew_t)
 
     return [deltaF, deltaUV, deltaSkew]
 
@@ -243,7 +243,7 @@ def add_noise_to_lines(line1, line2, noise):
 
     return noisy_line_1, noisy_line_2
 
-debug = 0
+debug = 1
 
 results = []
 
