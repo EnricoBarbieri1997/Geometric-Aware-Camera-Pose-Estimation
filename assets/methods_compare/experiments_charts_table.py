@@ -30,11 +30,11 @@ metric_labels = {
 }
 
 method_supports = {
-    "ours": {"delta_f": True, "delta_uv": True, "delta_skew": True, "delta_r": True, "delta_t": True, success_rate: True},
-    "quadric_based": {"delta_f": True, "delta_uv": False, "delta_skew": False, "delta_r": True, "delta_t": True, success_rate: True},
-    "right_cylinder": {"delta_f": True, "delta_uv": True, "delta_skew": False, "delta_r": True, "delta_t": True, success_rate: True},
-    "zhang_4": {"delta_f": True, "delta_uv": True, "delta_skew": False, "delta_r": True, "delta_t": True, success_rate: True},
-    "zhang_30": {"delta_f": True, "delta_uv": True, "delta_skew": False, "delta_r": True, "delta_t": True, success_rate: True},
+    "ours": {"delta_f": True, "delta_uv": True, "delta_skew": True, "delta_r": True, "delta_t": True, "success_rate": True},
+    "quadric_based": {"delta_f": True, "delta_uv": False, "delta_skew": False, "delta_r": True, "delta_t": True, "success_rate": True},
+    "right_cylinder": {"delta_f": True, "delta_uv": True, "delta_skew": False, "delta_r": True, "delta_t": True, "success_rate": True},
+    "zhang_4": {"delta_f": True, "delta_uv": True, "delta_skew": False, "delta_r": True, "delta_t": True, "success_rate": True},
+    "zhang_30": {"delta_f": True, "delta_uv": True, "delta_skew": False, "delta_r": True, "delta_t": True, "success_rate": True},
 }
 
 methods = list(method_labels.keys())
@@ -52,9 +52,14 @@ for entry in data:
     noise = entry["noise"]
     method = entry["method"]
     for metric in metrics:
-        for v in entry.get(metric, []):
-            if v is not None:
-                grouped[metric][method][noise].append(v)
+        values = entry.get(metric, [])
+        if isinstance(values, list):
+            for v in values:
+                if v is not None:
+                    grouped[metric][method][noise].append(v)
+        else:
+            if values is not None:
+                grouped[metric][method][noise].append(values)
 
 # Plot each metric
 for metric in metrics:
