@@ -195,7 +195,7 @@ module Printing
     Handles scalar or vector inputs and nulls.
     """
     function create_single_noise_result(method::String, noise::Float64,
-        delta_f=nothing, delta_uv=nothing, delta_skew=nothing)
+        delta_f=nothing, delta_uv=nothing, delta_skew=nothing, delta_r=nothing, delta_t=nothing)
 
         result = Dict(
             "noise" => noise,

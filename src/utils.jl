@@ -182,12 +182,13 @@ module Utils
 	end
 
 	function rotations_difference(q1::QuatRotation, q2::QuatRotation)
-		identity = diagm(0=>fill(1., 3))
-		return matrix_difference(q1 * q2', identity)
+		R1 = Matrix(q1)  # convert quaternion to rotation matrix
+		R2 = Matrix(q2)
+		return acosd((tr(R1 * transpose(R2)) - 1) / 2)
 	end
 
 	function translations_difference(t1::Vector{<:Number}, t2::Vector{<:Number})
-		return vector_difference(t1, t2)
+		return norm(t1 - t2)
 	end
 
 	function isvalid_startsolution(system, solution, parameters)

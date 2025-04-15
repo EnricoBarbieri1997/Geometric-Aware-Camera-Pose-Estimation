@@ -570,18 +570,18 @@ module Scene
 
 							start_solutions = nothing
 							start_parameters = nothing
-							try
-									parameters_solutions_pair = deserialize("tmp/translation_monodromy_solutions.jld")
-									start_solutions = parameters_solutions_pair.solutions
-									start_parameters = parameters_solutions_pair.start_parameters
-							catch
-									display("No translation monodromy")
-							end
+							# try
+							# 		parameters_solutions_pair = deserialize("tmp/translation_monodromy_solutions.jld")
+							# 		start_solutions = parameters_solutions_pair.solutions
+							# 		start_parameters = parameters_solutions_pair.start_parameters
+							# catch
+							# 		display("No translation monodromy")
+							# end
 
 							translation_result = solve(
 									translation_system,
 									start_solutions;
-            			start_parameters,
+            						start_parameters,
 									target_parameters = parameters,
 									start_system = :total_degree,
 							)

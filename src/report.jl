@@ -4,7 +4,7 @@ module Report
 	using ..EquationSystems.Problems.IntrinsicParameters: Configurations as IntrinsicParametersConfigurations
 	using ..Plotting: initfigure, plot_3dcamera, Plot3dCameraInput
 	using ..Printing: print_camera_differences, print_error_analysis, create_single_noise_result, save_results_to_json
-  using ..Utils: vector_difference, intrinsic_difference, matrix_difference, rotations_difference, translations_difference
+  	using ..Utils: vector_difference, intrinsic_difference, matrix_difference, rotations_difference, translations_difference
 	
 	using CSV, Dates, HomotopyContinuation, Random, Serialization, Tables
 	using LinearAlgebra: norm
@@ -52,7 +52,7 @@ module Report
 		save_in_folder = false,
 	)
 		Random.seed!(940)
-		seeds = rand(Int, 2)
+		seeds = rand(Int, 51)
 		if !isnothing(seed_index)
 			seeds = [seeds[seed_index]]
 		end
@@ -61,8 +61,8 @@ module Report
 			# IntrinsicParametersConfigurations.none,
 			# IntrinsicParametersConfigurations.fₓ,
 			# IntrinsicParametersConfigurations.fₓ_fᵧ,
-			# IntrinsicParametersConfigurations.fₓ_fᵧ_cₓ_cᵧ,
-			IntrinsicParametersConfigurations.fₓ_fᵧ_skew_cₓ_cᵧ,
+			IntrinsicParametersConfigurations.fₓ_fᵧ_cₓ_cᵧ,
+			# IntrinsicParametersConfigurations.fₓ_fᵧ_skew_cₓ_cᵧ,
 		]
 
 		cylinder_views_per_config = Dict([
@@ -289,13 +289,23 @@ module Report
 			end
 			index = findfirst(noise_steps .== report.configuration.noise)
 			total_cameramatrix_error = reduce((tot, view) -> view.cameramatrix + tot, report.result.errors.views; init=0)
+			total_rotation_error = reduce((tot, view) -> view.rotation + tot, report.result.errors.views; init=0)
+			total_translation_error = reduce((tot, view) -> view.translation + tot, report.result.errors.views; init=0)
 			errors_mean[1:3, index] += report.result.errors.intrinsic
 			errors_mean[4, index] += total_cameramatrix_error
+			errors_mean[5, index] += total_rotation_error
+			errors_mean[6, index] += total_translation_error
 			if (norm(errors_max[1:3, index]) < norm(report.result.errors.intrinsic))
 				errors_max[1:3, index] = report.result.errors.intrinsic
 			end
 			if (errors_max[4, index] < total_cameramatrix_error)
 				errors_max[4, index] = total_cameramatrix_error
+			end
+			if (errors_max[5, index] < total_rotation_error)
+				errors_max[5, index] = total_rotation_error
+			end
+			if (errors_max[6, index] < total_translation_error)
+				errors_max[6, index] = total_translation_error
 			end
 			sample_counts[index] += 1
 		end
@@ -323,10 +333,10 @@ module Report
 		if save_json
 			json_results::Vector{Dict} = []
 			for i in eachindex(noise_steps)
-				push!(json_results, create_single_noise_result("ours", noise_steps[i], errors_mean[1:3, i]...))
+				push!(json_results, create_single_noise_result("ours", noise_steps[i], errors_mean[1:3, i]..., errors_mean[5:6, i]...))
 			end
 			for report in errored
-				push!(json_results, create_single_noise_result("ours", report.configuration.noise, [], [], []))
+				push!(json_results, create_single_noise_result("ours", report.configuration.noise, [], [], [], [], []))
 			end
 			save_results_to_json("assets/methods_compare/ours_results.json", json_results)
 		end
@@ -416,7 +426,7 @@ module Report
 						problem.camera.position,
 					), :green)
 				end
-		
+
 				plot_reconstructed_scene(scene, problems)
 				display(scene.figure)
 				break
