@@ -1,0 +1,20 @@
+# Use the official Python image as the base image
+FROM python:latest
+
+# Set the working directory in the container
+WORKDIR /app
+
+# Install system dependencies
+RUN apt-get update && apt-get install -y \
+    libgl1-mesa-glx \
+    && rm -rf /var/lib/apt/lists/*
+
+# Install Python dependencies
+RUN pip install --no-cache-dir \
+    opencv-python \
+    matplotlib \
+    numpy \
+    sympy
+
+# Set the default command to keep the container running
+CMD ["tail", "-f", "/dev/null"]

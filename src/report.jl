@@ -281,31 +281,43 @@ module Report
 		errors_max = zeros(Float64, 4, length(noise_steps))
 		errors_mean = zeros(Float64, 4, length(noise_steps))
 		sample_counts = zeros(Int, length(noise_steps))
+		errored_count = zeros(Int, length(noise_steps))
 		errored = []
 		for report in reports
-			if !is_terminated_successfully(report)
+			if !is_initialized(report)
 				push!(errored, report)
 				continue
 			end
+
 			index = findfirst(noise_steps .== report.configuration.noise)
-			total_cameramatrix_error = reduce((tot, view) -> view.cameramatrix + tot, report.result.errors.views; init=0)
-			total_rotation_error = reduce((tot, view) -> view.rotation + tot, report.result.errors.views; init=0)
-			total_translation_error = reduce((tot, view) -> view.translation + tot, report.result.errors.views; init=0)
+
+			if !is_terminated_successfully(report)
+				errored_count[index] += 1
+				push!(errored, report)
+				continue
+			end
+			
+			n_views = length(report.result.errors.views)
+
+			mean_cameramatrix_error = reduce((tot, view) -> view.cameramatrix + tot, report.result.errors.views; init=0) / n_views
+			mean_rotation_error = reduce((tot, view) -> view.rotation + tot, report.result.errors.views; init=0) / n_views
+			mean_translation_error = reduce((tot, view) -> view.translation + tot, report.result.errors.views; init=0) / n_views
+
 			errors_mean[1:3, index] += report.result.errors.intrinsic
-			errors_mean[4, index] += total_cameramatrix_error
-			errors_mean[5, index] += total_rotation_error
-			errors_mean[6, index] += total_translation_error
+			errors_mean[4, index] += mean_cameramatrix_error
+			errors_mean[5, index] += mean_rotation_error
+			errors_mean[6, index] += mean_translation_error
 			if (norm(errors_max[1:3, index]) < norm(report.result.errors.intrinsic))
 				errors_max[1:3, index] = report.result.errors.intrinsic
 			end
-			if (errors_max[4, index] < total_cameramatrix_error)
-				errors_max[4, index] = total_cameramatrix_error
+			if (errors_max[4, index] < mean_cameramatrix_error)
+				errors_max[4, index] = mean_cameramatrix_error
 			end
-			if (errors_max[5, index] < total_rotation_error)
-				errors_max[5, index] = total_rotation_error
+			if (errors_max[5, index] < mean_rotation_error)
+				errors_max[5, index] = mean_rotation_error
 			end
-			if (errors_max[6, index] < total_translation_error)
-				errors_max[6, index] = total_translation_error
+			if (errors_max[6, index] < mean_translation_error)
+				errors_max[6, index] = mean_translation_error
 			end
 			sample_counts[index] += 1
 		end
@@ -333,7 +345,8 @@ module Report
 		if save_json
 			json_results::Vector{Dict} = []
 			for i in eachindex(noise_steps)
-				push!(json_results, create_single_noise_result("ours", noise_steps[i], errors_mean[1:3, i]..., errors_mean[5:6, i]...))
+				success_rate = sample_counts[i] / (sample_counts[i] + errored_count[i])
+				push!(json_results, create_single_noise_result("ours", noise_steps[i], errors_mean[1:3, i]..., success_rate, errors_mean[5:6, i]...))
 			end
 			for report in errored
 				push!(json_results, create_single_noise_result("ours", report.configuration.noise, [], [], [], [], []))

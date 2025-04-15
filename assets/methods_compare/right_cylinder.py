@@ -231,6 +231,7 @@ def add_noise_to_lines(line1, line2, noise):
     return noisy_line_1, noisy_line_2
 
 debug = 0
+iterations_count = 50
 
 results = []
 
@@ -238,7 +239,7 @@ for noise in np.arange(0.0, 0.55, 0.05):
   print(f"Noise: {noise:.2f}")
 
   iterations_results = []
-  for i in range(50):
+  for i in range(iterations_count):
     K = generate_K()
     base1, base2, Q1, Q2, Q3, Q4 = generate_cylinder(center=np.random.uniform(-100, 100, 3))
     P1 = base1[:, 0]
@@ -312,7 +313,7 @@ for noise in np.arange(0.0, 0.55, 0.05):
       A_inv = np.linalg.cholesky(omega).T  # since omega = A⁻ᵀ A⁻¹
       A = np.linalg.inv(A_inv)
 
-      iterations_results.append(intrinsic_difference(A, K))
+      iterations_results.append(intrinsic_difference(A, K) + [1/iterations_count])
       
       print_intrinsics_comparison(K, A, debug)
 

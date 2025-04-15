@@ -24,14 +24,17 @@ metric_labels = {
     "delta_f": r"$\Delta f$",
     "delta_uv": r"$\Delta c$",
     "delta_skew": r"$\Delta$ $\gamma$",
+    "delta_r": r"$\Delta R$",
+    "delta_t": r"$\Delta t$",
+    "success_rate": "Success Rate",
 }
 
 method_supports = {
-    "ours": {"delta_f": True, "delta_uv": True, "delta_skew": True},
-    "quadric_based": {"delta_f": True, "delta_uv": True, "delta_skew": True},
-    "right_cylinder": {"delta_f": True, "delta_uv": True, "delta_skew": False},
-    "zhang_4": {"delta_f": True, "delta_uv": True, "delta_skew": False},
-    "zhang_30": {"delta_f": True, "delta_uv": True, "delta_skew": False}
+    "ours": {"delta_f": True, "delta_uv": True, "delta_skew": True, "delta_r": True, "delta_t": True, success_rate: True},
+    "quadric_based": {"delta_f": True, "delta_uv": False, "delta_skew": False, "delta_r": True, "delta_t": True, success_rate: True},
+    "right_cylinder": {"delta_f": True, "delta_uv": True, "delta_skew": False, "delta_r": True, "delta_t": True, success_rate: True},
+    "zhang_4": {"delta_f": True, "delta_uv": True, "delta_skew": False, "delta_r": True, "delta_t": True, success_rate: True},
+    "zhang_30": {"delta_f": True, "delta_uv": True, "delta_skew": False, "delta_r": True, "delta_t": True, success_rate: True},
 }
 
 methods = list(method_labels.keys())

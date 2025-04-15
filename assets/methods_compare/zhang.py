@@ -1,7 +1,7 @@
 import numpy as np
 import cv2
 import matplotlib.pyplot as plt
-from calib_results import create_single_noise_result, save_results_to_json, intrinsic_difference, iterations_results_to_metrics, generate_K
+from calib_results import create_single_noise_result, save_results_to_json, intrinsic_difference, iterations_results_to_metrics, generate_K, rotations_difference, translations_difference
 
 def plot_img_points(image_points, image_size=(640, 480)):
     img = np.zeros((image_size[1], image_size[0], 3), dtype=np.uint8)
@@ -28,10 +28,17 @@ def simulate_camera(noise_std=0.0, num_views=4, debug=1):
 
     objp = generate_object_points()
 
+    Rs = []
+    Ts = []
+
     for i in range(num_views):
         # Random rotation and translation
         rvec = np.random.uniform(-0.2, 0.2, 3)
         tvec = np.random.uniform(-10, 10, 3)
+
+        R, _ = cv2.Rodrigues(rvec)
+        Rs.append(R)
+        Ts.append(tvec)
 
         # Project 3D points to image plane
         imgp, _ = cv2.projectPoints(objp, rvec, tvec, K, dist_coeffs)
@@ -45,14 +52,14 @@ def simulate_camera(noise_std=0.0, num_views=4, debug=1):
         if debug >= 2:
             plot_img_points(imgp)
 
-    return object_points, image_points, K
+    return object_points, image_points, K, Rs, Ts
 
 # 3. Run Zhang calibration
 def run_calibration(object_points, image_points, image_size=(640, 480)):
     ret, mtx, dist, rvecs, tvecs = cv2.calibrateCamera(
         object_points, image_points, image_size, None, None
     )
-    return mtx, dist, ret
+    return mtx, dist, ret, [cv2.Rodrigues(rvec)[0] for rvec in rvecs], tvecs
 
 def print_intrinsics_comparison(K_true, A_est, debug = 1):
     if debug >= 1:
@@ -86,21 +93,29 @@ views_for_variant = {
     "zhang_30": 30,
 }
 
+iterations_count = 50
+
 for noise in np.arange(0, 5.5, 0.5):
     for variant in zhang_variants:
         iteration_results = []
-        for i in range(50):
-            obj_pts, img_pts, gt_K = simulate_camera(
+        for i in range(iterations_count):
+            obj_pts, img_pts, gt_K, gt_R, gt_T = simulate_camera(
                 noise_std=noise / 10.0,
                 num_views=views_for_variant[variant],
                 debug=debug
             )
-            est_K, _, error = run_calibration(obj_pts, img_pts)
-            iteration_results.append(intrinsic_difference(est_K, gt_K))
+
+            est_K, _, error, est_Rs, est_Ts = run_calibration(obj_pts, img_pts)
+
+            # Metrics
+            intr_err = intrinsic_difference(est_K, gt_K)
+            rot_err = np.mean([rotations_difference(est_R, gt_R) for (est_R, gt_R) in zip(est_Rs, gt_R)])
+            trans_err = np.mean([translations_difference(est_T, gt_T) for (est_T, gt_T) in zip(est_Ts, gt_T)])
+
+            iteration_results.append(list(intr_err) + [1/iterations_count, rot_err, trans_err])
             print(f"Noise STD: {noise:.1f} - Reprojection Error: {error:.4f}")
             print_intrinsics_comparison(gt_K, est_K)
             print("\n========================================\n")
-        
 
         results.append(
             create_single_noise_result(
