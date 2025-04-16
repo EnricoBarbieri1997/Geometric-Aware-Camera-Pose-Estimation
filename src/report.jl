@@ -225,7 +225,7 @@ module Report
 		end
 
 		if save_in_folder
-			serialize("./tmp/reports/$date_string)/$(seed_index)-$(join(noises, '_')).jls", results)
+			serialize("./tmp/reports/$date_string)/$(seed_index)-$(join(noise_values, '_')).jls", results)
 		else
 			serialize("./tmp/reports/$(date_string).jls", results)
 		end
