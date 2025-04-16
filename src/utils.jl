@@ -3,7 +3,7 @@ module Utils
 
 	using ..Camera: lookat_rotation
 
-	using LinearAlgebra: diagm, norm, normalize, svdvals, trace
+	using LinearAlgebra: diagm, norm, normalize, svdvals, tr
 	using Rotations
 	using Random
 	using HomotopyContinuation: jacobian
@@ -184,7 +184,7 @@ module Utils
 	function rotations_difference(q1::QuatRotation, q2::QuatRotation)
 		R1 = Matrix(q1)  # convert quaternion to rotation matrix
 		R2 = Matrix(q2)
-		return acosd((trace(R1 * transpose(R2)) - 1) / 2)
+		return acosd((tr(R1 * transpose(R2)) - 1) / 2)
 	end
 
 	function translations_difference(t1::Vector{<:Number}, t2::Vector{<:Number})
