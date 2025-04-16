@@ -52,16 +52,16 @@ module Report
 		save_in_folder = false,
 	)
 		Random.seed!(940)
-		seeds = rand(Int, 2)
+		seeds = rand(Int, 50)
 		if !isnothing(seed_index)
 			seeds = [seeds[seed_index]]
 		end
 
 		configurations = [
-			IntrinsicParametersConfigurations.none,
+			# IntrinsicParametersConfigurations.none,
 			# IntrinsicParametersConfigurations.fₓ,
 			# IntrinsicParametersConfigurations.fₓ_fᵧ,
-			# IntrinsicParametersConfigurations.fₓ_fᵧ_cₓ_cᵧ,
+			IntrinsicParametersConfigurations.fₓ_fᵧ_cₓ_cᵧ,
 			# IntrinsicParametersConfigurations.fₓ_fᵧ_skew_cₓ_cᵧ,
 		]
 
@@ -87,7 +87,7 @@ module Report
 			]),
 		])
 
-		noise_values = if isnothing(noises) collect(0.0:0.05:0.5) else noises end
+		noise_values = if isnothing(noises) collect(0.0:0.05:0.55) else noises end
 
 		results = []
 
@@ -216,7 +216,8 @@ module Report
 					end
 					if length(current_noise_results) > 0
 						if save_in_folder
-							serialize("./tmp/reports/$(date_string)/$(noise).jls", current_noise_results)
+							formatted_noise = "noise-" * replace(string(noise), "." => "-")
+							serialize("./tmp/reports/$(date_string)/$(formatted_noise).jls", current_noise_results)
 						end
 						append!(results, current_noise_results)
 					end
@@ -225,7 +226,7 @@ module Report
 		end
 
 		if save_in_folder
-			serialize("./tmp/reports/$date_string)/$(seed_index)-$(join(noise_values, '_')).jls", results)
+			serialize("./tmp/reports/$(date_string)/all-$(length(seeds))-$(length(noise_values)).jls", results)
 		else
 			serialize("./tmp/reports/$(date_string).jls", results)
 		end
