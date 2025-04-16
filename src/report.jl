@@ -6,7 +6,7 @@ module Report
 	using ..Printing: print_camera_differences, print_error_analysis, create_single_noise_result, save_results_to_json
   	using ..Utils: vector_difference, intrinsic_difference, matrix_difference, rotations_difference, translations_difference
 	
-	using CSV, Dates, HomotopyContinuation, Random, Serialization, Tables
+	using CSV, Dates, Glob, HomotopyContinuation, Random, Serialization, Tables
 	using LinearAlgebra: norm
 	
 	struct ViewError
@@ -52,16 +52,16 @@ module Report
 		save_in_folder = false,
 	)
 		Random.seed!(940)
-		seeds = rand(Int, 51)
+		seeds = rand(Int, 2)
 		if !isnothing(seed_index)
 			seeds = [seeds[seed_index]]
 		end
 
 		configurations = [
-			# IntrinsicParametersConfigurations.none,
+			IntrinsicParametersConfigurations.none,
 			# IntrinsicParametersConfigurations.fₓ,
 			# IntrinsicParametersConfigurations.fₓ_fᵧ,
-			IntrinsicParametersConfigurations.fₓ_fᵧ_cₓ_cᵧ,
+			# IntrinsicParametersConfigurations.fₓ_fᵧ_cₓ_cᵧ,
 			# IntrinsicParametersConfigurations.fₓ_fᵧ_skew_cₓ_cᵧ,
 		]
 
@@ -91,11 +91,20 @@ module Report
 
 		results = []
 
-		for seed in seeds
-			for configuration in configurations
-				possible_scene_configurations = get(cylinder_views_per_config, configuration, [(2, 1)])
-				for scene_configuration in possible_scene_configurations
-					for noise in noise_values
+		if !isdir("./tmp/reports")
+			mkdir("./tmp/reports")
+		end
+		date_string = Dates.format(now(),"yyyy-mm-dd HH-MM")
+		if save_in_folder
+			mkdir("./tmp/reports/$(date_string)")
+		end
+
+		for configuration in configurations
+			possible_scene_configurations = get(cylinder_views_per_config, configuration, [(2, 1)])
+			for scene_configuration in possible_scene_configurations
+				for noise in noise_values
+					current_noise_results = []
+					for seed in seeds
 						display("Seed: $seed. Configuration: $configuration. Scene configuration: $scene_configuration. Noise: $noise")
 						start = time()
 						report_configuration = nothing
@@ -176,7 +185,7 @@ module Report
 									),
 								))
 							end
-							push!(results, ReportData(
+							push!(current_noise_results, ReportData(
 								report_configuration,
 								ReportResult(
 									time() - start,
@@ -205,20 +214,31 @@ module Report
 
 						display("------------------------------------")
 					end
+					if length(current_noise_results) > 0
+						if save_in_folder
+							serialize("./tmp/reports/$(date_string)/$(noise).jls", current_noise_results)
+						end
+						append!(results, current_noise_results)
+					end
 				end
 			end
 		end
 
-		if !isdir("./tmp/reports")
-			mkdir("./tmp/reports")
-		end
-		date_string = Dates.format(now(),"dd-mm-yyyy HH-MM")
 		if save_in_folder
-			mkdir("./tmp/reports/$(date_string)")
 			serialize("./tmp/reports/$date_string)/$(seed_index)-$(join(noises, '_')).jls", results)
 		else
 			serialize("./tmp/reports/$(date_string).jls", results)
 		end
+	end
+
+	function merge_reports(reports_path, output_path)
+		reports = []
+		files = glob(reports_path)
+		for report_path in files
+			report = deserialize(report_path)
+			append!(reports, report)
+		end
+		serialize(output_path, reports)
 	end
 
 	function report_to_csv(report_path, csv_path)
