@@ -1,5 +1,5 @@
 module Geometry
-	export Plane, Line, Point, Circle, Cylinder, issame_line, homogeneous_to_line, line_to_homogenous, homogeneous_line_intercept, homogeneous_anglebetween, project_point_into_line, project_point_into_plane, get_tangentpoints_circle_point, get_cylinder_contours
+	export Plane, Line, Point, Circle, Cylinder, TangentLineNotFound, issame_line, homogeneous_to_line, line_to_homogenous, homogeneous_line_intercept, homogeneous_anglebetween, project_point_into_line, project_point_into_plane, get_tangentpoints_circle_point, get_cylinder_contours
 
 	using ..Utils
 	using LinearAlgebra: cross, dot, norm, normalize
@@ -22,6 +22,10 @@ module Geometry
 		axis::Union{Vector{<:Number}, Nothing}
 	end
 	Cylinder = Circle
+
+	struct TangentLineNotFound <: Exception
+		msg::String
+	end
 
 	function issame_line(line₁::Line, line₂::Line, digits=6)
 		direction_factors = line₁.direction ./ line₂.direction
@@ -94,15 +98,15 @@ module Geometry
 			T2 = circle.center + ad * variation - bd * orthogonal_variation
 
 			if (d/circle.radius-1) ≃ 1E-8
-				throw(ArgumentError("The point is on the circle"))
+				throw(TangentLineNotFound("The point is on the circle"))
 			else
 				return (T1, T2)
 			end
 		else
-			throw(ArgumentError("The point is inside the circle"))
+			throw(TangentLineNotFound("The point is inside the circle"))
 		end
 
-		throw(ArgumentError("No tangent line possible"))
+		throw(TangentLineNotFound("No tangent line possible"))
 	end
 
 	function get_cylinder_contours(cylinder::Cylinder, cameraCenter::Vector{<:Number}, cameraMatrix::Matrix{<:Number})

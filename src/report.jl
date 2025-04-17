@@ -5,6 +5,7 @@ module Report
 	using ..Plotting: initfigure, plot_3dcamera, Plot3dCameraInput
 	using ..Printing: print_camera_differences, print_error_analysis, create_single_noise_result, save_results_to_json
   	using ..Utils: vector_difference, intrinsic_difference, matrix_difference, rotations_difference, translations_difference
+	using ..Geometry: TangentLineNotFound
 	
 	using CSV, Dates, Glob, HomotopyContinuation, Random, Serialization, Tables
 	using LinearAlgebra: norm
@@ -47,16 +48,12 @@ module Report
 	end
 	
 	function multiple_seeds_multiple_configuration(;
-		seed_index = nothing,
 		noises = nothing,
 		save_in_folder = false,
 	)
 		Random.seed!(940)
-		seeds = rand(Int, 50)
-		if !isnothing(seed_index)
-			seeds = [seeds[seed_index]]
-		end
 
+		number_of_seeds = 50
 		configurations = [
 			# IntrinsicParametersConfigurations.none,
 			# IntrinsicParametersConfigurations.fₓ,
@@ -99,12 +96,22 @@ module Report
 			mkdir("./tmp/reports/$(date_string)")
 		end
 
+		seeds = []
+
 		for configuration in configurations
 			possible_scene_configurations = get(cylinder_views_per_config, configuration, [(2, 1)])
 			for scene_configuration in possible_scene_configurations
 				for noise in noise_values
 					current_noise_results = []
-					for seed in seeds
+					current_seed_index = 1
+					while current_seed_index <= number_of_seeds
+						seed = nothing
+						if length(seeds) >= current_seed_index
+							seed = seeds[current_seed_index]
+						else
+							seed = rand(Int)
+						end
+
 						display("Seed: $seed. Configuration: $configuration. Scene configuration: $scene_configuration. Noise: $noise")
 						start = time()
 						report_configuration = nothing
@@ -202,13 +209,19 @@ module Report
 									),
 								)
 							))
+
+							push!(seeds, seed)
+							current_seed_index = current_seed_index + 1
 						catch e
-							throw(e)
 							Base.show_backtrace(stdout, backtrace())
-							if isnothing(report_configuration)
-								push!(results, e)
-							else
-								push!(results, ReportData(report_configuration, ReportException(e)))
+							if !isa(e, TangentLineNotFound)
+								if isnothing(report_configuration)
+									push!(results, e)
+								else
+									push!(results, ReportData(report_configuration, ReportException(e)))
+								end
+								push!(seeds, seed)
+								current_seed_index = current_seed_index + 1
 							end
 						end
 

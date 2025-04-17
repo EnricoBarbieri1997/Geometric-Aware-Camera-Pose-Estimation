@@ -184,7 +184,8 @@ module Utils
 	function rotations_difference(q1::QuatRotation, q2::QuatRotation)
 		R1 = Matrix(q1)  # convert quaternion to rotation matrix
 		R2 = Matrix(q2)
-		return acosd((tr(R1 * transpose(R2)) - 1) / 2)
+		diff = clamp((tr(R1 * transpose(R2)) - 1) / 2, -1, 1)
+		return acosd(diff)
 	end
 
 	function translations_difference(t1::Vector{<:Number}, t2::Vector{<:Number})
