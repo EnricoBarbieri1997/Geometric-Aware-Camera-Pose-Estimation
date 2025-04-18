@@ -84,7 +84,7 @@ module Report
 			]),
 		])
 
-		noise_values = if isnothing(noises) collect(0.0:0.05:0.55) else noises end
+		noise_values = if isnothing(noises) collect(0.05:0.05:0.55) else noises end
 
 		results = []
 
@@ -216,9 +216,9 @@ module Report
 							Base.show_backtrace(stdout, backtrace())
 							if !isa(e, TangentLineNotFound)
 								if isnothing(report_configuration)
-									push!(results, e)
+									push!(current_noise_results, e)
 								else
-									push!(results, ReportData(report_configuration, ReportException(e)))
+									push!(current_noise_results, ReportData(report_configuration, ReportException(e)))
 								end
 								push!(seeds, seed)
 								current_seed_index = current_seed_index + 1
@@ -231,16 +231,15 @@ module Report
 						if save_in_folder
 							formatted_noise = "noise-" * replace(string(noise), "." => "-")
 							serialize("./tmp/reports/$(date_string)/$(formatted_noise).jls", current_noise_results)
+						else
+							append!(results, current_noise_results)
 						end
-						append!(results, current_noise_results)
 					end
 				end
 			end
 		end
 
-		if save_in_folder
-			serialize("./tmp/reports/$(date_string)/all-$(length(seeds))-$(length(noise_values)).jls", results)
-		else
+		if !save_in_folder
 			serialize("./tmp/reports/$(date_string).jls", results)
 		end
 	end
