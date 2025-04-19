@@ -17,7 +17,7 @@ module Scene
 	using LinearAlgebra: cross, diagm, deg2rad, dot, I, normalize, pinv, svd
 	using HomotopyContinuation, Observables, Polynomials, Rotations
 	using Random
-	using GLMakie: Figure
+
 	struct ParametersSolutionsPair
 		start_parameters::Vector{Float64}
 		solutions::Union{Vector{Vector{ComplexF64}}, Vector{Vector{Vector{ComplexF64}}}}
@@ -30,7 +30,7 @@ module Scene
 	@kwdef mutable struct SceneData
 		cylinders::Vector{CylinderProperties} = []
 		instances::Vector{InstanceConfiguration} = []
-		figure::Figure = initfigure()
+		figure::Any = nothing
 	end
 
 	function create_scene_instances_and_problems(;
@@ -45,6 +45,9 @@ module Scene
 			Random.seed!(cylinders_random_seed)
 
 			scene = SceneData()
+			if plot
+				scene.figure = initfigure()
+			end
 
 			cylinders = []
 			for i in 1:number_of_cylinders
@@ -645,14 +648,14 @@ module Scene
 
 					start_solutions = nothing
 					start_parameters = nothing
-					try
-							parameters_solutions_pair = deserialize("tmp/translation_monodromy_solutions.jld")
-							start_solutions = parameters_solutions_pair.solutions
-							start_parameters = parameters_solutions_pair.start_parameters
-					catch e
-							display(e)
-							display("No translation monodromy")
-					end
+					# try
+					# 		parameters_solutions_pair = deserialize("tmp/translation_monodromy_solutions.jld")
+					# 		start_solutions = parameters_solutions_pair.solutions
+					# 		start_parameters = parameters_solutions_pair.start_parameters
+					# catch e
+					# 		display(e)
+					# 		display("No translation monodromy")
+					# end
 
 					result = solve(
 							translation_system,

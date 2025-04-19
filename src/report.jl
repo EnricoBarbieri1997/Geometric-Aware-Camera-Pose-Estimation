@@ -1,5 +1,5 @@
 module Report
-	using ..Scene: SceneData, best_overall_solution!, create_scene_instances_and_problems, intrinsic_rotation_system_setup, plot_scene, plot_reconstructed_scene
+	using ..Scene: SceneData, best_overall_solution!, best_overall_solution_by_steps!, create_scene_instances_and_problems, intrinsic_rotation_system_setup, plot_scene, plot_reconstructed_scene
 	using ..EquationSystems.Problems: CylinderCameraContoursProblem
 	using ..EquationSystems.Problems.IntrinsicParameters: Configurations as IntrinsicParametersConfigurations
 	using ..Plotting: initfigure, plot_3dcamera, Plot3dCameraInput
@@ -49,7 +49,7 @@ module Report
 	
 	function multiple_seeds_multiple_configuration(;
 		noises = nothing,
-		save_in_folder = false,
+		output = false,
 	)
 		Random.seed!(940)
 
@@ -84,48 +84,53 @@ module Report
 			]),
 		])
 
-		noise_values = if isnothing(noises) collect(0.05:0.05:0.55) else noises end
-
+		noise_values = if isnothing(noises) collect(0.20:0.05:0.55) else noises end
+		
 		results = []
 
 		if !isdir("./tmp/reports")
 			mkdir("./tmp/reports")
 		end
 		date_string = Dates.format(now(),"yyyy-mm-dd HH-MM")
-		if save_in_folder
-			mkdir("./tmp/reports/$(date_string)")
+		output_path = isa(output, String) ? output : "./tmp/reports/$(date_string)"
+		save_in_folder = output === true || isa(output, String)
+		if save_in_folder && !isdir(output_path)
+			mkdir(output_path)
 		end
 
-		seeds = []
+		scenes = Vector{Union{Tuple{SceneData, Vector{CylinderCameraContoursProblem}}, Nothing}}(undef, number_of_seeds)
+		fill!(scenes, nothing)
+		seeds = Vector{Int}(undef, number_of_seeds)
+		current_noise_results = Vector{Union{ReportData, Exception, Nothing}}(undef, length(noise_values))
+		fill!(current_noise_results, nothing)
 
 		for configuration in configurations
 			possible_scene_configurations = get(cylinder_views_per_config, configuration, [(2, 1)])
 			for scene_configuration in possible_scene_configurations
-				for noise in noise_values
-					current_noise_results = []
+				number_of_cylinders, number_of_instances = scene_configuration
+				for (noise_index, noise) in enumerate(noise_values)
 					current_seed_index = 1
 					while current_seed_index <= number_of_seeds
-						seed = nothing
-						if length(seeds) >= current_seed_index
-							seed = seeds[current_seed_index]
-						else
-							seed = rand(Int)
-						end
-
-						display("Seed: $seed. Configuration: $configuration. Scene configuration: $scene_configuration. Noise: $noise")
+						display("Seed index: $current_seed_index. Configuration: $configuration. Scene configuration: $scene_configuration. Noise: $noise")
 						start = time()
 						report_configuration = nothing
 						report_result = nothing
 						try
-							number_of_cylinders, number_of_instances = scene_configuration
-							scene, problems = create_scene_instances_and_problems(;
-								number_of_instances,
-								number_of_cylinders,
-								random_seed = seed,
-								intrinsic_configuration = configuration,
-								noise,
-								plot = false,
-							)
+							scene, problems = nothing, nothing
+							if isnothing(scenes[current_seed_index])
+								seed = rand(Int)
+								scenes[current_seed_index] = create_scene_instances_and_problems(;
+									number_of_instances,
+									number_of_cylinders,
+									random_seed = seed,
+									intrinsic_configuration = configuration,
+									noise,
+									plot = false,
+								)
+								seeds[current_seed_index] = seed
+							end
+							seed = seeds[current_seed_index]
+							scene, problems = scenes[current_seed_index]
 
 							report_configuration = ReportConfiguration(
 								seed,
@@ -173,11 +178,11 @@ module Report
 								end
 							end
 
-							view_errors = []
+							view_errors = Vector{ViewError}(undef, length(scene.instances))
 							for i in 1:length(scene.instances)
 								original_camera = scene.instances[i].camera
 								calculated_camera = problems[i].camera
-								push!(view_errors, ViewError(
+								view_errors[i] = ViewError(
 									rotations_difference(
 										original_camera.quaternion_rotation,
 										calculated_camera.quaternion_rotation
@@ -190,9 +195,9 @@ module Report
 										original_camera.matrix,
 										calculated_camera.matrix
 									),
-								))
+								)
 							end
-							push!(current_noise_results, ReportData(
+							current_noise_results[noise_index] = ReportData(
 								report_configuration,
 								ReportResult(
 									time() - start,
@@ -208,19 +213,20 @@ module Report
 										view_errors,
 									),
 								)
-							))
+							)
 
-							push!(seeds, seed)
 							current_seed_index = current_seed_index + 1
 						catch e
-							Base.show_backtrace(stdout, backtrace())
-							if !isa(e, TangentLineNotFound)
+							Base.showerror(stdout, e)
+							Base.show_backtrace(stdout, catch_backtrace())
+							if isa(e, TangentLineNotFound)
+								scenes[current_seed_index] = nothing
+							else
 								if isnothing(report_configuration)
-									push!(current_noise_results, e)
+									current_noise_results[noise_index] = e
 								else
-									push!(current_noise_results, ReportData(report_configuration, ReportException(e)))
+									current_noise_results[noise_index] = ReportData(report_configuration, ReportException(e))
 								end
-								push!(seeds, seed)
 								current_seed_index = current_seed_index + 1
 							end
 						end
@@ -230,11 +236,12 @@ module Report
 					if length(current_noise_results) > 0
 						if save_in_folder
 							formatted_noise = "noise-" * replace(string(noise), "." => "-")
-							serialize("./tmp/reports/$(date_string)/$(formatted_noise).jls", current_noise_results)
+							serialize("$(output_path)/$(formatted_noise).jls", current_noise_results)
 						else
 							append!(results, current_noise_results)
 						end
 					end
+					GC.gc()
 				end
 			end
 		end
