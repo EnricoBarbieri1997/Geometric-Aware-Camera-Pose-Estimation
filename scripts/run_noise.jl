@@ -8,5 +8,5 @@ noise = parse(Float64, ARGS[1])
 
 CylindersBasedCameraResectioning.Report.multiple_seeds_multiple_configuration(;
     noises=[noise],
-    output=true,
+    output="./tmp/reports/paper",
 )

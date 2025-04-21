@@ -195,14 +195,17 @@ module Printing
     Handles scalar or vector inputs and nulls.
     """
     function create_single_noise_result(method::String, noise::Float64,
-        delta_f=nothing, delta_uv=nothing, delta_skew=nothing, delta_r=nothing, delta_t=nothing)
+        delta_f=nothing, delta_uv=nothing, delta_skew=nothing, success_rate=nothing, delta_r=nothing, delta_t=nothing)
 
         result = Dict(
             "noise" => noise,
             "method" => method,
             "delta_f" => delta_f === nothing ? [] : [x === missing || x === nothing ? nothing : x for x in ensure_vector(delta_f)],
             "delta_uv" => delta_uv === nothing ? [] : [x === missing || x === nothing ? nothing : x for x in ensure_vector(delta_uv)],
-            "delta_skew" => delta_skew === nothing ? [] : [x === missing || x === nothing ? nothing : x for x in ensure_vector(delta_skew)]
+            "delta_skew" => delta_skew === nothing ? [] : [x === missing || x === nothing ? nothing : x for x in ensure_vector(delta_skew)],
+            "delta_r" => delta_r === nothing ? [] : [x === missing || x === nothing ? nothing : x for x in ensure_vector(delta_r)],
+            "delta_t" => delta_t === nothing ? [] : [x === missing || x === nothing ? nothing : x for x in ensure_vector(delta_t)],
+            "success_rate" => success_rate === nothing ? [] : success_rate,
         )
 
         return result

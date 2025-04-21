@@ -318,8 +318,9 @@ module Report
 
 	function report_error_analysis(report_path, noise_steps; number_of_samples=5, output_path=nothing, save_json=false)
 		reports = deserialize(report_path)
-		errors_max = zeros(Float64, 4, length(noise_steps))
-		errors_mean = zeros(Float64, 4, length(noise_steps))
+		errors_all = Array{Union{Float64, Nothing}, 3}(nothing, 6, length(noise_steps), number_of_samples)
+		errors_max = zeros(Float64, 6, length(noise_steps))
+		errors_mean = zeros(Float64, 6, length(noise_steps))
 		sample_counts = zeros(Int, length(noise_steps))
 		errored_count = zeros(Int, length(noise_steps))
 		errored = []
@@ -343,6 +344,11 @@ module Report
 			mean_rotation_error = reduce((tot, view) -> view.rotation + tot, report.result.errors.views; init=0) / n_views
 			mean_translation_error = reduce((tot, view) -> view.translation + tot, report.result.errors.views; init=0) / n_views
 
+			sample_index = sample_counts[index] + errored_count[index] + 1
+			errors_all[1:3, index, sample_index] = report.result.errors.intrinsic
+			errors_all[4, index, sample_index] = mean_cameramatrix_error
+			errors_all[5, index, sample_index] = mean_rotation_error
+			errors_all[6, index, sample_index] = mean_translation_error
 			errors_mean[1:3, index] += report.result.errors.intrinsic
 			errors_mean[4, index] += mean_cameramatrix_error
 			errors_mean[5, index] += mean_rotation_error
@@ -386,10 +392,15 @@ module Report
 			json_results::Vector{Dict} = []
 			for i in eachindex(noise_steps)
 				success_rate = sample_counts[i] / (sample_counts[i] + errored_count[i])
-				push!(json_results, create_single_noise_result("ours", noise_steps[i], errors_mean[1:3, i]..., success_rate, errors_mean[5:6, i]...))
+				delta_f = filter(x -> x !== nothing, errors_all[1, i, :])
+				delta_uv = filter(x -> x !== nothing, errors_all[2, i, :])
+				delta_skew = filter(x -> x !== nothing, errors_all[3, i, :])
+				delta_r = filter(x -> x !== nothing, errors_all[5, i, :])
+				delta_t = filter(x -> x !== nothing, errors_all[6, i, :])
+				push!(json_results, create_single_noise_result("ours", noise_steps[i], delta_f, delta_uv, delta_skew, success_rate, delta_r, delta_t))
 			end
 			for report in errored
-				push!(json_results, create_single_noise_result("ours", report.configuration.noise, [], [], [], [], []))
+				push!(json_results, create_single_noise_result("ours", report.configuration.noise, [], [], [], [], [], []))
 			end
 			save_results_to_json("assets/methods_compare/ours_results.json", json_results)
 		end
