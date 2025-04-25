@@ -1,5 +1,5 @@
 module Geometry
-	export Plane, Line, Point, Circle, Cylinder, TangentLineNotFound, issame_line, homogeneous_to_line, line_to_homogenous, homogeneous_line_intercept, homogeneous_anglebetween, project_point_into_line, project_point_into_plane, get_tangentpoints_circle_point, get_cylinder_contours
+	export Plane, Line, Point, Circle, Cylinder, TangentLineNotFound, homogeneous_line_from_points, issame_line, homogeneous_to_line, line_to_homogenous, homogeneous_line_intercept, homogeneous_anglebetween, project_point_into_line, project_point_into_plane, get_tangentpoints_circle_point, get_cylinder_contours
 
 	using ..Utils
 	using LinearAlgebra: cross, dot, norm, normalize
@@ -25,6 +25,17 @@ module Geometry
 
 	struct TangentLineNotFound <: Exception
 		msg::String
+	end
+
+	function homogeneous_line_from_points(p1, p2)
+			# Convert to homogeneous coordinates
+			p1h = [p1[1], p1[2], 1.0]
+			p2h = [p2[1], p2[2], 1.0]
+
+			# Line is the cross product of the two points
+			l = cross(p1h, p2h)
+
+			return l  # line coefficients [a, b, c] such that ax + by + c = 0
 	end
 
 	function issame_line(line₁::Line, line₂::Line, digits=6)

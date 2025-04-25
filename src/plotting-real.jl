@@ -183,3 +183,7 @@ function plot_2dcylinders(conic_contours; linestyle = :solid, alpha = 1, axindex
         end
     end
 end
+
+function plot_image_background(img_path; axindex = 1)
+    image(ax2_array[axindex], img_path)
+end

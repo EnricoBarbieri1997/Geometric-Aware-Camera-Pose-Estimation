@@ -1,5 +1,5 @@
 module Plotting
-    export initfigure, add_2d_axis!, add_slider!, clean_plots!, get_or_add_2d_axis!, get_or_add_camera_rotation_axis!, plot_2dpoints, plot_line_2d, Plot3dCameraInput, plot_3dcamera, plot_3dcamera_rotation, Plot3dCylindersInput, plot_cylinders_contours, plot_3dcylinders, plot_2dcylinders, Figure, Axis, lift, lines!, image!, on, events, Point2f, Observable, ispressed, Mouse
+    export initfigure, add_2d_axis!, add_slider!, clean_plots!, get_or_add_2d_axis!, get_or_add_camera_rotation_axis!, plot_2dpoints, plot_line_2d, Plot3dCameraInput, plot_3dcamera, plot_3dcamera_rotation, Plot3dCylindersInput, plot_cylinders_contours, plot_3dcylinders, plot_2dcylinders, plot_image_background, Figure, Axis, lift, lines!, image!, on, events, Point2f, Observable, ispressed, Mouse
 
     using ..CylindersBasedCameraResectioning: GUI_ENABLED
 
@@ -63,6 +63,9 @@ module Plotting
         # Base.showerror(stdout, error("Plotting not available in this environment."))
     end
     function plot_2dcylinders(conic_contours; linestyle=:solid, alpha=1, axindex=1)
+        # Base.showerror(stdout, error("Plotting not available in this environment."))
+    end
+    function plot_image_background(image; axindex=1)
         # Base.showerror(stdout, error("Plotting not available in this environment."))
     end
 

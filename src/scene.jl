@@ -1,10 +1,10 @@
 module Scene
 
-	using ..Geometry: Line, Cylinder as CylinderType, homogeneous_to_line, line_to_homogenous, homogeneous_line_intercept, get_cylinder_contours
+	using ..Geometry: Line, Cylinder as CylinderType, homogeneous_line_from_points, homogeneous_to_line, line_to_homogenous, homogeneous_line_intercept, get_cylinder_contours
 	using ..Space: transformation, random_transformation, identity_transformation, build_rotation_matrix
 	using ..Camera: CameraProperties, IntrinsicParameters, build_intrinsic_matrix, build_camera_matrix, lookat_rotation
 	using ..Printing: print_camera_differences
-	using ..Plotting: initfigure, get_or_add_2d_axis!, clean_plots!, plot_2dpoints, plot_line_2d, Plot3dCameraInput, plot_3dcamera, plot_3dcamera_rotation, Plot3dCylindersInput, plot_3dcylinders, plot_2dcylinders
+	using ..Plotting: initfigure, get_or_add_2d_axis!, clean_plots!, plot_2dpoints, plot_line_2d, plot_image_background, Plot3dCameraInput, plot_3dcamera, plot_3dcamera_rotation, Plot3dCylindersInput, plot_3dcylinders, plot_2dcylinders
 	using ..EquationSystems: stack_homotopy_parameters, build_intrinsic_rotation_conic_system, build_intrinsic_rotation_translation_conic_system, build_camera_matrix_conic_system
 	using ..EquationSystems.Problems: CylinderCameraContoursProblem
 	using ..EquationSystems.Problems.IntrinsicParameters: Configurations as IntrinsicParametersConfigurations, has as isIntrinsicEnabled
@@ -237,6 +237,171 @@ module Scene
 
 			if plot
 				plot_scene(scene, problems; noise)
+			end
+
+			return scene, problems
+	end
+
+	cylinders_names_in_view_file = [
+		"red",
+		"green",
+		"blue"
+	]
+	function scene_instances_and_problems_from_files(
+		scene_file_path,
+		views_file_path,
+		;plot = true
+	)
+			scene_file = nothing
+			view_file = nothing
+
+			scene_file = open(scene_file_path, "r") do io
+				JSON.parse(io)
+			end
+			view_file = open(views_file_path, "r") do io
+				JSON.parse(io)
+			end
+			intrinsic_configuration = UInt8(scene_file.configuration)
+			scene = SceneData()
+			if plot
+				scene.figure = initfigure()
+			end
+
+			number_of_cylinders = length(scene_file.cylinders)
+
+			cylinders = []
+			for (i, cylinder_properties) in scene_file.cylinders
+					cylinder = CylinderProperties()
+					position = cylinder_properties.position
+					cylinder.euler_rotation = cylinder_properties.axis
+
+					cylinder.transform = transformation(position, cylinder.euler_rotation)
+					radius = cylinder_properties.radius
+					cylinder.radiuses = [radius[1], radius[1]] # TODO Support different radiuses for each cylinder
+
+					axis = cylinder.transform * [0; 0; 1; 0]
+					axis = axis ./ axis[3]
+					axis = axis[1:3]
+					cylinder.geometry = CylinderType(
+							position,
+							cylinder.radiuses[1],
+							axis,
+					)
+
+					standard, dual, singularpoint = standard_and_dual_cylinder(cylinder.transform, cylinder.radiuses)
+					cylinder.matrix = standard
+					cylinder.dual_matrix = dual
+					cylinder.singular_point = singularpoint
+
+					push!(cylinders, cylinder)
+
+					begin #asserts
+							# @assert cylinder.matrix * cylinder.dual_matrix ≃ diagm([1, 1, 0, 1]) "(-1) The dual quadric is correct"
+
+							@assert cylinder.singular_point' * cylinder.matrix * cylinder.singular_point ≃ 0 "(1) Singular point $(1) belongs to the cylinder $(1)"
+							dual_singular_plane = inv(cylinder.transform') * reshape([1, 0, 0, -cylinder.radiuses[1]], :, 1)
+							@assert (dual_singular_plane' * cylinder.dual_matrix * dual_singular_plane) ≃ 0 "(2) Perpendicular plane $(1) belongs to the dual cylinder $(1)"
+
+							@assert (cylinder.matrix * cylinder.singular_point) ≃ [0, 0, 0, 0] "(6) Singular point is right null space of cylinder matrix $(i)"
+
+							@assert ((dual_singular_plane' * cylinder.singular_point) ≃ 0 && (dual_singular_plane' * cylinder.dual_matrix * dual_singular_plane) ≃ 0) "(7) Singular plane / point and dual quadric constraints $(i)"
+							@assert cylinder.singular_point[4] ≃ 0 "(10) Singular point is at infinity $(i)"
+					end
+			end
+
+			scene.cylinders = cylinders
+
+			instances = []
+			intrinsic = Matrix{Float64}(scene_file.intrinsics)
+
+			for (instance_index, inst) in enumerate(scene.cameras)
+					instance = InstanceConfiguration()
+					position = inst.t
+					quaternion_camera_rotation = inst.R
+					euler_rotation = rad2deg.(Rotations.params(RotXYZ(quaternion_camera_rotation)))
+					camera = CameraProperties(
+							position = position,
+							euler_rotation = euler_rotation,
+							quaternion_rotation = quaternion_camera_rotation,
+							intrinsic = intrinsic,
+					)
+					camera.matrix = build_camera_matrix(intrinsic, quaternion_camera_rotation, position)
+
+					instance.camera = camera
+
+					conics = []
+					for i in 1:number_of_cylinders
+							conic = ConicProperties(
+									pinv(camera.matrix') * cylinders[i].matrix * pinv(camera.matrix),
+									camera.matrix * cylinders[i].singular_point,
+									camera.matrix * cylinders[i].dual_matrix * camera.matrix',
+							)
+							push!(conics, conic)
+					end
+					instance.conics = conics
+
+					conics_contours = Array{Float64}(undef, number_of_cylinders, 2, 3)
+					for i in 1:number_of_cylinders
+						lines = view_file[instance_index].lines[cylinders_names_in_view_file[i]]
+						for (j, line) in enumerate(lines)
+							line_homogenous = homogeneous_line_from_points(line[1], line[2])
+							conics_contours[i, j, :] = line_homogenous
+
+							begin #asserts
+									@assert line_homogenous' * conics[i].dual_matrix * line_homogenous ≃ 0 "(3) Line of projected singular plane $(1) belongs to the dual conic $(1)"
+									@assert line_homogenous' * camera.matrix * cylinders[i].singular_point ≃ 0 "(8) Line $(j) of conic $(i) passes through the projected singular point"
+									@assert line_homogenous' * camera.matrix * cylinders[i].dual_matrix * camera.matrix' * line_homogenous ≃ 0 "(9) Line $(j) of conic $(i) is tangent to the projected cylinder"
+							end
+						end
+					end
+					instance.conics_contours = conics_contours
+
+					push!(instances, instance)
+			end
+
+			scene.instances = instances
+
+			intrinsicparamters_count = count_ones(UInt8(intrinsic_configuration))
+			problems::Vector{CylinderCameraContoursProblem} = []
+			numberoflines_tosolvefor_perinstance = 3 + floor(Int, intrinsicparamters_count/number_of_instances)
+			number_of_extra_picks = intrinsicparamters_count % number_of_instances
+			for (instance_number, instance) in enumerate(instances)
+					conics_contours = instance.conics_contours
+
+					numberoflines_tosolvefor = numberoflines_tosolvefor_perinstance + (instance_number <= number_of_extra_picks ? 1 : 0)
+
+					lines = Matrix{Float64}(undef, numberoflines_tosolvefor, 3)
+					points_at_infinity = Matrix{Float64}(undef, numberoflines_tosolvefor, 3)
+					dualquadrics = Array{Float64}(undef, numberoflines_tosolvefor, 4, 4)
+					possible_picks = collect(1:(number_of_cylinders*2))
+					for store_index in (1:numberoflines_tosolvefor)
+							line_index = store_index # rand(possible_picks)
+							possible_picks = filter(x -> x != line_index, possible_picks)
+							i = ceil(Int, line_index / 2)
+							j = (line_index - 1) % 2 + 1
+
+							line = conics_contours[i, j, :]
+							lines[store_index, :] = normalize(line)
+							points_at_infinity[store_index, :] = normalize(cylinders[i].singular_point[1:3])
+							dualquadrics[store_index, :, :] = cylinders[i].dual_matrix ./ cylinders[i].dual_matrix[4, 4]
+					end
+
+					problem = CylinderCameraContoursProblem(
+							CameraProperties(),
+							lines,
+							lines,
+							points_at_infinity,
+							dualquadrics,
+							UInt8(intrinsic_configuration),
+					)
+					push!(problems, problem)
+			end
+
+			if plot
+				plot_scene(scene, problems)
+				for (i, camera) in enumerate(scene_file.cameras)
+					plot_image_background(joinpath("..", camera.image); axindex=i)
+				end
 			end
 
 			return scene, problems
