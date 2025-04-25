@@ -4,7 +4,16 @@ import os
 import numpy as np
 
 WINDOW_NAME = "Primitive Selector"
-STATE_FILE = "./real/primitives.json"
+
+STATE_FILE = "./real/primitives.json"  # Change this to select different state files
+
+IMAGE_PATH = "../test_scenes/markers/"
+IMAGES = sorted([
+    os.path.join(IMAGE_PATH, f)
+    for f in os.listdir(IMAGE_PATH)
+    if f.endswith(".png")
+])
+IMAGE_INDEX = 0
 
 # Initial default positions (can be replaced by loading from file)
 default_lines = {
@@ -34,23 +43,35 @@ def color_to_bgr(color):
     return {"red": (0, 0, 255), "green": (0, 255, 0), "blue": (255, 0, 0)}[color]
 
 def save_shapes(lines, ellipses):
-    data = {
+    current_data = [
+        {}, {}, {}, {}
+    ]
+    try:
+        with open(STATE_FILE, "r") as f:
+            current_data = json.load(f)
+    except Exception as e:
+        print(e)
+    current_data[IMAGE_INDEX] = {
         "lines": {color: [[list(pt1), list(pt2)] for pt1, pt2 in pairs] for color, pairs in lines.items()},
         "ellipses": [[list(pt) for pt in e] for e in ellipses]
     }
     with open(STATE_FILE, "w") as f:
-        json.dump(data, f, indent=2)
+        json.dump(current_data, f, indent=2)
     print("Saved to", STATE_FILE)
 
 def load_shapes():
     if not os.path.exists(STATE_FILE):
         return default_lines.copy(), default_ellipses.copy()
     with open(STATE_FILE, "r") as f:
-        data = json.load(f)
-        lines = {color: [(tuple(pt1), tuple(pt2)) for pt1, pt2 in pairs]
-                 for color, pairs in data["lines"].items()}
-        ellipses = [[tuple(pt) for pt in e] for e in data["ellipses"]]
-        return lines, ellipses
+        try:
+            data = json.load(f)[IMAGE_INDEX]
+            lines = {color: [(tuple(pt1), tuple(pt2)) for pt1, pt2 in pairs]
+                    for color, pairs in data["lines"].items()}
+            ellipses = [[tuple(pt) for pt in e] for e in data["ellipses"]]
+            return lines, ellipses
+        except:
+            print("Error reading state file. Using default shapes.")
+            return default_lines.copy(), default_ellipses.copy()
 
 def mouse_event(event, x, y, flags, param):
     global dragging_point, selected_shape
@@ -105,4 +126,7 @@ def main(image_path):
     cv2.destroyAllWindows()
 
 if __name__ == "__main__":
-    main("../markers.jpg")  # Replace with your image path
+    for index, image_path in enumerate(IMAGES):
+        IMAGE_INDEX = index
+        print(f"Processing: {image_path} with STATE_FILE: {STATE_FILE}")
+        main(image_path)
