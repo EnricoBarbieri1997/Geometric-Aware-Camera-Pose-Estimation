@@ -1,0 +1,12 @@
+[
+  {
+    "noise": 0.0,
+    "method": "right_cylinder",
+    "delta_f": [],
+    "delta_uv": [],
+    "delta_skew": [],
+    "success_rate": [],
+    "delta_r": [],
+    "delta_t": []
+  }
+]

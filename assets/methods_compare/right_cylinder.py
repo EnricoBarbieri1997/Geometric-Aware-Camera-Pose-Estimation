@@ -5,6 +5,7 @@ from mpl_toolkits.mplot3d import Axes3D
 from calib_results import create_single_noise_result, save_results_to_json, intrinsic_difference, iterations_results_to_metrics, generate_K
 import argparse
 import json
+from scipy.spatial.transform import Rotation
 
 np.random.seed(42)
 
@@ -234,9 +235,9 @@ def add_noise_to_lines(line1, line2, noise):
 
 def load_cylinder_data(path):
     with open(path, "r") as f:
-        data = json.load(f)
+        data = json.load(f)["cylinders"][0]
 
-        center = np.array(data["center"])
+        center = np.array(data["position"])
         radius = data["radius"]
         length = data["length"]
 
@@ -245,38 +246,72 @@ def load_cylinder_data(path):
 def load_camera_data(path):
     with open(path, "r") as f:
         data = json.load(f)
+        K = data["intrinsics"]
+        cameras = []
+        for cam in data.get("cameras", []):
+            R = Rotation.from_quat(np.array(cam["R"])).as_matrix()
+            t = np.array(cam["t"]).reshape(3, 1)
+            P = np.multiply(np.hstack((K, np.array([0, 0, 1]).reshape(3, 1))), np.hstack((R, t)))
+            cameras.append((P, R, t))
 
-        cameras = [
-            {
-                "K": np.array(cam["K"]),
-                "R": np.array(cam["R"]),
-                "t": np.array(cam["t"]).reshape(3, 1),
-                "P": np.array(cam["P"])
-            } for cam in data.get("cameras", [])
-        ]
+        return K, cameras
 
-        return cameras
+def load_camera_ellipse_projection(path):
+    views = []
+    with open(path, "r") as f:
+        data = json.load(f)
+        for view in data:
+          centers = []
+          Qs = []
+          for ellipse in view["ellipses"]:
+              (cx, cy), (w, h), angle = cv2.fitEllipse(np.array(ellipse, dtype=np.int32))
+
+              # Convert angle and direction into a vector
+              radians = np.deg2rad(angle)
+              dx = np.sin(radians)
+              dy = -np.cos(radians)
+
+              # Vertical direction vector (along height)
+              vertical = np.array([dx, dy])
+
+              # Half the vertical height
+              offset = (h / 2.0) * vertical
+
+              center = np.array([cx, cy])
+              top = center - offset
+              bottom = center + offset
+
+              centers.append(center)
+              Qs.append(top)
+              Qs.append(bottom)
+
+          views.append((centers, Qs))
+
+    return views
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Cylinder Calibration Experiment")
-    parser.add_argument("--use_saved", type=str, help="Path to saved JSON data instead of generating")
+    parser.add_argument("--views", type=str, help="Path to saved JSON data instead of generating")
+    parser.add_argument("--scene", type=str, help="Path to saved JSON data instead of generating")
     args = parser.parse_args()
+
+    use_saved = args.views != None and args.scene != None
 
     np.random.seed(42)
     debug = 0
-    iterations_count = 50 if not args.use_saved else 1
+    iterations_count = 50 if not use_saved else 1
     results = []
-    noises = np.arange(0.0, 0.55, 0.05) if not args.use_saved else [0.0]
+    noises = np.arange(0.0, 0.55, 0.05) if not use_saved else [0.0]
 
     for noise in noises:
         print(f"Noise: {noise:.2f}")
         iterations_results = []
 
         for i in range(iterations_count):
-            if args.use_saved:
-                base1, base2, Q1, Q2, Q3, Q4 = load_cylinder_data(args.use_saved)
-                cameras = load_camera_data(args.use_saved)
-                K = cameras[0]["K"]
+            if use_saved:
+                base1, base2, Q1, Q2, Q3, Q4 = load_cylinder_data(args.scene)
+                K, cameras = load_camera_data(args.scene)
+                ellipses_per_view = load_camera_ellipse_projection(args.views)
             else:
                 base1, base2, Q1, Q2, Q3, Q4 = generate_cylinder(center=np.random.uniform(-100, 100, 3))
                 K = generate_K()
@@ -287,9 +322,13 @@ if __name__ == "__main__":
             Qs = [Q1, Q2, Q3, Q4]
             views = []
 
-            for camera in cameras:
+            for camera_index, camera in enumerate(cameras):
                 P, R, t = camera
-                qs_2D = [project_points(P, q.reshape(3, 1))[:, 0] for q in Qs]
+
+                if use_saved:
+                    qs_2D = ellipses_per_view[camera_index][1]
+                else:
+                    qs_2D = [project_points(P, q.reshape(3, 1))[:, 0] for q in Qs]
 
                 l1 = fit_line(qs_2D[0], qs_2D[2])
                 l2 = fit_line(qs_2D[1], qs_2D[3])
@@ -303,8 +342,12 @@ if __name__ == "__main__":
                 q3q4 = fit_line(qs_2D[2], qs_2D[3])
                 v2 = line_intersection(q1q2, q3q4)
 
-                p1_2D = project_points(P, P1.reshape(3,1))[:, 0]
-                p2_2D = project_points(P, P2.reshape(3,1))[:, 0]
+                if use_saved:
+                    p1_2D = ellipses_per_view[camera_index][0][0]
+                    p2_2D = ellipses_per_view[camera_index][0][1]
+                else:
+                    p1_2D = project_points(P, P1.reshape(3,1))[:, 0]
+                    p2_2D = project_points(P, P2.reshape(3,1))[:, 0]
 
                 views.append((v1, v2, p1_2D, p2_2D))
 

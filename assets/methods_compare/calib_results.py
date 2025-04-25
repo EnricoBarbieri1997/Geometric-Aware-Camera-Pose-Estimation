@@ -5,6 +5,8 @@ import glob
 import numpy as np
 
 def iterations_results_to_metrics(iterations_results):
+    if len(iterations_results) <= 0:
+        return [], [], [], [], [], []
     delta_f = [res[0] for res in iterations_results]
     delta_uv = [res[1] for res in iterations_results]
     delta_skew = [res[2] for res in iterations_results]
