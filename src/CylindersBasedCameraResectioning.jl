@@ -2,7 +2,7 @@ module CylindersBasedCameraResectioning
     const GUI_ENABLED = get(ENV, "GUI_ENABLED", "true") == "true"
     include("includes.jl")
 
-	using ..Scene: ParametersSolutionsPair, best_overall_solution!, best_overall_solution_by_steps!, best_intrinsic_rotation_translation_system_solution!, camera_from_solution, create_scene_instances_and_problems, intrinsic_rotation_system_setup, intrinsic_rotation_translation_system_setup, plot_interactive_scene, plot_reconstructed_scene, split_intrinsic_rotation_parameters
+	using ..Scene: ParametersSolutionsPair, best_overall_solution!, best_overall_solution_by_steps!, best_intrinsic_rotation_translation_system_solution!, camera_from_solution, create_scene_instances_and_problems, scene_instances_and_problems_from_files, intrinsic_rotation_system_setup, intrinsic_rotation_translation_system_setup, plot_interactive_scene, plot_reconstructed_scene, split_intrinsic_rotation_parameters
 	using ..EquationSystems: stack_homotopy_parameters, variables_jacobian_rank, joint_jacobian_rank
     using ..EquationSystems.Problems.IntrinsicParameters: Configurations as IntrinsicParametersConfigurations
     using ..Plotting
@@ -11,7 +11,6 @@ module CylindersBasedCameraResectioning
     using ..Homotopies: ParameterHomotopy as MyParameterHomotopy
 
     using HomotopyContinuation, Observables, Random, Serialization
-    using Images, ImageIO, ImageFeatures, Colors
 
     function main()
         intrinsic_configuration = IntrinsicParametersConfigurations.fₓ_fᵧ
@@ -315,9 +314,60 @@ module CylindersBasedCameraResectioning
 
     function markers()
         scene, problems = scene_instances_and_problems_from_files(
-            "../assets/test_scenes/markers/scene.json",
-            "../assets/methods_compare/real/markers.json"
+            "./assets/test_scenes/markers/scene.json",
+            "./assets/methods_compare/real/markers.json";
+            number_of_instances=2,
         )
+        intrinsic_configuration = problems[1].intrinsic_configuration
+        display(scene.figure)
+
+        rotation_intrinsic_system, parameters = intrinsic_rotation_system_setup(problems)
+
+        solver = starts = nothing
+
+        solver, starts = solver_startsolutions(
+            rotation_intrinsic_system;
+            target_parameters = parameters,
+            start_system = :total_degree,
+        )
+
+        chunk_size = 500000
+        numberof_start_solutions = length(starts)
+        display("Number of start solutions: $numberof_start_solutions. Number of iterations needed: $(ceil(Int, numberof_start_solutions / chunk_size))")
+        solution_error = Inf
+        for start in Iterators.partition(starts, chunk_size)
+
+            result = solve(
+                solver,
+                start;
+            )
+            @info result
+
+            solution_error, _ = best_overall_solution!(
+                result,
+                scene,
+                problems;
+                start_error=solution_error,
+                intrinsic_configuration,
+            )
+        end
+
+        for (i, instance) in enumerate(scene.instances)
+            display("View $i")
+            print_camera_differences(instance.camera, problems[i].camera)
+            display("--------------------")
+        end
+
+        for problem in problems
+            plot_3dcamera(Plot3dCameraInput(
+                problem.camera.euler_rotation,
+                problem.camera.position,
+            ), :green)
+        end
+
+        plot_reconstructed_scene(scene, problems)
+
+        display(scene.figure)
     end
 
     export explore_path, main, monodromy, markers

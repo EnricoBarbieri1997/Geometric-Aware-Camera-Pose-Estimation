@@ -1,8 +1,9 @@
 module Geometry
-	export Plane, Line, Point, Circle, Cylinder, TangentLineNotFound, homogeneous_line_from_points, issame_line, homogeneous_to_line, line_to_homogenous, homogeneous_line_intercept, homogeneous_anglebetween, project_point_into_line, project_point_into_plane, get_tangentpoints_circle_point, get_cylinder_contours
+	export Plane, Line, Point, Circle, Cylinder, TangentLineNotFound, homogeneous_line_from_points, issame_line, rotation_between_lines, cylinder_rotation_from_axis, homogeneous_to_line, line_to_homogenous, homogeneous_line_intercept, homogeneous_anglebetween, project_point_into_line, project_point_into_plane, get_tangentpoints_circle_point, get_cylinder_contours
 
 	using ..Utils
 	using LinearAlgebra: cross, dot, norm, normalize
+	using Rotations: RotMatrix, AngleAxis, RotXYZ, params as rotations_params
 
 	struct Point
 		x::Number
@@ -89,6 +90,48 @@ module Geometry
 		v = point - origin
 		d = dot(v, normal)
 		return point - d * normal
+	end
+
+	function rotation_between_lines(line₁::Vector{Float64}, line₂::Vector{Float64})
+		# vertical axis (source)
+		v1 = normalize(line₁)
+
+		# your target axis (example)
+		v2 = normalize(line₂)  # make sure it's normalized
+
+		# compute rotation axis: cross product
+		axis = cross(v1, v2)
+
+		# compute angle: arccos of dot product
+		angle = acos(clamp(dot(v1, v2), -1.0, 1.0))
+
+		# handle the case when vectors are parallel or anti-parallel
+		if isapprox(norm(axis), 0.0)
+				if dot(v1, v2) > 0
+						rot = one(RotMatrix{3})
+				else
+						# 180-degree rotation around any perpendicular axis
+						rot = AngleAxis(π, 1.0, 0.0, 0.0)  # choose X axis arbitrarily
+				end
+		else
+				axis = normalize(axis)
+				rot = AngleAxis(angle, axis...)
+		end
+
+		# now rot is the rotation you want
+
+		# if you want Euler angles (for example RotXYZ convention)
+		euler = RotXYZ(rot)
+		return rotations_params(euler)
+	end
+
+	function cylinder_rotation_from_axis(axis::Vector{<:Number})
+		# Create a rotation matrix that aligns the Z-axis with the given axis
+		# Assuming axis is a unit vector
+		axis = normalize(axis)
+		z_axis = [0.0, 0.0, 1.0]
+		rotation = rotation_between_lines(z_axis, axis)
+		return rotation
 	end
 
 	function get_tangentpoints_circle_point(circle::Circle, point::Vector{<:Number})

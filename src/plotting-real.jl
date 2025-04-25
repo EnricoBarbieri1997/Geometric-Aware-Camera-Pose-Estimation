@@ -8,12 +8,13 @@ using GLMakie.FileIO
 
 function add_2d_axis!()
     index = length(ax2_array) + 1
-    row = ceil(Int, index / 3)
-    col = index % 3
+    row = ceil(Int, index / 2)
+    col = index % 2
     if col == 0
-        col = 3
+        col = 2
     end
     ax = Axis(grid_2d[row, col], autolimitaspect = 1)
+    ax.limits[] = ((0, 1000), (-2000, 0))
     push!(ax2_array, ax)
 end
 
@@ -184,6 +185,9 @@ function plot_2dcylinders(conic_contours; linestyle = :solid, alpha = 1, axindex
     end
 end
 
-function plot_image_background(img_path; axindex = 1)
-    image(ax2_array[axindex], img_path)
+function plot_image_background(img; axindex = 1)
+    _, h = size(img)
+    image!(ax2_array[axindex], img;
+        transformation = (scale = Vec3f(1), translation = Vec3f(0, -1 * h, -1)),
+    )
 end
