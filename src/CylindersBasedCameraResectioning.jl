@@ -1,16 +1,17 @@
 module CylindersBasedCameraResectioning
+    const GUI_ENABLED = get(ENV, "GUI_ENABLED", "true") == "true"
     include("includes.jl")
 
 	using ..Scene: ParametersSolutionsPair, best_overall_solution!, best_overall_solution_by_steps!, best_intrinsic_rotation_translation_system_solution!, camera_from_solution, create_scene_instances_and_problems, intrinsic_rotation_system_setup, intrinsic_rotation_translation_system_setup, plot_interactive_scene, plot_reconstructed_scene, split_intrinsic_rotation_parameters
 	using ..EquationSystems: stack_homotopy_parameters, variables_jacobian_rank, joint_jacobian_rank
     using ..EquationSystems.Problems.IntrinsicParameters: Configurations as IntrinsicParametersConfigurations
-    using ..Plotting: add_slider!, initfigure, add_camera_rotation_axis!, plot_3dcamera, Plot3dCameraInput
+    using ..Plotting
 	using ..Printing: print_camera_differences
     using ..Camera: build_camera_matrix
     using ..Homotopies: ParameterHomotopy as MyParameterHomotopy
-    
-    using Makie: lift
+
     using HomotopyContinuation, Observables, Random, Serialization
+    using Images, ImageIO, ImageFeatures, Colors
 
     function main()
         intrinsic_configuration = IntrinsicParametersConfigurations.fₓ_fᵧ
@@ -310,6 +311,102 @@ module CylindersBasedCameraResectioning
             figure=current_figure,
         )
         display(current_figure)
+    end
+
+    function from_image(image_path::String)
+        # --- Step 1: Load image ---
+        img = load(image_path)
+        grayimg = Gray.(img)
+
+        # --- Step 2: Detect edges and lines ---
+        edges = canny(grayimg, (1.0, 1.0))
+        lines = hough_transform_standard(edges; stepsize=1, vote_threshold=100)
+
+        # --- Step 3: Display with clickable interaction ---
+        fig = Figure(resolution = (800, 600))
+        ax = Plotting.Axis(fig[1, 1];
+            xzoomlock = true,
+            yzoomlock = true,
+            xpanlock = true,
+            ypanlock = true,
+        )
+        image!(ax, img)
+
+        # Draw detected lines for reference
+        for line in lines
+            p1, p2 = line.point1, line.point2
+            lines!(ax, [p1[2], p2[2]], [p1[1], p2[1]], color=:red)
+        end
+
+        picked_lines = Observable{Vector{Tuple{Point2f, Point2f}}}([])
+        temp_points = Observable{Vector{Point2f}}([])
+
+        on(events(ax).mousebutton) do event
+            if event.button == Mouse.left && event.action == Mouse.press 
+                # mouse_pos = to_world(ax, events(ax).mouseposition[])
+                mouse_pos = events(ax).mouseposition[]
+                push!(temp_points[], Point2f(mouse_pos))
+                temp_points[] = temp_points[]  # trigger update
+
+                # Once 2 points are clicked, store them as a pair
+                if length(temp_points[]) == 2
+                    push!(picked_lines[], (temp_points[][1], temp_points[][2]))
+                    temp_points[] = []
+                    println("Selected line $(length(picked_lines[]))")
+                end
+            end
+        end
+
+        # Show selected lines in green
+        green_lines_x = lift(picked_lines) do pairs
+            x = [0.0, 0.0]
+            for pair in pairs
+                p1, p2 = pair
+                push!(x, [p1[2], p2[2]])
+            end
+            return x
+        end
+        green_lines_y = lift(picked_lines) do pairs
+            y = [0.0, 0.0]
+            for pair in pairs
+                p1, p2 = pair
+                push!(y, [p1[1], p2[1]])
+            end
+            return y
+        end
+
+        lines!(ax, green_lines_x, green_lines_y; color=:green)
+
+        display(fig)
+
+        # --- Step 4: Wait until user selects 3 line pairs ---
+        @info "Please select 6 line pairs (click 2 points for each line)."
+        while length(picked_lines[]) < 6
+            sleep(0.1)
+        end
+
+        @info "Collected all 6 line pairs."
+
+        # --- Step 5: Ask for cylinder parameters ---
+        radii = Float64[]
+        directions = []
+
+        for i in 1:3
+            println("Enter radius for cylinder $i:")
+            push!(radii, parse(Float64, readline()))
+
+            println("Enter direction vector for cylinder $i (comma separated, e.g. 1.0,0.0,0.0):")
+            dir = split(readline(), ",")
+            push!(directions, normalize(parse.(Float64, dir)))
+        end
+
+        println("\nSummary:")
+        for i in 1:3
+            println("Cylinder $i:")
+            println("  Line Pair: $(picked_lines[][i])")
+            println("  Radius: $(radii[i])")
+            println("  Direction: $(directions[i])")
+        end
     end
 
     export explore_path, main, monodromy

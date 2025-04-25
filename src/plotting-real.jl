@@ -1,8 +1,10 @@
 using ..Geometry: Line
 
+using Reexport
 using LinearAlgebra: deg2rad
 using Rotations
-using GLMakie, GLMakie.FileIO
+using GLMakie
+using GLMakie.FileIO
 
 function add_2d_axis!()
     index = length(ax2_array) + 1
