@@ -27,7 +27,10 @@ module Space
 		t = diagm([1.0, 1.0, 1.0, 1.0])
 		t[1:3, 4] .= (translation .* 1)
 
-		return t * r
+		transform = t * r
+		transform[transform .< 0.00000000001] .= 0.0
+
+		return transform
 	end
 
 	function random_transformation(

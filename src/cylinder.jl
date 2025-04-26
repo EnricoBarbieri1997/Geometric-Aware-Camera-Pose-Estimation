@@ -24,7 +24,7 @@ module Cylinder
 		inverseRadiusSquareY = 1 / (radius[2]^2)
 		canonicalCylinder = diagm([inverseRadiusSquareX, inverseRadiusSquareY, 0, -1])
 
-		cylinder = inv(transform_matrix') * canonicalCylinder * inv(transform_matrix)
+		cylinder = Matrix{Float64}(I(4)) # inv(transform_matrix') * canonicalCylinder * inv(transform_matrix)
 
 		dualCanonicalCylinderMatrix = zeros(4, 4)
 		dualCanonicalCylinderMatrix[[1, 2, 4], [1, 2, 4]] .= inv(canonicalCylinder[[1, 2, 4], [1, 2, 4]])

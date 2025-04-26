@@ -283,7 +283,6 @@ module Scene
 					cylinder.radiuses = [radius[1], radius[1]] # TODO Support different radiuses for each cylinder
 
 					axis = cylinder.transform * [0; 0; 1; 0]
-					axis = axis ./ axis[3]
 					axis = axis[1:3]
 					cylinder.geometry = CylinderType(
 							position,
@@ -315,7 +314,7 @@ module Scene
 			scene.cylinders = cylinders
 
 			instances = []
-			intrinsic = Float64.(hcat(scene_file["intrinsics"]...))
+			intrinsic = Float64.((hcat(scene_file["intrinsics"]...)'))
 
 			number_of_instances = something(number_of_instances, length(instances))
 
@@ -323,7 +322,8 @@ module Scene
 					inst = scene_file["cameras"][instance_index]
 					instance = InstanceConfiguration()
 					projection_rotation_matrix = QuatRotation(inst["R"])
-					position = -projection_rotation_matrix * Vector{Float64}(inst["t"])
+					projection_translation = Vector{Float64}(inst["t"])
+					position = -(projection_rotation_matrix') * projection_translation
 					quaternion_camera_rotation = projection_rotation_matrix'
 					euler_rotation = rad2deg.(eulerangles_from_rotationmatrix(quaternion_camera_rotation))
 					camera = CameraProperties(
@@ -332,7 +332,10 @@ module Scene
 							quaternion_rotation = quaternion_camera_rotation,
 							intrinsic = intrinsic,
 					)
-					camera.matrix = build_camera_matrix(intrinsic, quaternion_camera_rotation, position)
+					camera.matrix = build_camera_matrix(intrinsic, projection_rotation_matrix, projection_translation;
+						use_rotation_as_is = true,
+						use_translation_as_is = true,
+					)
 
 					instance.camera = camera
 
@@ -351,15 +354,18 @@ module Scene
 					for i in 1:number_of_cylinders
 						lines = view_file[instance_index]["lines"][cylinders_names_in_view_file[i]]
 						for (j, line) in enumerate(lines)
-							line_homogenous = homogeneous_line_from_points(line[1], line[2])
+							p1 = [line[1][1], line[1][2]]
+							p2 = [line[2][1], line[2][2]]
+							line_homogenous = homogeneous_line_from_points(p1, p2)
 							conics_contours[i, j, :] = line_homogenous
 
-							# begin #asserts
-							# 	@assert line_homogenous' * conics[i].dual_matrix * line_homogenous ≃ 0 "(3) Line of projected singular plane $(1) belongs to the dual conic $(1)"
-							# 	@assert line_homogenous' * camera.matrix * cylinders[i].singular_point ≃ 0 "(8) Line $(j) of conic $(i) passes through the projected singular point"
-							# 	@assert line_homogenous' * camera.matrix * cylinders[i].dual_matrix * camera.matrix' * line_homogenous ≃ 0 "(9) Line $(j) of conic $(i) is tangent to the projected cylinder"
-							# end
+							begin #asserts
+								@assert line_homogenous' * conics[i].dual_matrix * line_homogenous ≃ 0 "(3) Line of projected singular plane $(1) belongs to the dual conic $(1)"
+								@assert line_homogenous' * camera.matrix * cylinders[i].singular_point ≃ 0 "(8) Line $(j) of conic $(i) passes through the projected singular point"
+								@assert line_homogenous' * camera.matrix * cylinders[i].dual_matrix * camera.matrix' * line_homogenous ≃ 0 "(9) Line $(j) of conic $(i) is tangent to the projected cylinder"
+							end
 						end
+						display(conics_contours[i, :, :])
 					end
 					instance.conics_contours = conics_contours
 

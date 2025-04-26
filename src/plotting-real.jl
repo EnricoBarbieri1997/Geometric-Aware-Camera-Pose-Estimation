@@ -89,6 +89,7 @@ function plot_3dcamera(info::Plot3dCameraInput, color = :black)
     cameraRotation = RotXYZ(cameraRotationRad...)
     cameraRotationAxis = rotation_axis(cameraRotation)
     cameraRotationAngle = rotation_angle(cameraRotation)
+    scale!(cameraMesh, (1/10, 1/10, 1/10))
     rotate!(cameraMesh, cameraRotationAxis, cameraRotationAngle)
     translate!(cameraMesh,
         (
@@ -118,7 +119,7 @@ function plot_3dcylinders(cylindersInfo::Plot3dCylindersInput; axindex = 1)
     heightLevels = 100
     angles = 100
 
-    z, θ = LinRange(-20, 20, heightLevels), LinRange(0, 2π, angles)
+    z, θ = LinRange(-2, 2, heightLevels), LinRange(0, 2π, angles)
     x = cos.(θ)
     y = sin.(θ)
 
@@ -171,6 +172,9 @@ function plot_cylinders_contours(contours::Vector{Vector{Line}}; linestyle = :so
     end
 end
 
+# ax + by + c = 0
+# y = -(a/b)x - (c/b)
+# y = -1/b * (ax + c)
 function plot_2dcylinders(conic_contours; linestyle = :solid, alpha = 1, axindex = 1)
     y = function (x, l) return (-(l[1] * x + l[3]) / l[2]) end
     for i in 1:(size(conic_contours)[1])

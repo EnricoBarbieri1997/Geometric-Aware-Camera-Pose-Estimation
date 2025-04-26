@@ -181,8 +181,8 @@ module Geometry
 		projected_tangentpoint₂ = projected_tangentpoint₂[1:2]
 		projected_cylinderaxis = projected_cylinderaxis[1:2]
 
-		contour₁ = Line(projected_cylinderaxis, projected_tangentpoint₁ - projected_cylinderaxis)
-		contour₂ = Line(projected_cylinderaxis, projected_tangentpoint₂ - projected_cylinderaxis)
+		contour₁ = Line(projected_tangentpoint₁, -projected_cylinderaxis)
+		contour₂ = Line(projected_tangentpoint₂, -projected_cylinderaxis)
 
 		return (contour₁, contour₂)
 	end
