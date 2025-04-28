@@ -8,8 +8,8 @@ module Camera
 		position::Vector{Number} = [0, 0, 0]
 		euler_rotation::Vector{Number} = [0, 0, 0]
 		quaternion_rotation::QuatRotation{Float64} = one(QuatRotation)
-		intrinsic::Matrix{<:Number} = Matrix(I, 3, 3)
-		matrix::Matrix{<:Number} = Matrix(I, 3, 4)
+		intrinsic::Matrix{<:Number} = Matrix{Float64}(I, 3, 3)
+		matrix::Matrix{<:Number} = Matrix{Float64}(I, 3, 4)
 	end
 
 	function build_camera_matrix(
@@ -120,7 +120,7 @@ module Camera
 		if (!use_translation_as_is)
 			t₁ = -r₁ * translation
 		end
-		return hcat(intrinsic, zeros(3)) * vcat(hcat(r₁, t₁), [0 0 0 1])
+		return Matrix{Float64}(hcat(intrinsic, zeros(3)) * vcat(hcat(r₁, t₁), [0 0 0 1]))
 	end
 
 	function lookat_axis(eye, at, up)

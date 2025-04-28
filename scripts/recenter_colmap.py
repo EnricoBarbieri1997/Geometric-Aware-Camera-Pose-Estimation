@@ -4,18 +4,15 @@ from scipy.spatial.transform import Rotation as R
 
 # --- USER SETTINGS ---
 # Set your input and output folders here
-input_sparse_dir = "../assets/test_scenes/markers/colmap/"    # Folder containing cameras.txt, images.txt, points3D.txt
+input_sparse_dir = "../assets/test_scenes/markers/colmap"    # Folder containing cameras.txt, images.txt, points3D.txt
 output_sparse_dir = "../assets/test_scenes/markers/colmap/recentered"  # New output folder
 
-# Set your desired new origin (x, y, z)
-new_origin = np.array([-1.63415, 1.73131, 2.84306])  # <--- change this to your object's coordinates
+# Set your desired new origin (x, y, z) for translation
+new_origin = 1 * np.array([-2.51698, 1.53774, 2.21401])  # If no translation needed, set to [0.0, 0.0, 0.0]
 
-# Optional: define axis alignment using known points
-# Set to None if you only want translation
-x1 = new_origin  # point along desired X axis
-x2 = np.array([-1.37493, 1.31547, 3.65643])  # second point along desired X axis
-z1 = new_origin  # point along desired Z axis
-z2 = np.array([-1.82585, 0.908253, 2.56153])  # second point along desired Z axis
+# Set your desired rotation in Euler angles (degrees)
+# Order is applied as 'xyz' (roll, pitch, yaw)
+rotation_euler_deg = np.array([-19.4084, -17.174, -172.621])  # (roll, pitch, yaw) in degrees
 
 # --- SCRIPT START ---
 
@@ -82,23 +79,6 @@ def save_points3D_txt(filepath, points):
             line = f"{point3D_id} {xyz[0]} {xyz[1]} {xyz[2]} {' '.join(rest)}\n"
             f.write(line)
 
-def build_alignment_matrix(x1, x2, z1, z2):
-    x_axis = x2 - x1
-    x_axis /= np.linalg.norm(x_axis)
-
-    z_axis = z2 - z1
-    z_axis /= np.linalg.norm(z_axis)
-
-    # Orthogonalize x_axis to z_axis
-    x_axis = x_axis - np.dot(x_axis, z_axis) * z_axis
-    x_axis /= np.linalg.norm(x_axis)
-
-    y_axis = np.cross(z_axis, x_axis)
-    y_axis /= np.linalg.norm(y_axis)
-
-    R_align = np.vstack([x_axis, y_axis, z_axis]).T
-    return R_align
-
 # --- MAIN PROCESS ---
 
 os.makedirs(output_sparse_dir, exist_ok=True)
@@ -106,11 +86,9 @@ os.makedirs(output_sparse_dir, exist_ok=True)
 images = parse_images_txt(os.path.join(input_sparse_dir, "images.txt"))
 points = parse_points3D_txt(os.path.join(input_sparse_dir, "points3D.txt"))
 
-# Compute rotation alignment if axes are provided
-if x1 is not None and x2 is not None and z1 is not None and z2 is not None:
-    R_align = build_alignment_matrix(x1 - new_origin, x2 - new_origin, z1 - new_origin, z2 - new_origin)
-else:
-    R_align = np.eye(3)  # No rotation
+# Create rotation matrix from Euler angles
+rotation_radians = np.radians(rotation_euler_deg)
+R_align = R.from_euler('xyz', rotation_radians).as_matrix()
 
 # Update cameras
 for image in images.values():
@@ -145,4 +123,4 @@ save_images_txt(os.path.join(output_sparse_dir, "images.txt"), images)
 os.system(f"cp {os.path.join(input_sparse_dir, 'cameras.txt')} {output_sparse_dir}/cameras.txt")
 save_points3D_txt(os.path.join(output_sparse_dir, "points3D.txt"), points)
 
-print("✅ Done! Model recentered and realigned. New sparse model saved to:", output_sparse_dir)
+print("✅ Done! Model recentered and rotated. New sparse model saved to:", output_sparse_dir)

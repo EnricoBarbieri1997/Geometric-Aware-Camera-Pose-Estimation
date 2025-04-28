@@ -112,17 +112,18 @@ module EquationSystems
 
 	function build_intrinsic_rotation_conic_system(
 		problems::Vector{Problems.CylinderCameraContoursProblem};
-		focal_guess = 1.0	
 	)
 		problems_count = length(problems)
 		if problems_count == 0
 			throw(ArgumentError("At least one problem is needed"))
 		end
 
-		# @var focal_guess_enforcer
-
-		fₓ = fᵧ = 1
-		skew = cₓ = cᵧ = 0
+		defult_intrinsic = problems[1].camera.intrinsic
+		fₓ = defult_intrinsic[1, 1]
+		fᵧ = defult_intrinsic[2, 2]
+		skew = defult_intrinsic[1, 2]
+		cₓ = defult_intrinsic[1, 3]
+		cᵧ = defult_intrinsic[2, 3]
 
 		system_to_solve = []
 		variables::Vector{HomotopyContinuation.ModelKit.Variable} = []
@@ -131,6 +132,7 @@ module EquationSystems
 		intrinsic_configuration = problems[1].intrinsic_configuration
 		if Problems.IntrinsicParameters.has.fₓ(intrinsic_configuration)
 			@var fₓ
+			fᵧ = fₓ
 			push!(variables, fₓ)
 		end
 		if Problems.IntrinsicParameters.has.fᵧ(intrinsic_configuration)
@@ -157,10 +159,6 @@ module EquationSystems
 			principal_point_y = cᵧ,
 			skew = skew,
 		))
-
-		if UInt8(intrinsic_configuration) == 0
-			intrinsic = problems[1].camera.intrinsic
-		end
 
 		for (index, problem) in enumerate(problems)
 			lines_count = size(problem.lines)[1]
