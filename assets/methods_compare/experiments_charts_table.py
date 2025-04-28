@@ -16,8 +16,8 @@ method_labels = {
     "ours": "Ours",
     "quadric_based": "Quadric-based",
     "right_cylinder": "Right Cylinder",
-    "zhang_4": "Zhang 4 views",
-    "zhang_30": "Zhang 30 views"
+    # "zhang_4": "Zhang 4 views",
+    # "zhang_30": "Zhang 30 views"
 }
 
 metric_labels = {
@@ -32,7 +32,7 @@ metric_labels = {
 method_supports = {
     "ours": {"delta_f": True, "delta_uv": True, "delta_skew": True, "delta_r": True, "delta_t": True, "success_rate": True},
     "quadric_based": {"delta_f": True, "delta_uv": False, "delta_skew": False, "delta_r": True, "delta_t": True, "success_rate": True},
-    "right_cylinder": {"delta_f": True, "delta_uv": True, "delta_skew": False, "delta_r": True, "delta_t": True, "success_rate": True},
+    "right_cylinder": {"delta_f": True, "delta_uv": True, "delta_skew": False, "delta_r": False, "delta_t": False, "success_rate": True},
     "zhang_4": {"delta_f": True, "delta_uv": True, "delta_skew": False, "delta_r": True, "delta_t": True, "success_rate": True},
     "zhang_30": {"delta_f": True, "delta_uv": True, "delta_skew": False, "delta_r": True, "delta_t": True, "success_rate": True},
 }
@@ -43,7 +43,7 @@ colors = ["blue", "purple", "green", "orange", "red"]
 linestyles = ["-", "--", "-.", ":", ":"]
 
 # Load data
-with open("results.json") as f:
+with open("./synthetic/results.json") as f:
     data = json.load(f)
 
 # Group by metric → method → noise → values

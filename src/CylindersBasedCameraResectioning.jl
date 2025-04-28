@@ -16,10 +16,10 @@ module CylindersBasedCameraResectioning
         intrinsic_configuration = IntrinsicParametersConfigurations.fₓ_fᵧ
         scene, problems = create_scene_instances_and_problems(;
             number_of_instances=2,
-            number_of_cylinders=2,
-            random_seed=14,
+            number_of_cylinders=3,
+            random_seed=27,
             intrinsic_configuration,
-            noise=0,
+            noise=0.5,
         )
 
         display(scene.figure)
