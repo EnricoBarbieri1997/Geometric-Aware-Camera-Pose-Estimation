@@ -14,7 +14,7 @@ function add_2d_axis!()
         col = 2
     end
     ax = Axis(grid_2d[row, col], autolimitaspect = 1)
-    ax.limits[] = ((0, 1000), (-2000, 0))
+    ax.limits[] = ((0, 1080), (-1920, 0))
     push!(ax2_array, ax)
 end
 
@@ -159,7 +159,7 @@ function plot_line_2d(line:: Line; color = :black, linestyle = :solid, axindex =
     intercept = line.origin[2] - slope * line.origin[1]
 
     y = function (x) return slope * x + intercept end
-    xs = -50:1:50
+    xs = 0:1:1080
     ys = y.(xs)
     lines!(ax2_array[axindex], xs, ys, color = color, linestyle=linestyle)
 end
@@ -182,7 +182,7 @@ function plot_2dcylinders(conic_contours; linestyle = :solid, alpha = 1, axindex
             line = conic_contours[i, j, :]
             if line == [0, 0, 0] continue end
             y1 = function (x) return y(x, line) end
-            xs = -5000:1:5000
+            xs = 0:1:1080
             ys1 = y1.(xs)
             lines!(ax2_array[axindex], xs, -ys1, color = (colors[i], alpha), linestyle=linestyle)
         end

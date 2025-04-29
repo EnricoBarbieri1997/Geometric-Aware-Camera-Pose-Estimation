@@ -2,7 +2,7 @@ module Geometry
 	export Plane, Line, Point, Circle, Cylinder, TangentLineNotFound, homogeneous_line_from_points, issame_line, rotation_between_lines, cylinder_rotation_from_axis, homogeneous_to_line, line_to_homogenous, homogeneous_line_intercept, homogeneous_anglebetween, project_point_into_line, project_point_into_plane, get_tangentpoints_circle_point, get_cylinder_contours
 
 	using ..Utils
-	using LinearAlgebra: cross, dot, norm, normalize
+	using LinearAlgebra: cross, dot, norm, normalize, pinv
 	using Rotations: RotMatrix, AngleAxis, RotXYZ, params as rotations_params
 
 	struct Point
@@ -77,11 +77,11 @@ module Geometry
 		return atan((b[1]*a[2]-a[1]*b[2])/(a[1]*b[1]+a[2]*b[2]))
 	end
 
-	function project_point_into_line(point::Vector{<:Number}, line::Line)
-		direction = line.direction
+	function project_point_into_line(point::Vector{<:Number}, line::Line)::Vector{<:Number}
+		direction = line.direction / norm(line.direction)
 		origin = line.origin
 		v = point - origin
-		return origin + dot(v, direction) / dot(direction, direction) * direction
+		return origin + dot(v, direction) * direction
 	end
 
 	function project_point_into_plane(point::Vector{<:Number}, plane::Plane)
@@ -125,6 +125,21 @@ module Geometry
 		return rotations_params(euler)
 	end
 
+	function plane_through_3_points(p1::Vector{<:Number}, p2::Vector{<:Number}, p3::Vector{<:Number})
+		# Create a plane through three points
+		v1 = p2 - p1
+		v2 = p3 - p1
+		normal = cross(v1, v2)
+		return Plane(p1, normal)
+	end
+
+	function plane_to_homogeneous(plane::Plane)
+		# Convert a plane to homogeneous coordinates
+		normal = plane.normal
+		d = -dot(normal, plane.origin)
+		return [normal; d]
+	end
+
 	function cylinder_rotation_from_axis(axis::Vector{<:Number})
 		# Create a rotation matrix that aligns the Z-axis with the given axis
 		# Assuming axis is a unit vector
@@ -163,27 +178,34 @@ module Geometry
 		throw(TangentLineNotFound("No tangent line possible"))
 	end
 
-	function get_cylinder_contours(cylinder::Cylinder, cameraCenter::Vector{<:Number}, cameraMatrix::Matrix{<:Number})
-		circlecenter = project_point_into_line(cameraCenter, Line(cylinder.center, cylinder.axis))
+	function get_cylinder_contours(cylinder::Cylinder, camera_center::Vector{<:Number}, camera_matrix::Matrix{<:Number})
+		projected_camera_center_onto_cylinder = project_point_into_line(camera_center, Line(cylinder.center, cylinder.axis))
 		tangentpoint₁, tangentpoint₂ = get_tangentpoints_circle_point(
-			Circle(circlecenter, cylinder.radius, cylinder.axis),
-			cameraCenter
+			Circle(projected_camera_center_onto_cylinder, cylinder.radius, cylinder.axis),
+			camera_center
 		)
-		projected_tangentpoint₁ = cameraMatrix * [tangentpoint₁; 1]
-		projected_tangentpoint₂ = cameraMatrix * [tangentpoint₂; 1]
-		projected_cylinderaxis = cameraMatrix * [cylinder.axis; 0]
 
-		projected_tangentpoint₁ = projected_tangentpoint₁ ./ projected_tangentpoint₁[3]
-		projected_tangentpoint₂ = projected_tangentpoint₂ ./ projected_tangentpoint₂[3]
-		projected_cylinderaxis = projected_cylinderaxis ./ projected_cylinderaxis[3]
+		plane1 = plane_to_homogeneous(plane_through_3_points(
+			camera_center,
+			projected_camera_center_onto_cylinder,
+			tangentpoint₁,
+		))
+		plane2 = plane_to_homogeneous(plane_through_3_points(
+			camera_center,
+			projected_camera_center_onto_cylinder,
+			tangentpoint₂,
+		))
 
-		projected_tangentpoint₁ = projected_tangentpoint₁[1:2]
-		projected_tangentpoint₂ = projected_tangentpoint₂[1:2]
-		projected_cylinderaxis = projected_cylinderaxis[1:2]
+		plane_projection = pinv(camera_matrix')
 
-		contour₁ = Line(projected_tangentpoint₁, -projected_cylinderaxis)
-		contour₂ = Line(projected_tangentpoint₂, -projected_cylinderaxis)
+		line1_h = plane_projection * plane1
+		line2_h = plane_projection * plane2
+		line1_h = line1_h ./ line1_h[3]
+		line2_h = line2_h ./ line2_h[3]
 
-		return (contour₁, contour₂)
+		line1 = homogeneous_to_line(line1_h)
+		line2 = homogeneous_to_line(line2_h)
+
+		return line1, line2
 	end
 end
