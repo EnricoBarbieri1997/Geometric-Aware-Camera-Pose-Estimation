@@ -1,5 +1,5 @@
 module Plotting
-    export initfigure, add_2d_axis!, add_slider!, clean_plots!, get_or_add_2d_axis!, get_or_add_camera_rotation_axis!, plot_2dpoints, plot_line_2d, Plot3dCameraInput, plot_3dcamera, plot_3dcamera_rotation, Plot3dCylindersInput, plot_cylinders_contours, plot_3dcylinders, plot_2dcylinders, plot_image_background, Figure, Axis, lift, lines!, image!, on, events, Point2f, Observable, ispressed, Mouse
+    export initfigure, add_2d_axis!, add_slider!, clean_plots!, get_or_add_2d_axis!, get_or_add_camera_rotation_axis!, plot_2dpoints, plot_line_2d, Plot3dCameraInput, plot_3dcamera, plot_3dcamera_rotation, plot_cylinders_contours, plot_3dcylinders, plot_2dcylinders, plot_image_background, Figure, Axis, lift, lines!, image!, on, events, Point2f, Observable, ispressed, Mouse
 
     using ..CylindersBasedCameraResectioning: GUI_ENABLED
 
@@ -12,17 +12,6 @@ module Plotting
     struct Plot3dCameraInput
         cameraRotation::Vector{<:Number}
         cameraTranslation::Vector{<:Number}
-    end
-
-    struct Plot3dCylindersInput
-        transforms::Vector{Matrix{Float64}}
-        radiuses::Vector{Vector{Float64}}
-        numberOfCylinders::Int
-        cameraProjectionMatrix::Union{Matrix{<:Number}, UndefInitializer}
-
-        function Plot3dCylindersInput(transforms::Vector{Matrix{Float64}}, radiuses::Vector{Vector{Float64}}, numberOfCylinders::Int, cameraProjectionMatrix::Union{Matrix{<:Number}, UndefInitializer} = undef)
-            new(transforms, radiuses, numberOfCylinders, cameraProjectionMatrix)
-        end
     end
 
     """ Dummy implementations (no-op or error) for environments without plotting support """

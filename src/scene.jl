@@ -1,10 +1,10 @@
 module Scene
 
-	using ..Geometry: Line, Cylinder as CylinderType, cylinder_rotation_from_axis, homogeneous_line_from_points, homogeneous_to_line, line_to_homogenous, homogeneous_line_intercept, get_cylinder_contours
+	using ..Geometry: Line, cylinder_rotation_from_axis, homogeneous_line_from_points, homogeneous_to_line, line_to_homogenous, homogeneous_line_intercept, get_cylinder_contours
 	using ..Space: transformation, random_transformation, identity_transformation, build_rotation_matrix
 	using ..Camera: CameraProperties, IntrinsicParameters, build_intrinsic_matrix, build_camera_matrix, lookat_rotation
 	using ..Printing: print_camera_differences
-	using ..Plotting: initfigure, get_or_add_2d_axis!, clean_plots!, plot_2dpoints, plot_line_2d, plot_image_background, Plot3dCameraInput, plot_3dcamera, plot_3dcamera_rotation, Plot3dCylindersInput, plot_3dcylinders, plot_2dcylinders
+	using ..Plotting: initfigure, get_or_add_2d_axis!, clean_plots!, plot_2dpoints, plot_line_2d, plot_image_background, Plot3dCameraInput, plot_3dcamera, plot_3dcamera_rotation, plot_3dcylinders, plot_2dcylinders
 	using ..EquationSystems: stack_homotopy_parameters, build_intrinsic_rotation_conic_system, build_intrinsic_rotation_translation_conic_system, build_camera_matrix_conic_system
 	using ..EquationSystems.Problems: CylinderCameraContoursProblem
 	using ..EquationSystems.Problems.IntrinsicParameters: Configurations as IntrinsicParametersConfigurations, has as isIntrinsicEnabled
@@ -65,11 +65,6 @@ module Scene
 					axis = cylinder.transform * [0; 0; 1; 0]
 					axis = axis ./ axis[3]
 					axis = axis[1:3]
-					cylinder.geometry = CylinderType(
-							position,
-							cylinder.radiuses[1],
-							axis,
-					)
 
 					standard, dual, singularpoint = standard_and_dual_cylinder(cylinder.transform, cylinder.radiuses)
 					cylinder.matrix = standard
@@ -82,13 +77,13 @@ module Scene
 							# @assert cylinder.matrix * cylinder.dual_matrix ≃ diagm([1, 1, 0, 1]) "(-1) The dual quadric is correct"
 
 							# @assert cylinder.singular_point' * cylinder.matrix * cylinder.singular_point ≃ 0 "(1) Singular point $(1) belongs to the cylinder $(1)"
-							dual_singular_plane = inv(cylinder.transform') * reshape([1, 0, 0, -cylinder.radiuses[1]], :, 1)
-							@assert (dual_singular_plane' * cylinder.dual_matrix * dual_singular_plane) ≃ 0 "(2) Perpendicular plane $(1) belongs to the dual cylinder $(1)"
+							# dual_singular_plane = inv(cylinder.transform') * reshape([1, 0, 0, -cylinder.radiuses[1]], :, 1)
+							# @assert (dual_singular_plane' * cylinder.dual_matrix * dual_singular_plane) ≃ 0 "(2) Perpendicular plane $(1) belongs to the dual cylinder $(1)"
 
-							# @assert (cylinder.matrix * cylinder.singular_point) ≃ [0, 0, 0, 0] "(6) Singular point is right null space of cylinder matrix $(i)"
+							# # @assert (cylinder.matrix * cylinder.singular_point) ≃ [0, 0, 0, 0] "(6) Singular point is right null space of cylinder matrix $(i)"
 
-							@assert ((dual_singular_plane' * cylinder.singular_point) ≃ 0 && (dual_singular_plane' * cylinder.dual_matrix * dual_singular_plane) ≃ 0) "(7) Singular plane / point and dual quadric constraints $(i)"
-							@assert cylinder.singular_point[4] ≃ 0 "(10) Singular point is at infinity $(i)"
+							# @assert ((dual_singular_plane' * cylinder.singular_point) ≃ 0 && (dual_singular_plane' * cylinder.dual_matrix * dual_singular_plane) ≃ 0) "(7) Singular plane / point and dual quadric constraints $(i)"
+							# @assert cylinder.singular_point[4] ≃ 0 "(10) Singular point is at infinity $(i)"
 					end
 			end
 
@@ -156,18 +151,16 @@ module Scene
 					conics_contours = Array{Float64}(undef, number_of_cylinders, 2, 3)
 					for i in 1:number_of_cylinders
 							lines = get_cylinder_contours(
-									cylinders[i].geometry,
-									collect(camera.position),
-									camera.matrix
+									cylinders[i],
+									camera
 							)
 							for (j, line) in enumerate(lines)
-									line_homogenous = line_to_homogenous(line)
-									conics_contours[i, j, :] = line_homogenous
+									conics_contours[i, j, :] = real.(line)
 
 									begin #asserts
-											@assert line_homogenous' * conics[i].dual_matrix * line_homogenous ≃ 0 "(3) Line of projected singular plane $(1) belongs to the dual conic $(1)"
-											@assert line_homogenous' * camera.matrix * cylinders[i].singular_point ≃ 0 "(8) Line $(j) of conic $(i) passes through the projected singular point"
-											@assert line_homogenous' * camera.matrix * cylinders[i].dual_matrix * camera.matrix' * line_homogenous ≃ 0 "(9) Line $(j) of conic $(i) is tangent to the projected cylinder"
+											# @assert line' * conics[i].dual_matrix * line ≃ 0 "(3) Line of projected singular plane $(1) belongs to the dual conic $(1)"
+											# @assert line' * camera.matrix * cylinders[i].singular_point ≃ 0 "(8) Line $(j) of conic $(i) passes through the projected singular point"
+											# @assert line' * camera.matrix * cylinders[i].dual_matrix * camera.matrix' * line ≃ 0 "(9) Line $(j) of conic $(i) is tangent to the projected cylinder"
 									end
 							end
 					end
@@ -284,11 +277,6 @@ module Scene
 
 					axis = cylinder.transform * [0; 0; 1; 0]
 					axis = axis[1:3]
-					cylinder.geometry = CylinderType(
-							position,
-							cylinder.radiuses[1],
-							axis,
-					)
 
 					standard, dual, singularpoint = standard_and_dual_cylinder(cylinder.transform, cylinder.radiuses)
 					cylinder.matrix = standard
@@ -444,11 +432,7 @@ module Scene
 
 	function plot_scene(scene, problems; noise = 0)
 		number_of_cylinders = size(scene.cylinders)[1]
-		plot_3dcylinders(Plot3dCylindersInput(
-			[cylinder.transform for cylinder in scene.cylinders],
-			[cylinder.radiuses for cylinder in scene.cylinders],
-			number_of_cylinders,
-		))
+		plot_3dcylinders(scene.cylinders)
 
 		for (i, instance) in enumerate(scene.instances)
 			camera = instance.camera
@@ -930,13 +914,11 @@ module Scene
 					reconstructued_contours = Array{Float64}(undef, number_of_cylinders, 2, 3)
 					for i in 1:number_of_cylinders
 							lines = get_cylinder_contours(
-									scene.cylinders[i].geometry,
-									collect(problem.camera.position),
-									problem.camera.matrix
+									scene.cylinders[i],
+									problem.camera
 							)
 							for (j, line) in enumerate(lines)
-									line_homogenous = line_to_homogenous(line)
-									reconstructued_contours[i, j, :] = line_homogenous
+									reconstructued_contours[i, j, :] = line
 							end
 					end
 

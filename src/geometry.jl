@@ -1,9 +1,12 @@
 module Geometry
-	export Plane, Line, Point, Circle, Cylinder, TangentLineNotFound, homogeneous_line_from_points, issame_line, rotation_between_lines, cylinder_rotation_from_axis, homogeneous_to_line, line_to_homogenous, homogeneous_line_intercept, homogeneous_anglebetween, project_point_into_line, project_point_into_plane, get_tangentpoints_circle_point, get_cylinder_contours
+	export Plane, Line, Point, Circle, TangentLineNotFound, homogeneous_line_from_points, issame_line, rotation_between_lines, cylinder_rotation_from_axis, homogeneous_to_line, line_to_homogenous, homogeneous_line_intercept, homogeneous_anglebetween, project_point_into_line, project_point_into_plane, get_tangentpoints_circle_point, get_cylinder_contours
 
 	using ..Utils
-	using LinearAlgebra: cross, dot, norm, normalize, pinv
+	using ..Camera: CameraProperties
+	using ..Cylinder: CylinderProperties
+	using LinearAlgebra: Diagonal, cross, dot, norm, normalize, pinv, svd
 	using Rotations: RotMatrix, AngleAxis, RotXYZ, params as rotations_params
+	using Polynomials: Polynomial, roots
 
 	struct Point
 		x::Number
@@ -22,7 +25,6 @@ module Geometry
 		radius::Number
 		axis::Union{Vector{<:Number}, Nothing}
 	end
-	Cylinder = Circle
 
 	struct TangentLineNotFound <: Exception
 		msg::String
@@ -178,34 +180,34 @@ module Geometry
 		throw(TangentLineNotFound("No tangent line possible"))
 	end
 
-	function get_cylinder_contours(cylinder::Cylinder, camera_center::Vector{<:Number}, camera_matrix::Matrix{<:Number})
-		projected_camera_center_onto_cylinder = project_point_into_line(camera_center, Line(cylinder.center, cylinder.axis))
-		tangentpoint₁, tangentpoint₂ = get_tangentpoints_circle_point(
-			Circle(projected_camera_center_onto_cylinder, cylinder.radius, cylinder.axis),
-			camera_center
-		)
+	function get_cylinder_contours(cylinder::CylinderProperties, camera::CameraProperties)
+		P = camera.matrix
+		iCylinder = cylinder.dual_matrix
+		iPlane = pinv(cylinder.transform) * Diagonal([0, 0, 1, 0]) * pinv(cylinder.transform')
+		# Project the 3D dual quadrics to 2D
+		projected_cylinder = P * iCylinder * transpose(P)
+		projectedPlane = P * iPlane * transpose(P)
+		
+		# Get basis vectors for the line at infinity
+		_, _, V = svd(projectedPlane)
+		baseVec1 = V[:, 2]
+		baseVec2 = V[:, 3]
 
-		plane1 = plane_to_homogeneous(plane_through_3_points(
-			camera_center,
-			projected_camera_center_onto_cylinder,
-			tangentpoint₁,
-		))
-		plane2 = plane_to_homogeneous(plane_through_3_points(
-			camera_center,
-			projected_camera_center_onto_cylinder,
-			tangentpoint₂,
-		))
+		# Build the quadratic equation coefficients
+		coeffs = [
+			dot(baseVec1, projected_cylinder * baseVec1),
+			2 * dot(baseVec1, projected_cylinder * baseVec2),
+			dot(baseVec2, projected_cylinder * baseVec2)
+		]
 
-		plane_projection = pinv(camera_matrix')
-
-		line1_h = plane_projection * plane1
-		line2_h = plane_projection * plane2
-		line1_h = line1_h ./ line1_h[3]
-		line2_h = line2_h ./ line2_h[3]
-
-		line1 = homogeneous_to_line(line1_h)
-		line2 = homogeneous_to_line(line2_h)
-
-		return line1, line2
+		# Solve the quadratic equation
+		p = Polynomial(reverse(coeffs))  # Reverse because Polynomial expects [c, b, a]
+		rootsOfConic = roots(p)
+		
+		# Compute the two tangent lines
+		tangentLine1 = baseVec1 * rootsOfConic[1] + baseVec2
+		tangentLine2 = baseVec1 * rootsOfConic[2] + baseVec2
+	
+		return tangentLine1, tangentLine2
 	end
 end

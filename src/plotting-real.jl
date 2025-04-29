@@ -1,7 +1,9 @@
+using ..Space: position_rotation
+using ..Cylinder: CylinderProperties
 using ..Geometry: Line
 
 using Reexport
-using LinearAlgebra: deg2rad
+using LinearAlgebra: cross, deg2rad, normalize
 using Rotations
 using GLMakie
 using GLMakie.FileIO
@@ -68,7 +70,8 @@ end
 function initfigure()
     global f, ax3, grid_2d, ax2_array, camera_roation_layout, camera_rotation_axes
     f = Figure(size=(1200, 800))
-    ax3 = Axis3(f[1, 1], title = "Cylinders", aspect = :data, perspectiveness = 1.0)
+    ax3 = LScene(f[1, 1], scenekw = (show_axis = true,))
+    # ax3.limits[] = ((-30, 30), (-30, 30), (-30, 30))
     grid_2d = f[1, 2] = GridLayout()
     Label(grid_2d[:, :, Top()], "Conics")
     ax2_array = []
@@ -89,7 +92,7 @@ function plot_3dcamera(info::Plot3dCameraInput, color = :black)
     cameraRotation = RotXYZ(cameraRotationRad...)
     cameraRotationAxis = rotation_axis(cameraRotation)
     cameraRotationAngle = rotation_angle(cameraRotation)
-    scale!(cameraMesh, (1/10, 1/10, 1/10))
+    scale!(cameraMesh, (1/1, 1/1, 1/1))
     rotate!(cameraMesh, cameraRotationAxis, cameraRotationAngle)
     translate!(cameraMesh,
         (
@@ -115,36 +118,32 @@ function plot_3dcamera_rotation(info::Plot3dCameraInput; color = :black, axindex
     rotate!(cameraMesh, cameraRotationAxis, cameraRotationAngle)
 end
 
-function plot_3dcylinders(cylindersInfo::Plot3dCylindersInput; axindex = 1)    
-    heightLevels = 100
-    angles = 100
+function plot_3dcylinders(cylinders::Vector{CylinderProperties}; axindex = 1)
+    for (i, cylinder) in enumerate(cylinders)
+        P0, _ = position_rotation(cylinder.matrix)                # Base point of the cylinder
+        v = normalize(cylinder.singular_point[1:3])       # Axis direction (must be normalized)
+        r = cylinder.radiuses[1]                              # Cylinder radius
+        height = 10.0                         # Total height of the cylinder
+        angle_step = 5                      # Angular step in degrees
+        height_step = 0.1               # Height step
+    
+        a = abs(v[1]) < 0.9 ? [1.0, 0.0, 0.0] : [0.0, 1.0, 0.0]
+        u = normalize(cross(v, a))
+        w = cross(v, u)
+    
+        # --- Generate points ---
+        points = zeros(Float64, 3, Int(ceil(360/angle_step) * ceil(2*height/height_step)))
 
-    z, θ = LinRange(-2, 2, heightLevels), LinRange(0, 2π, angles)
-    x = cos.(θ)
-    y = sin.(θ)
-
-    for i in 1:cylindersInfo.numberOfCylinders
-        radius = cylindersInfo.radiuses[i]
-        X = radius[1] * x
-        Y = radius[2] * y
-
-        canonicPoints = Array{Float64}(undef, 0, 4)
-
-        for j in 1:heightLevels
-            canonicPoints = vcat(canonicPoints, [X Y (z[j] * ones(angles)) ones(angles)])
+        for h in -height:height_step:(height - height_step)
+            for deg in 0:angle_step:355
+                θ = deg2rad(deg)
+                point = P0 .+ h .* v .+ r*cos(θ).*u .+ r*sin(θ).*w
+                index = Int(ceil(deg/angle_step) + 1 + ceil((h+height)/height_step) * ceil(360/angle_step))
+                points[:, index] = point
+            end
         end
-        points = transpose(cylindersInfo.transforms[i] * canonicPoints')
-        points = points ./ points[:, 4]
 
-        lines!(ax3, points[:, 1], points[:, 2], points[:, 3], color = colors[i])
-
-        if (cylindersInfo.cameraProjectionMatrix != undef)
-            points2d = [cylindersInfo.cameraProjectionMatrix * point for point in eachrow(points)]
-            points2d = [(point ./ point[3]) for point in points2d]
-            points2d = hcat(points2d...)'
-
-            lines!(ax2_array[axindex], points2d[:, 1], -points2d[:, 2], color = colors[i])
-        end
+        lines!(ax3, points[1, :], points[2, :], points[3, :]; color = colors[i])
     end
 end
 
@@ -172,9 +171,6 @@ function plot_cylinders_contours(contours::Vector{Vector{Line}}; linestyle = :so
     end
 end
 
-# ax + by + c = 0
-# y = -(a/b)x - (c/b)
-# y = -1/b * (ax + c)
 function plot_2dcylinders(conic_contours; linestyle = :solid, alpha = 1, axindex = 1)
     y = function (x, l) return (-(l[1] * x + l[3]) / l[2]) end
     for i in 1:(size(conic_contours)[1])
@@ -184,7 +180,7 @@ function plot_2dcylinders(conic_contours; linestyle = :solid, alpha = 1, axindex
             y1 = function (x) return y(x, line) end
             xs = 0:1:1080
             ys1 = y1.(xs)
-            lines!(ax2_array[axindex], xs, -ys1, color = (colors[i], alpha), linestyle=linestyle)
+            lines!(ax2_array[axindex], -xs, -ys1, color = (colors[i], alpha), linestyle=linestyle)
         end
     end
 end

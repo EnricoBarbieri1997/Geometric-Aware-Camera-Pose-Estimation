@@ -1,5 +1,5 @@
 module Space
-	export Vec3, Vec3Tuple, Point, PointTuple, transformation, identity_transformation, random_transformation, build_rotation_matrix
+	export Vec3, Vec3Tuple, Point, PointTuple, transformation, identity_transformation, random_transformation, position_rotation, build_rotation_matrix
 
 	using ..Utils
 	using LinearAlgebra
@@ -31,6 +31,19 @@ module Space
 		transform[transform .< 0.00000000001] .= 0.0
 
 		return transform
+	end
+	
+	function position_rotation(transform_matrix::Matrix{<:Number})
+		# Extract the translation vector from the transformation matrix
+		translation = transform_matrix[1:3, 4]
+
+		# Extract the rotation matrix from the transformation matrix
+		rotation_matrix = transform_matrix[1:3, 1:3]
+
+		# Convert the rotation matrix to Euler angles (in degrees)
+		euler_angles = RotXYZ(rotation_matrix)
+
+		return translation, euler_angles
 	end
 
 	function random_transformation(

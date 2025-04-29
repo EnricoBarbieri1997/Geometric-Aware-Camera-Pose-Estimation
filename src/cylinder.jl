@@ -1,7 +1,6 @@
 module Cylinder
 	export CylinderProperties, standard_and_dual, standard, dual, standard_and_dual_random, standard_random, random_dual
 
-	using ..Geometry: Plane, Cylinder as CylinderType, project_point_into_plane
 	using ..Space, ..Utils, LinearAlgebra, Random
 
 	mutable struct CylinderProperties
@@ -11,7 +10,6 @@ module Cylinder
 		singular_point::Vector{Number}
 		dual_matrix::Matrix{<:Number}
 		transform::Matrix{<:Number}
-		geometry::CylinderType
 
 		CylinderProperties() = new()
 	end
@@ -29,7 +27,7 @@ module Cylinder
 		dualCanonicalCylinderMatrix = zeros(4, 4)
 		dualCanonicalCylinderMatrix[[1, 2, 4], [1, 2, 4]] .= inv(canonicalCylinder[[1, 2, 4], [1, 2, 4]])
 
-		dualCylinderMatrix = transform_matrix * dualCanonicalCylinderMatrix * transform_matrix'
+		dualCylinderMatrix = pinv(transform_matrix) * dualCanonicalCylinderMatrix * pinv(transform_matrix')
 		dualCylinderSingularPoint = transform_matrix * [0; 0; 1; 0]
 
 		return cylinder, dualCylinderMatrix, dualCylinderSingularPoint

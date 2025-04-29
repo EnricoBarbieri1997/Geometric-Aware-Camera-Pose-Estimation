@@ -1,5 +1,5 @@
 module CylindersBasedCameraResectioning
-    const GUI_ENABLED = get(ENV, "GUI_ENABLED", "false") == "true"
+    const GUI_ENABLED = get(ENV, "GUI_ENABLED", "true") == "true"
     include("includes.jl")
 
 	using ..Scene: ParametersSolutionsPair, best_overall_solution!, best_overall_solution_by_steps!, best_intrinsic_rotation_translation_system_solution!, camera_from_solution, create_scene_instances_and_problems, scene_instances_and_problems_from_files, intrinsic_rotation_system_setup, intrinsic_rotation_translation_system_setup, plot_interactive_scene, plot_reconstructed_scene, split_intrinsic_rotation_parameters
