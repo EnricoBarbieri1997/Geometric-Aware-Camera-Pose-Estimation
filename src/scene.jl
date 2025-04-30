@@ -55,7 +55,7 @@ module Scene
 			for i in 1:number_of_cylinders
 					cylinder = CylinderProperties()
 					position = normalize(rand(Float64, 3)) * rand_in_range(0.0, 10.0)
-					rotation = rand_in_range((-90, 90), 3)
+					rotation = [0, 30, 0]# rand_in_range((-90, 90), 3)
 					cylinder.euler_rotation = rotation
 
 					cylinder.transform = transformation(position, cylinder.euler_rotation)

@@ -19,7 +19,7 @@ module CylindersBasedCameraResectioning
             number_of_cylinders=3,
             random_seed=27,
             intrinsic_configuration,
-            noise=0.5,
+            noise=0,
         )
 
         display(scene.figure)

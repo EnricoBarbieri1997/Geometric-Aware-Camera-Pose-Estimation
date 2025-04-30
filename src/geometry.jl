@@ -183,7 +183,7 @@ module Geometry
 	function get_cylinder_contours(cylinder::CylinderProperties, camera::CameraProperties)
 		P = camera.matrix
 		iCylinder = cylinder.dual_matrix
-		iPlane = pinv(cylinder.transform) * Diagonal([0, 0, 1, 0]) * pinv(cylinder.transform')
+		iPlane = inv(cylinder.transform) * Diagonal([0, 0, 1, 0]) * inv(cylinder.transform')
 		# Project the 3D dual quadrics to 2D
 		projected_cylinder = P * iCylinder * transpose(P)
 		projectedPlane = P * iPlane * transpose(P)

@@ -120,7 +120,7 @@ end
 
 function plot_3dcylinders(cylinders::Vector{CylinderProperties}; axindex = 1)
     for (i, cylinder) in enumerate(cylinders)
-        P0, _ = position_rotation(cylinder.matrix)                # Base point of the cylinder
+        P0, t = position_rotation(cylinder.transform)                # Base point of the cylinder
         v = normalize(cylinder.singular_point[1:3])       # Axis direction (must be normalized)
         r = cylinder.radiuses[1]                              # Cylinder radius
         height = 10.0                         # Total height of the cylinder

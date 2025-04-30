@@ -26,9 +26,9 @@ module Space
 		r[4, 4] = 1
 		t = diagm([1.0, 1.0, 1.0, 1.0])
 		t[1:3, 4] .= (translation .* 1)
-
+	
 		transform = t * r
-		transform[transform .< 0.00000000001] .= 0.0
+		transform[abs.(transform) .< 1e-11] .= 0.0
 
 		return transform
 	end
@@ -41,7 +41,7 @@ module Space
 		rotation_matrix = transform_matrix[1:3, 1:3]
 
 		# Convert the rotation matrix to Euler angles (in degrees)
-		euler_angles = RotXYZ(rotation_matrix)
+		euler_angles = eulerangles_from_rotationmatrix(rotation_matrix)
 
 		return translation, euler_angles
 	end

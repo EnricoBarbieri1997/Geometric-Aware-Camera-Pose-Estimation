@@ -22,12 +22,12 @@ module Cylinder
 		inverseRadiusSquareY = 1 / (radius[2]^2)
 		canonicalCylinder = diagm([inverseRadiusSquareX, inverseRadiusSquareY, 0, -1])
 
-		cylinder = Matrix{Float64}(I(4)) # inv(transform_matrix') * canonicalCylinder * inv(transform_matrix)
+		cylinder = transform_matrix' * canonicalCylinder * transform_matrix
 
 		dualCanonicalCylinderMatrix = zeros(4, 4)
 		dualCanonicalCylinderMatrix[[1, 2, 4], [1, 2, 4]] .= inv(canonicalCylinder[[1, 2, 4], [1, 2, 4]])
 
-		dualCylinderMatrix = pinv(transform_matrix) * dualCanonicalCylinderMatrix * pinv(transform_matrix')
+		dualCylinderMatrix = inv(transform_matrix) * dualCanonicalCylinderMatrix * inv(transform_matrix')
 		dualCylinderSingularPoint = transform_matrix * [0; 0; 1; 0]
 
 		return cylinder, dualCylinderMatrix, dualCylinderSingularPoint
