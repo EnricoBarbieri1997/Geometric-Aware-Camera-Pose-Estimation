@@ -303,7 +303,7 @@ function plot_2dcylinders(conic_contours; linestyle = :solid, alpha = 1, axindex
             y1 = function (x) return y(x, line) end
             xs = 0:1:1080
             ys1 = y1.(xs)
-            lines!(ax2_array[axindex], xs, ys1, color = (colors[i], alpha), linestyle=linestyle)
+            lines!(ax2_array[axindex], xs, -ys1, color = (colors[i], alpha), linestyle=linestyle)
         end
     end
 end
