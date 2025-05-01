@@ -1,5 +1,5 @@
 module Geometry
-	export Plane, Line, Point, Circle, TangentLineNotFound, homogeneous_line_from_points, issame_line, rotation_between_lines, cylinder_rotation_from_axis, homogeneous_to_line, line_to_homogenous, homogeneous_line_intercept, homogeneous_anglebetween, project_point_into_line, project_point_into_plane, get_tangentpoints_circle_point, get_cylinder_contours
+	export Plane, Line, Point, Circle, TangentLineNotFound, homogeneous_line_from_points, issame_line, rotation_between_lines, cylinder_rotation_from_axis, homogeneous_to_line, line_to_homogenous, homogeneous_line_intercept, homogeneous_anglebetween, project_point_into_line, plane_basis, project_point_into_plane, get_tangentpoints_circle_point, get_cylinder_contours
 
 	using ..Utils
 	using ..Camera: CameraProperties
@@ -140,6 +140,25 @@ module Geometry
 		normal = plane.normal
 		d = -dot(normal, plane.origin)
 		return [normal; d]
+	end
+
+	function plane_basis(plane::Plane)
+    # Normal vector
+    a, b, c = plane.normal
+
+    # Choose two vectors orthogonal to the normal vector
+    if c != 0
+        v1 = [1.0, 0.0, -a / c]
+    elseif b != 0
+        v1 = [1.0, -a / b, 0.0]
+    elseif a != 0
+        v1 = [-b / a, 1.0, 0.0]
+    else
+        error("Invalid normal vector: all coefficients are zero.")
+    end
+
+		v2 = cross(plane.normal, v1)
+    return [normalize(v1); 0], [normalize(v2); 0]
 	end
 
 	function cylinder_rotation_from_axis(axis::Vector{<:Number})

@@ -2,7 +2,7 @@ module Scene
 
 	using ..Geometry: Line, cylinder_rotation_from_axis, homogeneous_line_from_points, homogeneous_to_line, line_to_homogenous, homogeneous_line_intercept, get_cylinder_contours
 	using ..Space: RotDeg, transformation, random_transformation, identity_transformation, build_rotation_matrix
-	using ..Camera: CameraProperties, IntrinsicParameters, build_intrinsic_matrix, build_camera_matrix, lookat_rotation
+	using ..Camera: CameraProperties, IntrinsicParameters, build_intrinsic_matrix, build_camera_matrix, lookat_rotation, random_camera_lookingat_center
 	using ..Printing: print_camera_differences
 	using ..Plotting: initfigure, get_or_add_2d_axis!, clean_plots!, plot_2dpoints, plot_line_2d, plot_image_background, Plot3dCameraInput, plot_3dcamera, plot_3dcamera_rotation, plot_3dcylinders, plot_2dcylinders
 	using ..EquationSystems: stack_homotopy_parameters, build_intrinsic_rotation_conic_system, build_intrinsic_rotation_translation_conic_system, build_camera_matrix_conic_system
@@ -55,7 +55,7 @@ module Scene
 			for i in 1:number_of_cylinders
 					cylinder = CylinderProperties()
 					position = normalize(rand(Float64, 3)) * rand_in_range(0.0, 10.0)
-					rotation = [45, 45, 0]# rand_in_range((-90, 90), 3)
+					rotation = rand_in_range((-90, 90), 3)
 					cylinder.euler_rotation = rotation
 
 					cylinder.transform = transformation(position, cylinder.euler_rotation)
@@ -124,12 +124,9 @@ module Scene
 
 			for i in 1:number_of_instances
 					instance = InstanceConfiguration()
-					# position, rotation_matrix = random_camera_lookingat_center()
-					position = [7.35889, -6.92579, 4.95831]
-					r = [45.0 + 180.0, 0.0, 45.0]
-					rotation_matrix = RotDeg(r...)
+					position, rotation_matrix = random_camera_lookingat_center()
 					quaternion_camera_rotation = QuatRotation(rotation_matrix)
-					euler_rotation = r
+					euler_rotation = rad2deg.(eulerangles_from_rotationmatrix(rotation_matrix))
 					camera = CameraProperties(
 							position = position,
 							euler_rotation = euler_rotation,
@@ -445,6 +442,12 @@ module Scene
 			get_or_add_2d_axis!(i)
 			plot_2dpoints([(conic.singular_point ./ conic.singular_point[3])[1:2] for conic in conics]; axindex = i)
 			plot_2dcylinders(conics_contours, alpha=0.5; axindex = i)
+
+			# plot_2dpoints([
+			# 	camera.matrix * [1, 0, 0, 1/30],
+			# 	camera.matrix * [0, 1, 0, 1/30],
+			# 	camera.matrix * [0, 0, 1, 1/30],
+			# ]; axindex = i)
 		end
 		if (noise > 0)
 			for (i, problem) in enumerate(problems)

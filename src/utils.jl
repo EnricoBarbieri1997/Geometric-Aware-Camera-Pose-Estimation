@@ -1,7 +1,5 @@
 module Utils
-	export almostequal, ≃, rand_in_range, random_camera_lookingat_center, quat_from_rotmatrix, vector_difference, matrix_difference, rotations_difference, eulerangles_from_rotationmatrix, translations_difference, isvalid_startsolution
-
-	using ..Camera: lookat_rotation
+	export almostequal, ≃, rand_in_range, quat_from_rotmatrix, vector_difference, matrix_difference, rotations_difference, eulerangles_from_rotationmatrix, translations_difference, isvalid_startsolution
 
 	using LinearAlgebra: diagm, norm, normalize, svdvals, tr
 	using Rotations
@@ -195,7 +193,7 @@ module Utils
 	function isvalid_startsolution(system, solution, parameters)
 		return minimum(svdvals(jacobian(system, solution, parameters))) > 1e-6
 	end
-	function eulerangles_from_rotationmatrix(rotation_matrix; order::EulerOrder = EulerOrderXYZ)
+	function eulerangles_from_rotationmatrix(rotation_matrix; order::EulerOrder = EulerOrderZYX)
 		r = rotation_matrix
 		if (order == EulerOrderXYZ)
 			sy = r[1,3]
@@ -292,12 +290,5 @@ module Utils
 			end
 		end
 		throw(ArgumentError("Invalid arguments"))
-	end
-
-	function random_camera_lookingat_center()
-		camera_translationdirection = normalize(rand_in_range(-1.0, 1.0, 3))
-		camera_translation = camera_translationdirection * rand_in_range(15.0, 30.0)
-		camera_object_rotation = lookat_rotation(camera_translationdirection, [0, 0, 0], [0, 0, 1])
-		return camera_translation, camera_object_rotation
 	end
 end

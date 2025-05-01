@@ -2,6 +2,7 @@ module Camera
 	export CameraProperties, IntrinsicParameters, build_camera_matrix, build_intrinsic_matrix, build_camera_matrix, lookat_rotation
 
 	using ..Space: RotDeg
+	using ..Utils: rand_in_range
 
 	using Rotations
 	using LinearAlgebra
@@ -133,13 +134,18 @@ module Camera
 		return xaxis, yaxis, zaxis
 	end
 
-	function lookat_rotation(eye, at, up)
-		xaxis, yaxis, zaxis = lookat_axis(eye, at, up)
+	function lookat_rotation(camera_pos::Vector{Float64}, target_pos::Vector{Float64}, up::Vector{Float64} = [0.0, 0.0, 1.0])
+		forward = normalize(target_pos - camera_pos)        # camera Z axis (pointing into the scene)
+    right = normalize(cross(forward, up))               # camera X axis
+    down = -normalize(cross(right, forward))             # camera Y axis (but downward in image plane)
 
-		return [xaxis[1] yaxis[1] zaxis[1];
-			xaxis[2] yaxis[2] zaxis[2];
-			xaxis[3] yaxis[3] zaxis[3]] * RotZ(π)
-	end
+    # Assemble camera-to-world rotation matrix
+    R_cam_to_world = hcat(right, down, forward)
+
+    # Invert it to get world-to-camera rotation
+    # R_world_to_cam = transpose(R_cam_to_world)
+    return R_cam_to_world
+end
 
 	function lookat_matrix(eye, at, up)
 		xaxis, yaxis, zaxis = lookat_axis(eye, at, up)
@@ -148,5 +154,12 @@ module Camera
 			xaxis[2] yaxis[2] zaxis[2] 0;
 			xaxis[3] yaxis[3] zaxis[3] 0;
 			-dot(xaxis, eye) -dot(yaxis, eye) -dot(zaxis, eye) 1])
+	end
+
+	function random_camera_lookingat_center()
+		camera_translationdirection = normalize(rand_in_range(-1.0, 1.0, 3))
+		camera_translation = camera_translationdirection * rand_in_range(15.0, 30.0)
+		camera_object_rotation = lookat_rotation(camera_translation, [0.0, 0.0, 0.0])
+		return camera_translation, camera_object_rotation
 	end
 end

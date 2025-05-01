@@ -1,10 +1,10 @@
 using ..Space: RotRad, position_rotation, transformation as create_transform_matrix
 using ..Cylinder: CylinderProperties
-using ..Geometry: Line
+using ..Geometry: Line, Plane, plane_basis
 using ..Camera: CameraProperties
 
 using Reexport
-using LinearAlgebra: cross, deg2rad, normalize
+using LinearAlgebra: cross, deg2rad, dot, normalize
 using Rotations
 using GLMakie
 using GLMakie.FileIO
@@ -17,7 +17,7 @@ function add_2d_axis!()
     if row == 0
         row = 2
     end
-    ax = Axis(grid_2d[row, col], autolimitaspect = 1, aspect = DataAspect())
+    ax = Axis(grid_2d[row, col], autolimitaspect = 1, aspect = DataAspect(), title="View $index")
     ax.limits[] = ((0, 1080), (-1920, 0))
     push!(ax2_array, ax)
 end
@@ -165,6 +165,12 @@ function plot_3dcamera(camera::CameraProperties, color = :black)
 
     mesh_transformed = transform_mesh(loaded_mesh, T)
     mesh!(ax3, mesh_transformed, color=:gray)
+    push!(cameras, Dict(
+        :camera => camera,
+        :mesh => mesh_transformed,
+    ))
+    index = length(cameras)
+    text!(ax3, "Camera $(index)", position=Point3f(camera.position), align = (:center, :center), color=color)
 end
 
 function plot_3dcamera_rotation(camera::CameraProperties; color = :black, axindex = nothing)
@@ -182,9 +188,56 @@ function plot_3dcamera_rotation(camera::CameraProperties; color = :black, axinde
     rotate!(cameraMesh, cameraRotationAxis, cameraRotationAngle)
 end
 
+function plot_plane!(π::Vector{<:Real}; corners=nothing, origin=nothing, color=:gray)
+    # Step 1: Transform the plane
+    πt = π
+    n = πt[1:3]
+    d = πt[4]
+    n = normalize(n)
+
+    # Step 2: Get a point on the plane
+    p0 = something(origin, -d * n)[1:3]
+
+    u, v = plane_basis(Plane(p0, n))
+    u = u[1:3]
+    v = v[1:3]
+
+    size = 4.0
+
+    # Step 4: Generate 4 points (quad corners)
+    corners = something(corners, Point3f[
+        p0 + size*u + size*v,
+        p0 - size*u + size*v,
+        p0 - size*u - size*v,
+        p0 + size*u - size*v,
+    ])
+
+    # display([
+    #     (Vector{Float64}([corner[1], corner[2], corner[3], 1])' * πt) for corner in corners
+    # ])
+
+    # Step 5: Define faces as a quad (two triangles)
+    faces = [
+        TriangleFace(1, 2, 3),
+        TriangleFace(1, 3, 4),
+        TriangleFace(1, 3, 2),
+        TriangleFace(1, 4, 3),
+    ]
+
+    # Step 6: Create mesh and render with double-sided shading
+    mesh!(ax3, GeometryBasics.Mesh(corners, faces),
+          color = color, transparency = true,
+          shading = NoShading)
+    
+    # scatter!(ax3, corners; color = color, markersize = 5)
+end
+
 function plot_3dcylinders(cylinders::Vector{CylinderProperties}; axindex = 1)
     for (i, cylinder) in enumerate(cylinders)
-        P0, t = position_rotation(cylinder.transform)                # Base point of the cylinder
+        P0, _ = position_rotation(cylinder.transform)                 # Base point of the cylinder
+        scatter!(ax3, [
+            Point3f(P0[1], P0[2], P0[3])
+        ]; color = colors[i], markersize = 40)
         v = normalize(cylinder.singular_point[1:3])       # Axis direction (must be normalized)
         r = cylinder.radiuses[1]                              # Cylinder radius
         height = 10.0                         # Total height of the cylinder
@@ -196,18 +249,45 @@ function plot_3dcylinders(cylinders::Vector{CylinderProperties}; axindex = 1)
         w = cross(v, u)
     
         # --- Generate points ---
-        points = zeros(Float64, 3, Int(ceil(360/angle_step) * ceil(2*height/height_step)))
+        start_height = -height + height_step
+        end_height = height - height_step
+        height_sections = start_height:height_step:end_height
+        angles = 0:angle_step:355
+        number_of_height_sections = size(height_sections)[1]
+        number_of_angle_sections = size(angles)[1]
+        points = zeros(Float64, 3, number_of_height_sections * number_of_angle_sections)
 
-        for h in -height:height_step:(height - height_step)
-            for deg in 0:angle_step:355
+        for (h_i, h) in enumerate(height_sections)
+            for (deg_i, deg) in enumerate(angles)
                 θ = deg2rad(deg)
                 point = P0 .+ h .* v .+ r*cos(θ).*u .+ r*sin(θ).*w
-                index = Int(ceil(deg/angle_step) + 1 + ceil((h+height)/height_step) * ceil(360/angle_step))
+                index = (h_i - 1) * number_of_angle_sections + deg_i
                 points[:, index] = point
             end
         end
 
         lines!(ax3, points[1, :], points[2, :], points[3, :]; color = colors[i])
+
+        plane = inv(cylinder.transform') * [0, 0, 1, 0]
+        # display([
+        #     p' * plane for p in [
+        #         [P0; 1],
+        #         cylinder.transform * [1, 1, 0, 1],
+        #         cylinder.transform * [-1, 1, 0, 1],
+        #         cylinder.transform * [-1, -1, 0, 1],
+        #         cylinder.transform * [1, -1, 0, 1]
+        #     ]
+        # ])
+        plot_plane!(plane; origin=P0, color=colors[i])
+        # corners = [
+        #     [1, 1, 0],
+        #     [-1, 1, 0],
+        #     [-1, -1, 0],
+        #     [1, -1, 0]
+        # ] * 2 * r
+        # corners = [cylinder.transform * Vec4f(corner..., 1.0) for corner in corners]
+        # corners = [Point3f(corner) for corner in corners]
+        # plot_plane!([0,0,1,0]; corners=corners, color=colors[i])
     end
 end
 
@@ -244,7 +324,7 @@ function plot_2dcylinders(conic_contours; linestyle = :solid, alpha = 1, axindex
             y1 = function (x) return y(x, line) end
             xs = 0:1:1080
             ys1 = y1.(xs)
-            lines!(ax2_array[axindex], -xs, -ys1, color = (colors[i], alpha), linestyle=linestyle)
+            lines!(ax2_array[axindex], xs, ys1, color = (colors[i], alpha), linestyle=linestyle)
         end
     end
 end

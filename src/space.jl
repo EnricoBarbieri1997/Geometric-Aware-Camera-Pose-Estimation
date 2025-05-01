@@ -47,6 +47,7 @@ module Space
 	end
 	
 	function position_rotation(transform_matrix::Matrix{<:Number})
+		transform_matrix = transform_matrix ./ transform_matrix[4, 4]
 		# Extract the translation vector from the transformation matrix
 		translation = transform_matrix[1:3, 4]
 
