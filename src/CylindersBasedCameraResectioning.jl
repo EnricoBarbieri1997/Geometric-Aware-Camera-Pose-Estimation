@@ -13,21 +13,21 @@ module CylindersBasedCameraResectioning
     using HomotopyContinuation, Observables, Random, Serialization
 
     function main()
-        intrinsic_configuration = IntrinsicParametersConfigurations.fₓ_fᵧ
+        intrinsic_configuration = IntrinsicParametersConfigurations.fₓ_fᵧ_cₓ_cᵧ
         scene, problems = create_scene_instances_and_problems(;
             number_of_instances=2,
             number_of_cylinders=3,
             random_seed=27,
             intrinsic_configuration,
-            noise=0,
+            noise=1.0,
         )
 
         display(scene.figure; blocking=true)
 
-        # rotation_intrinsic_system, parameters = intrinsic_rotation_system_setup(problems)
+        rotation_intrinsic_system, parameters = intrinsic_rotation_system_setup(problems)
 
-        # start_solutions = nothing
-        # start_parameters = nothing
+        start_solutions = nothing
+        start_parameters = nothing
         # try
         #     parameters_solutions_pair = deserialize("tmp/intrinsic_rotation_monodromy_solutions.jld")
         #     start_solutions = parameters_solutions_pair.solutions
@@ -37,60 +37,60 @@ module CylindersBasedCameraResectioning
         #     display("No intrinsic-rotation monodromy")
         # end
 
-        # solver = starts = nothing
+        solver = starts = nothing
 
-        # if isnothing(start_parameters)
-        #     solver, starts = solver_startsolutions(
-        #         rotation_intrinsic_system;
-        #         target_parameters = parameters,
-        #         start_system = :total_degree,
-        #     )
-        # else
-        #     display("Using parameter homotopy")
-        #     geometric_homotopy = MyParameterHomotopy(rotation_intrinsic_system, start_parameters, parameters)
-        #     solver, starts = solver_startsolutions(
-        #         geometric_homotopy,
-        #         start_solutions;
-        #     )
-        # end
+        if isnothing(start_parameters)
+            solver, starts = solver_startsolutions(
+                rotation_intrinsic_system;
+                target_parameters = parameters,
+                start_system = :total_degree,
+            )
+        else
+            display("Using parameter homotopy")
+            geometric_homotopy = MyParameterHomotopy(rotation_intrinsic_system, start_parameters, parameters)
+            solver, starts = solver_startsolutions(
+                geometric_homotopy,
+                start_solutions;
+            )
+        end
 
-        # chunk_size = 500000
-        # numberof_start_solutions = length(starts)
-        # display("Number of start solutions: $numberof_start_solutions. Number of iterations needed: $(ceil(Int, numberof_start_solutions / chunk_size))")
-        # solution_error = Inf
-        # for start in Iterators.partition(starts, chunk_size)
+        chunk_size = 500000
+        numberof_start_solutions = length(starts)
+        display("Number of start solutions: $numberof_start_solutions. Number of iterations needed: $(ceil(Int, numberof_start_solutions / chunk_size))")
+        solution_error = Inf
+        for start in Iterators.partition(starts, chunk_size)
 
-        #     result = solve(
-        #         solver,
-        #         start;
-        #     )
-        #     @info result
+            result = solve(
+                solver,
+                start;
+            )
+            @info result
 
-        #     solution_error, _ = best_overall_solution_by_steps!(
-        #         result,
-        #         scene,
-        #         problems;
-        #         start_error=solution_error,
-        #         intrinsic_configuration,
-        #     )
-        # end
+            solution_error, _ = best_overall_solution_by_steps!(
+                result,
+                scene,
+                problems;
+                start_error=solution_error,
+                intrinsic_configuration,
+            )
+        end
 
-        # for (i, instance) in enumerate(scene.instances)
-        #     display("View $i")
-        #     print_camera_differences(instance.camera, problems[i].camera)
-        #     display("--------------------")
-        # end
+        for (i, instance) in enumerate(scene.instances)
+            display("View $i")
+            print_camera_differences(instance.camera, problems[i].camera)
+            display("--------------------")
+        end
 
-        # for problem in problems
-        #     plot_3dcamera(Plot3dCameraInput(
-        #         problem.camera.euler_rotation,
-        #         problem.camera.position,
-        #     ), :green)
-        # end
+        for problem in problems
+            plot_3dcamera(Plot3dCameraInput(
+                problem.camera.euler_rotation,
+                problem.camera.position,
+            ), :green)
+        end
 
-        # plot_reconstructed_scene(scene, problems)
+        plot_reconstructed_scene(scene, problems)
 
-        # display(scene.figure)
+        display(scene.figure)
     end
 
     function monodromy()

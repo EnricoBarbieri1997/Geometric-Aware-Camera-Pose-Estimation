@@ -17,7 +17,7 @@ function add_2d_axis!()
     if row == 0
         row = 2
     end
-    ax = Axis(grid_2d[row, col], autolimitaspect = 1, aspect = DataAspect(), title="View $index")
+    ax = Axis(grid_2d[row, col], aspect = DataAspect(), title="View $index")
     ax.limits[] = ((0, 1080), (-1920, 0))
     push!(ax2_array, ax)
 end

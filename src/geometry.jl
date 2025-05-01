@@ -2,6 +2,7 @@ module Geometry
 	export Plane, Line, Point, Circle, TangentLineNotFound, homogeneous_line_from_points, issame_line, rotation_between_lines, cylinder_rotation_from_axis, homogeneous_to_line, line_to_homogenous, homogeneous_line_intercept, homogeneous_anglebetween, project_point_into_line, plane_basis, project_point_into_plane, get_tangentpoints_circle_point, get_cylinder_contours
 
 	using ..Utils
+	using ..Space: position_rotation
 	using ..Camera: CameraProperties
 	using ..Cylinder: CylinderProperties
 	using LinearAlgebra: Diagonal, cross, dot, norm, normalize, pinv, svd
@@ -67,7 +68,7 @@ module Geometry
 	end
 
 	function line_to_homogenous(line::Line)
-		homogenous_line = cross([line.origin; 1], [line.origin; 1] + [line.direction*10; 0])
+		homogenous_line = cross([line.origin; 1], [line.origin; 1] + [line.direction*1; 0])
 		return homogenous_line ./ homogenous_line[3]
 	end
 
@@ -200,33 +201,23 @@ module Geometry
 	end
 
 	function get_cylinder_contours(cylinder::CylinderProperties, camera::CameraProperties)
-		P = camera.matrix
-		iCylinder = cylinder.dual_matrix
-		iPlane = inv(cylinder.transform) * Diagonal([0.0, 0.0, 1.0, 0.0]) * inv(cylinder.transform')
-		# Project the 3D dual quadrics to 2D
-		projected_cylinder = P * iCylinder * transpose(P)
-		projectedPlane = P * iPlane * transpose(P)
-		
-		# Get basis vectors for the line at infinity
-		_, _, V = svd(projectedPlane)
-		baseVec1 = V[:, 2]
-		baseVec2 = V[:, 3]
+		camera_center = camera.position
+		camera_matrix = camera.matrix
+		center, _ = position_rotation(cylinder.transform)
+		axis = cylinder.singular_point[1:3]
+		radius = cylinder.radiuses[1]
+		circlecenter = project_point_into_line(camera_center, Line(center, axis))
+		tangentpoint₁, tangentpoint₂ = get_tangentpoints_circle_point(
+			Circle(circlecenter, radius, axis),
+			camera_center
+		)
+		projected_tangentpoint₁ = camera_matrix * [tangentpoint₁; 1]
+		projected_tangentpoint₂ = camera_matrix * [tangentpoint₂; 1]
+		projected_cylinderaxis = camera_matrix * [axis; 0]
 
-		# Build the quadratic equation coefficients
-		coeffs = [
-			baseVec1' * projected_cylinder * baseVec1,
-			2 * baseVec1' * projected_cylinder * baseVec2,
-			baseVec2' * projected_cylinder * baseVec2
-		]
+		contour₁ = cross(projected_tangentpoint₁, projected_tangentpoint₁ + projected_cylinderaxis)
+		contour₂ = cross(projected_tangentpoint₂, projected_tangentpoint₂ + projected_cylinderaxis)
 
-		# Solve the quadratic equation
-		p = Polynomial(reverse(coeffs))  # Reverse because Polynomial expects [c, b, a]
-		rootsOfConic = roots(p)
-		
-		# Compute the two tangent lines
-		tangentLine1 = baseVec1 * rootsOfConic[1] + baseVec2
-		tangentLine2 = baseVec1 * rootsOfConic[2] + baseVec2
-	
-		return tangentLine1, tangentLine2
+		return (contour₁, contour₂)
 	end
 end

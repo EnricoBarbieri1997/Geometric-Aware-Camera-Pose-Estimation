@@ -160,6 +160,8 @@ module EquationSystems
 			skew = skew,
 		))
 
+		display(intrinsic)
+
 		for (index, problem) in enumerate(problems)
 			lines_count = size(problem.lines)[1]
 			Rparams = [

@@ -77,10 +77,10 @@ module Scene
 							# @assert cylinder.matrix * cylinder.dual_matrix ≃ diagm([1, 1, 0, 1]) "(-1) The dual quadric is correct"
 
 							# @assert cylinder.singular_point' * cylinder.matrix * cylinder.singular_point ≃ 0 "(1) Singular point $(1) belongs to the cylinder $(1)"
-							# dual_singular_plane = inv(cylinder.transform') * reshape([1, 0, 0, -cylinder.radiuses[1]], :, 1)
+							# dual_singular_plane = cylinder.transform * reshape([1, 0, 0, -cylinder.radiuses[1]], :, 1)
 							# @assert (dual_singular_plane' * cylinder.dual_matrix * dual_singular_plane) ≃ 0 "(2) Perpendicular plane $(1) belongs to the dual cylinder $(1)"
 
-							# # @assert (cylinder.matrix * cylinder.singular_point) ≃ [0, 0, 0, 0] "(6) Singular point is right null space of cylinder matrix $(i)"
+							# @assert (cylinder.matrix * cylinder.singular_point) ≃ [0, 0, 0, 0] "(6) Singular point is right null space of cylinder matrix $(i)"
 
 							# @assert ((dual_singular_plane' * cylinder.singular_point) ≃ 0 && (dual_singular_plane' * cylinder.dual_matrix * dual_singular_plane) ≃ 0) "(7) Singular plane / point and dual quadric constraints $(i)"
 							# @assert cylinder.singular_point[4] ≃ 0 "(10) Singular point is at infinity $(i)"
@@ -99,21 +99,21 @@ module Scene
 			principal_point_x = 960
 			principal_point_y = 540
 
-			# if (isIntrinsicEnabled.fₓ(intrinsic_configuration))
-			# 		focal_length_x = rand_in_range(2500.0, 3000.0)
-			# end
-			# if (isIntrinsicEnabled.fᵧ(intrinsic_configuration))
-			# 		focal_length_y = rand_in_range(0.8, 1.0) * focal_length_x
-			# end
-			# if (isIntrinsicEnabled.skew(intrinsic_configuration))
-			# 		skew = rand_in_range(0, 1)
-			# end
-			# if (isIntrinsicEnabled.cₓ(intrinsic_configuration))
-			# 		principal_point_x = rand_in_range(1280, 1440)
-			# end
-			# if (isIntrinsicEnabled.cᵧ(intrinsic_configuration))
-			# 		principal_point_y = principal_point_x * (9/16 + rand_in_range(-0.1, 0.1))
-			# end
+			if (isIntrinsicEnabled.fₓ(intrinsic_configuration))
+					focal_length_x = rand_in_range(2500.0, 3000.0)
+			end
+			if (isIntrinsicEnabled.fᵧ(intrinsic_configuration))
+					focal_length_y = rand_in_range(0.8, 1.0) * focal_length_x
+			end
+			if (isIntrinsicEnabled.skew(intrinsic_configuration))
+					skew = rand_in_range(0, 1)
+			end
+			if (isIntrinsicEnabled.cₓ(intrinsic_configuration))
+					principal_point_x = rand_in_range(1280, 1440)
+			end
+			if (isIntrinsicEnabled.cᵧ(intrinsic_configuration))
+					principal_point_y = principal_point_x * (9/16 + rand_in_range(-0.1, 0.1))
+			end
 			intrinsic = build_intrinsic_matrix(IntrinsicParameters(;
 					focal_length_x,
 					focal_length_y,
@@ -184,10 +184,10 @@ module Scene
 							line2 = conics_contours[i, 2, :]
 							intersection = cross(line1, line2)
 							intersection = intersection ./ intersection[3]
-							noisy_intersection = intersection + normalize([rand(Float64, 2); 1]) * noise
+							noisy_intersection = intersection + normalize([rand(Float64, 2); 0]) * noise
 							noisy_intersection = noisy_intersection ./ noisy_intersection[3]
-							noisy_line_1 = cross([0, homogeneous_line_intercept(0, line1), 1], noisy_intersection)
-							noisy_line_2 = cross([0, homogeneous_line_intercept(0, line2), 1], noisy_intersection)
+							noisy_line_1 = cross([1000, homogeneous_line_intercept(1000, line1), 1], noisy_intersection)
+							noisy_line_2 = cross([1000, homogeneous_line_intercept(1000, line2), 1], noisy_intersection)
 							
 							noisy_conic_contours[i, 1, :] = noisy_line_1 ./ noisy_line_1[3]
 							noisy_conic_contours[i, 2, :] = noisy_line_2 ./ noisy_line_2[3]
