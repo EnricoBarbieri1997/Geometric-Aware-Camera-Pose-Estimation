@@ -269,6 +269,9 @@ end
 
 function plot_2dpoints(points; axindex = 1)
     for (i, point) in enumerate(points)
+        if length(point) == 3
+            point = point ./ point[3]
+        end
         scatter!(ax2_array[axindex], (point[1], -point[2]), color = colors[i])
     end
 end

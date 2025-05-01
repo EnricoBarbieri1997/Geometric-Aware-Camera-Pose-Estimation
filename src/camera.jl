@@ -158,7 +158,7 @@ end
 
 	function random_camera_lookingat_center()
 		camera_translationdirection = normalize(rand_in_range(-1.0, 1.0, 3))
-		camera_translation = camera_translationdirection * rand_in_range(15.0, 30.0)
+		camera_translation = camera_translationdirection * rand_in_range(20.0, 30.0)
 		camera_object_rotation = lookat_rotation(camera_translation, [0.0, 0.0, 0.0])
 		return camera_translation, camera_object_rotation
 	end

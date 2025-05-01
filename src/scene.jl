@@ -1,7 +1,7 @@
 module Scene
 
 	using ..Geometry: Line, cylinder_rotation_from_axis, homogeneous_line_from_points, homogeneous_to_line, line_to_homogenous, homogeneous_line_intercept, get_cylinder_contours
-	using ..Space: RotDeg, transformation, random_transformation, identity_transformation, build_rotation_matrix
+	using ..Space: RotDeg, transformation, random_transformation, identity_transformation, build_rotation_matrix, position_rotation
 	using ..Camera: CameraProperties, IntrinsicParameters, build_intrinsic_matrix, build_camera_matrix, lookat_rotation, random_camera_lookingat_center
 	using ..Printing: print_camera_differences
 	using ..Plotting: initfigure, get_or_add_2d_axis!, clean_plots!, plot_2dpoints, plot_line_2d, plot_image_background, Plot3dCameraInput, plot_3dcamera, plot_3dcamera_rotation, plot_3dcylinders, plot_2dcylinders
@@ -54,12 +54,12 @@ module Scene
 			cylinders = []
 			for i in 1:number_of_cylinders
 					cylinder = CylinderProperties()
-					position = normalize(rand(Float64, 3)) * rand_in_range(0.0, 10.0)
+					position = normalize(rand(Float64, 3)) * rand_in_range(0.0, 3.0)
 					rotation = rand_in_range((-90, 90), 3)
 					cylinder.euler_rotation = rotation
 
 					cylinder.transform = transformation(position, cylinder.euler_rotation)
-					radius = rand_in_range((1, 3), 2)
+					radius = rand_in_range((0.2, 1.5), 2)
 					cylinder.radiuses = [radius[1], radius[1]] # TODO Support different radiuses for each cylinder
 
 					axis = cylinder.transform * [0; 0; 1; 0]
@@ -442,12 +442,8 @@ module Scene
 			get_or_add_2d_axis!(i)
 			plot_2dpoints([(conic.singular_point ./ conic.singular_point[3])[1:2] for conic in conics]; axindex = i)
 			plot_2dcylinders(conics_contours, alpha=0.5; axindex = i)
-
-			# plot_2dpoints([
-			# 	camera.matrix * [1, 0, 0, 1/30],
-			# 	camera.matrix * [0, 1, 0, 1/30],
-			# 	camera.matrix * [0, 0, 1, 1/30],
-			# ]; axindex = i)
+			centers = [camera.matrix * [position_rotation(cylinder.transform)[1]; 1] for cylinder in scene.cylinders]
+			plot_2dpoints(centers; axindex = i)
 		end
 		if (noise > 0)
 			for (i, problem) in enumerate(problems)
