@@ -212,10 +212,6 @@ function plot_plane!(π::Vector{<:Real}; corners=nothing, origin=nothing, color=
         p0 + size*u - size*v,
     ])
 
-    # display([
-    #     (Vector{Float64}([corner[1], corner[2], corner[3], 1])' * πt) for corner in corners
-    # ])
-
     # Step 5: Define faces as a quad (two triangles)
     faces = [
         TriangleFace(1, 2, 3),
@@ -228,8 +224,6 @@ function plot_plane!(π::Vector{<:Real}; corners=nothing, origin=nothing, color=
     mesh!(ax3, GeometryBasics.Mesh(corners, faces),
           color = color, transparency = true,
           shading = NoShading)
-    
-    # scatter!(ax3, corners; color = color, markersize = 5)
 end
 
 function plot_3dcylinders(cylinders::Vector{CylinderProperties}; axindex = 1)
@@ -269,25 +263,7 @@ function plot_3dcylinders(cylinders::Vector{CylinderProperties}; axindex = 1)
         lines!(ax3, points[1, :], points[2, :], points[3, :]; color = colors[i])
 
         plane = inv(cylinder.transform') * [0, 0, 1, 0]
-        # display([
-        #     p' * plane for p in [
-        #         [P0; 1],
-        #         cylinder.transform * [1, 1, 0, 1],
-        #         cylinder.transform * [-1, 1, 0, 1],
-        #         cylinder.transform * [-1, -1, 0, 1],
-        #         cylinder.transform * [1, -1, 0, 1]
-        #     ]
-        # ])
         plot_plane!(plane; origin=P0, color=colors[i])
-        # corners = [
-        #     [1, 1, 0],
-        #     [-1, 1, 0],
-        #     [-1, -1, 0],
-        #     [1, -1, 0]
-        # ] * 2 * r
-        # corners = [cylinder.transform * Vec4f(corner..., 1.0) for corner in corners]
-        # corners = [Point3f(corner) for corner in corners]
-        # plot_plane!([0,0,1,0]; corners=corners, color=colors[i])
     end
 end
 
