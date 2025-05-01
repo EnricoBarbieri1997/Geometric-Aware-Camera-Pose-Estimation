@@ -211,27 +211,31 @@ def intrinsic_difference(calculated, truth):
     return [deltaF, deltaUV, deltaSkew]
 
 def homogeneous_line_intercept(x, line):
-	  return -line[0]/line[1] * x - line[2]/line[1]
+    # Assuming line is [a, b, c] representing ax + by + c = 0
+    a, b, c = line
+    if b == 0:
+        return 0  # Avoid division by zero; you can handle this differently
+    return -(a * x + c) / b
+
+def normalize(v):
+    return v / np.linalg.norm(v)
+
+def homogeneous_line_from_points(p1, p2):
+    return np.cross(p1, p2)
+
+def add_noise_to_line(line, noise):
+    x1 = 0
+    p1 = np.array([x1, homogeneous_line_intercept(x1, line), 1.0]) + normalize(np.append(np.random.rand(2) - 0.5, 0)) * noise
+
+    x2 = 1000
+    p2 = np.array([x2, homogeneous_line_intercept(x2, line), 1.0]) + normalize(np.append(np.random.rand(2) - 0.5, 0)) * noise
+
+    return homogeneous_line_from_points(p1, p2)
 
 def add_noise_to_lines(line1, line2, noise):
-    # Compute intersection of the two lines
-    intersection = np.cross(line1, line2)
-    intersection = intersection / intersection[2]
-
-    # Add noise in homogeneous direction
-    random_dir = np.random.rand(2)
-    random_point = np.append(random_dir / np.linalg.norm(random_dir), 1.0)
-    noisy_intersection = intersection + noise * random_point
-    noisy_intersection = noisy_intersection / noisy_intersection[2]
-
-    # Recompute lines from origin intercept and noisy intersection
-    p0 = np.array([0, homogeneous_line_intercept(0, line1), 1])
-    noisy_line_1 = np.cross(p0, noisy_intersection)
-
-    p0 = np.array([0, homogeneous_line_intercept(0, line2), 1])
-    noisy_line_2 = np.cross(p0, noisy_intersection)
-
-    return noisy_line_1, noisy_line_2
+    noisy_line1 = add_noise_to_line(line1, noise)
+    noisy_line2 = add_noise_to_line(line2, noise)
+    return noisy_line1, noisy_line2
 
 def load_cylinder_data(path):
     with open(path, "r") as f:
@@ -301,7 +305,7 @@ if __name__ == "__main__":
     debug = 0
     iterations_count = 50 if not use_saved else 1
     results = []
-    noises = np.arange(0.0, 0.55, 0.05) if not use_saved else [0.0]
+    noises = np.arange(0.0, 0.5, 5.00) if not use_saved else [0.0]
 
     for noise in noises:
         print(f"Noise: {noise:.2f}")

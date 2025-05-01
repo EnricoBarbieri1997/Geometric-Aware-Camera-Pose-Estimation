@@ -35,6 +35,22 @@ module Scene
 		figure::Any = nothing
 	end
 
+	function add_noise_to_line(line, noise)
+		x₁ = 0
+		p₁ = [x₁, homogeneous_line_intercept(x₁, line), 1.0] + normalize([rand(Float64, 2) .- 0.5; 0]) * noise
+		
+		x₂ = 1000
+		p₂ = [x₂, homogeneous_line_intercept(x₂, line), 1.0] + normalize([rand(Float64, 2) .- 0.5; 0]) * noise
+		
+		return homogeneous_line_from_points(p₁, p₂)
+	end
+
+	function add_noise_to_lines(line₁, line₂, noise)
+		noisy_line₁ = add_noise_to_line(line₁, noise)
+		noisy_line₂ = add_noise_to_line(line₂, noise)
+		return noisy_line₁, noisy_line₂
+	end
+
 	function create_scene_instances_and_problems(;
 		random_seed = 7,
 		cylinders_random_seed = random_seed,
@@ -182,12 +198,7 @@ module Scene
 						for i in 1:size(conics_contours)[1]
 							line1 = conics_contours[i, 1, :]
 							line2 = conics_contours[i, 2, :]
-							intersection = cross(line1, line2)
-							intersection = intersection ./ intersection[3]
-							noisy_intersection = intersection + normalize([rand(Float64, 2); 0]) * noise
-							noisy_intersection = noisy_intersection ./ noisy_intersection[3]
-							noisy_line_1 = cross([1000, homogeneous_line_intercept(1000, line1), 1], noisy_intersection)
-							noisy_line_2 = cross([1000, homogeneous_line_intercept(1000, line2), 1], noisy_intersection)
+							noisy_line_1, noisy_line_2 = add_noise_to_lines(line1, line2, noise)
 							
 							noisy_conic_contours[i, 1, :] = noisy_line_1 ./ noisy_line_1[3]
 							noisy_conic_contours[i, 2, :] = noisy_line_2 ./ noisy_line_2[3]

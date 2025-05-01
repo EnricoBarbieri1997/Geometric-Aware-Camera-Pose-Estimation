@@ -33,11 +33,13 @@ module Geometry
 
 	function homogeneous_line_from_points(p1, p2)
 			# Convert to homogeneous coordinates
-			p1h = [p1[1], p1[2], 1.0]
-			p2h = [p2[1], p2[2], 1.0]
+			if length(p1) == 2
+				p1 = [p1[1], p1[2], 1.0]
+				p2 = [p2[1], p2[2], 1.0]
+			end
 
 			# Line is the cross product of the two points
-			l = cross(p1h, p2h)
+			l = cross(p1, p2)
 
 			return l  # line coefficients [a, b, c] such that ax + by + c = 0
 	end
