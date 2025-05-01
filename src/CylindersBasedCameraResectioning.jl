@@ -19,7 +19,7 @@ module CylindersBasedCameraResectioning
             number_of_cylinders=3,
             random_seed=27,
             intrinsic_configuration,
-            noise=40.0,
+            noise=5.0,
         )
 
         display(scene.figure; blocking=true)
@@ -66,7 +66,7 @@ module CylindersBasedCameraResectioning
             )
             @info result
 
-            solution_error, _ = best_overall_solution_by_steps!(
+            solution_error, _ = best_overall_solution!(
                 result,
                 scene,
                 problems;
