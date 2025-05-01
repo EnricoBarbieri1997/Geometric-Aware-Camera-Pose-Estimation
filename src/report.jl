@@ -485,10 +485,7 @@ module Report
 				end
 		
 				for problem in problems
-					plot_3dcamera(Plot3dCameraInput(
-						problem.camera.euler_rotation,
-						problem.camera.position,
-					), :green)
+					plot_3dcamera(problem.camera, :green)
 				end
 
 				plot_reconstructed_scene(scene, problems)

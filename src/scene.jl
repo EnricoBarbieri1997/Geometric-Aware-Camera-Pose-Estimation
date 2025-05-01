@@ -1,7 +1,7 @@
 module Scene
 
 	using ..Geometry: Line, cylinder_rotation_from_axis, homogeneous_line_from_points, homogeneous_to_line, line_to_homogenous, homogeneous_line_intercept, get_cylinder_contours
-	using ..Space: transformation, random_transformation, identity_transformation, build_rotation_matrix
+	using ..Space: RotDeg, transformation, random_transformation, identity_transformation, build_rotation_matrix
 	using ..Camera: CameraProperties, IntrinsicParameters, build_intrinsic_matrix, build_camera_matrix, lookat_rotation
 	using ..Printing: print_camera_differences
 	using ..Plotting: initfigure, get_or_add_2d_axis!, clean_plots!, plot_2dpoints, plot_line_2d, plot_image_background, Plot3dCameraInput, plot_3dcamera, plot_3dcamera_rotation, plot_3dcylinders, plot_2dcylinders
@@ -14,7 +14,7 @@ module Scene
 	using ..Cylinder: CylinderProperties, standard_and_dual as standard_and_dual_cylinder
 	using ..Conic: ConicProperties
 	using Serialization
-	using LinearAlgebra: cross, diagm, deg2rad, dot, I, normalize, pinv, svd
+	using LinearAlgebra: Diagonal, cross, diagm, deg2rad, dot, I, normalize, pinv, svd
 	using HomotopyContinuation, Observables, Polynomials, Rotations
 	using Random
 	using JSON
@@ -55,7 +55,7 @@ module Scene
 			for i in 1:number_of_cylinders
 					cylinder = CylinderProperties()
 					position = normalize(rand(Float64, 3)) * rand_in_range(0.0, 10.0)
-					rotation = [0, 30, 0]# rand_in_range((-90, 90), 3)
+					rotation = [45, 45, 0]# rand_in_range((-90, 90), 3)
 					cylinder.euler_rotation = rotation
 
 					cylinder.transform = transformation(position, cylinder.euler_rotation)
@@ -93,27 +93,27 @@ module Scene
 
 			instances = []
 
-			focal_length_x = 1
-			focal_length_y = 1
+			focal_length_x = 2666.666667
+			focal_length_y = 2250
 			skew = 0
-			principal_point_x = 0
-			principal_point_y = 0
+			principal_point_x = 960
+			principal_point_y = 540
 
-			if (isIntrinsicEnabled.fₓ(intrinsic_configuration))
-					focal_length_x = rand_in_range(2500.0, 3000.0)
-			end
-			if (isIntrinsicEnabled.fᵧ(intrinsic_configuration))
-					focal_length_y = rand_in_range(0.8, 1.0) * focal_length_x
-			end
-			if (isIntrinsicEnabled.skew(intrinsic_configuration))
-					skew = rand_in_range(0, 1)
-			end
-			if (isIntrinsicEnabled.cₓ(intrinsic_configuration))
-					principal_point_x = rand_in_range(1280, 1440)
-			end
-			if (isIntrinsicEnabled.cᵧ(intrinsic_configuration))
-					principal_point_y = principal_point_x * (9/16 + rand_in_range(-0.1, 0.1))
-			end
+			# if (isIntrinsicEnabled.fₓ(intrinsic_configuration))
+			# 		focal_length_x = rand_in_range(2500.0, 3000.0)
+			# end
+			# if (isIntrinsicEnabled.fᵧ(intrinsic_configuration))
+			# 		focal_length_y = rand_in_range(0.8, 1.0) * focal_length_x
+			# end
+			# if (isIntrinsicEnabled.skew(intrinsic_configuration))
+			# 		skew = rand_in_range(0, 1)
+			# end
+			# if (isIntrinsicEnabled.cₓ(intrinsic_configuration))
+			# 		principal_point_x = rand_in_range(1280, 1440)
+			# end
+			# if (isIntrinsicEnabled.cᵧ(intrinsic_configuration))
+			# 		principal_point_y = principal_point_x * (9/16 + rand_in_range(-0.1, 0.1))
+			# end
 			intrinsic = build_intrinsic_matrix(IntrinsicParameters(;
 					focal_length_x,
 					focal_length_y,
@@ -124,16 +124,19 @@ module Scene
 
 			for i in 1:number_of_instances
 					instance = InstanceConfiguration()
-					position, rotation_matrix = random_camera_lookingat_center()
+					# position, rotation_matrix = random_camera_lookingat_center()
+					position = [7.35889, -6.92579, 4.95831]
+					r = [45.0 + 180.0, 0.0, 45.0]
+					rotation_matrix = RotDeg(r...)
 					quaternion_camera_rotation = QuatRotation(rotation_matrix)
-					euler_rotation = rad2deg.(Rotations.params(RotXYZ(rotation_matrix)))
+					euler_rotation = r
 					camera = CameraProperties(
 							position = position,
 							euler_rotation = euler_rotation,
 							quaternion_rotation = quaternion_camera_rotation,
 							intrinsic = intrinsic,
 					)
-					camera.matrix = build_camera_matrix(intrinsic, quaternion_camera_rotation, position)
+					camera.matrix = build_camera_matrix(intrinsic, rotation_matrix, position;)
 
 					instance.camera = camera
 					
@@ -438,10 +441,7 @@ module Scene
 			camera = instance.camera
 			conics = instance.conics
 			conics_contours = instance.conics_contours
-			plot_3dcamera(Plot3dCameraInput(
-					camera.euler_rotation,
-					camera.position,
-			))
+			plot_3dcamera(camera)
 			get_or_add_2d_axis!(i)
 			plot_2dpoints([(conic.singular_point ./ conic.singular_point[3])[1:2] for conic in conics]; axindex = i)
 			plot_2dcylinders(conics_contours, alpha=0.5; axindex = i)
@@ -481,14 +481,8 @@ module Scene
 				clean_plots!()
 				plot_scene(observable_scene, problems; noise)
 				for (i, instance) in enumerate(instances)
-					plot_3dcamera_rotation(Plot3dCameraInput(
-							scene.instances[i].camera.euler_rotation,
-							scene.instances[i].camera.position,
-					); axindex = i)
-					plot_3dcamera_rotation(Plot3dCameraInput(
-							instance.camera.euler_rotation,
-							instance.camera.position,
-					); color=:green, axindex = i)
+					plot_3dcamera_rotation(camera; axindex = i)
+					plot_3dcamera_rotation(camera; color=:green, axindex = i)
 				end
 			catch e
 				@error e
@@ -844,10 +838,7 @@ module Scene
 						@info result
 
 						solution_error += best_intrinsic_rotation_translation_system_solution!(result, scene, scene.instances[i], problem)
-						plot_3dcamera(Plot3dCameraInput(
-								problem.camera.euler_rotation,
-								problem.camera.position,
-						), :green)
+						plot_3dcamera(problem.camera, :green)
 					catch e
 						@error e
 					end

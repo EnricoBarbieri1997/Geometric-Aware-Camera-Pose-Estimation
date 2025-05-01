@@ -15,11 +15,24 @@ module Space
 	const Point = Vec3
 	const PointTuple = Vec3Tuple
 
+	function RotRad(x, y, z)
+		return RotZYX(z, y, x)
+	end
+
+	function RotDeg(x, y, z)
+		# Convert degrees to radians
+		x = deg2rad(x)
+		y = deg2rad(y)
+		z = deg2rad(z)
+
+		return RotRad(x, y, z)
+	end
+
 	function transformation(
 		translation::Union{Array{<:Number, 1}, Vector{<:Number}} = [0, 0, 0],
 		rotation::Union{Array{<:Number, 1}, Vector{<:Number}} = [0, 0, 0]
 	)
-		rotation = RotXYZ(deg2rad.(rotation)...)
+		rotation = RotDeg(rotation...)
 
 		r = zeros(4, 4)
 		r[1:3, 1:3] .= (rotation)

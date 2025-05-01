@@ -22,7 +22,7 @@ module CylindersBasedCameraResectioning
             noise=0,
         )
 
-        display(scene.figure)
+        display(scene.figure; blocking=true)
 
         # rotation_intrinsic_system, parameters = intrinsic_rotation_system_setup(problems)
 
@@ -359,10 +359,7 @@ module CylindersBasedCameraResectioning
         end
 
         for problem in problems
-            plot_3dcamera(Plot3dCameraInput(
-                problem.camera.euler_rotation,
-                problem.camera.position,
-            ), :green)
+            plot_3dcamera(problem.camera, :green)
         end
 
         plot_reconstructed_scene(scene, problems)

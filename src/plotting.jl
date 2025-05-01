@@ -39,10 +39,10 @@ module Plotting
     function plot_line_2d(line; color=:black, linestyle=:solid, axindex=1)
         # Base.showerror(stdout, error("Plotting not available in this environment."))
     end
-    function plot_3dcamera(info::Any, color=:black)
+    function plot_3dcamera(camera::Any, color=:black)
         # Base.showerror(stdout, error("Plotting not available in this environment."))
     end
-    function plot_3dcamera_rotation(info::Any; color=:black, axindex=nothing)
+    function plot_3dcamera_rotation(camera::Any; color=:black, axindex=nothing)
         # Base.showerror(stdout, error("Plotting not available in this environment."))
     end
     function plot_3dcylinders(cylindersInfo::Any; axindex=1)

@@ -1,21 +1,23 @@
-using ..Space: position_rotation
+using ..Space: RotRad, position_rotation, transformation as create_transform_matrix
 using ..Cylinder: CylinderProperties
 using ..Geometry: Line
+using ..Camera: CameraProperties
 
 using Reexport
 using LinearAlgebra: cross, deg2rad, normalize
 using Rotations
 using GLMakie
 using GLMakie.FileIO
+using GeometryBasics
 
 function add_2d_axis!()
     index = length(ax2_array) + 1
-    row = ceil(Int, index / 2)
-    col = index % 2
-    if col == 0
-        col = 2
+    col = ceil(Int, index / 2)
+    row = index % 2
+    if row == 0
+        row = 2
     end
-    ax = Axis(grid_2d[row, col], autolimitaspect = 1)
+    ax = Axis(grid_2d[row, col], autolimitaspect = 1, aspect = DataAspect())
     ax.limits[] = ((0, 1080), (-1920, 0))
     push!(ax2_array, ax)
 end
@@ -68,42 +70,104 @@ function clean_plots!()
 end
 
 function initfigure()
-    global f, ax3, grid_2d, ax2_array, camera_roation_layout, camera_rotation_axes
+    global f, scene3D, ax3, grid_2d, ax2_array, camera_roation_layout, camera_rotation_axes, cameras
+    # set_theme!(scale_plot = true)
     f = Figure(size=(1200, 800))
-    ax3 = LScene(f[1, 1], scenekw = (show_axis = true,))
-    # ax3.limits[] = ((-30, 30), (-30, 30), (-30, 30))
-    grid_2d = f[1, 2] = GridLayout()
+    scene3D = LScene(f[1, 1], scenekw = (camera=cam3d!, show_axis=true))
+    ax3 = scene3D.scene
+    scatter!(ax3, (0, 0, 0), color = :black, markersize = 10)
+    scatter!(ax3, (30, 0, 0), color = :red, markersize = 10)
+    scatter!(ax3, (-30, 0, 0), color = :red, markersize = 10, alpha=0.5)
+    scatter!(ax3, (0, 30, 0), color = :green, markersize = 10)
+    scatter!(ax3, (0, -30, 0), color = :green, markersize = 10, alpha=0.5)
+    scatter!(ax3, (0, 0, 30), color = :blue, markersize = 10)
+    scatter!(ax3, (0, 0, -30), color = :blue, markersize = 10, alpha=0.5)
+    rowsize!(f.layout, 1, Relative(2/3))
+    colsize!(f.layout, 1, Relative(2/3))
+    grid_2d = f[1, 3] = GridLayout()
     Label(grid_2d[:, :, Top()], "Conics")
     ax2_array = []
     add_2d_axis!()
     camera_roation_layout = f[2, :] = GridLayout()
     camera_rotation_axes = []
+    cameras = []
+
     return f
 end
 
-function plot_3dcamera(info::Plot3dCameraInput, color = :black)
-    cameraModel = load("./assets/camera.stl")
-    cameraMesh = mesh!(
-        ax3,
-        cameraModel,
-        color = color,
-    )
-    cameraRotationRad = deg2rad.(info.cameraRotation)
-    cameraRotation = RotXYZ(cameraRotationRad...)
-    cameraRotationAxis = rotation_axis(cameraRotation)
-    cameraRotationAngle = rotation_angle(cameraRotation)
-    scale!(cameraMesh, (1/1, 1/1, 1/1))
-    rotate!(cameraMesh, cameraRotationAxis, cameraRotationAngle)
-    translate!(cameraMesh,
-        (
-            info.cameraTranslation[1],
-            info.cameraTranslation[2],
-            info.cameraTranslation[3],
-        )
-    )
+function transform_mesh(mesh::GeometryBasics.Mesh, T::Matrix)
+    verts = GeometryBasics.coordinates(mesh)
+    new_vertices = [Point3f(T * Vec4f(v..., 1.0)) for v in verts]
+    faces = collect(GeometryBasics.faces(mesh))
+    return GeometryBasics.Mesh(new_vertices, faces)
 end
 
-function plot_3dcamera_rotation(info::Plot3dCameraInput; color = :black, axindex = nothing)
+function plot_frustum!(scene, T; fov_deg=45.0, aspect=1.5, near=0.2, far=10, color=:gray)
+    fov = deg2rad(fov_deg)
+    h_near = 2 * tan(fov/2) * near
+    w_near = h_near * aspect
+    h_far = 2 * tan(fov/2) * far
+    w_far = h_far * aspect
+
+    # Points in camera space
+    points = [
+        Vec4f(0, 0, 0, 1),  # camera origin
+        Vec4f(-w_near/2, -h_near/2, near, 1),
+        Vec4f(w_near/2, -h_near/2, near, 1),
+        Vec4f(w_near/2, h_near/2, near, 1),
+        Vec4f(-w_near/2, h_near/2, near, 1),
+        Vec4f(-w_far/2, -h_far/2, far, 1),
+        Vec4f(w_far/2, -h_far/2, far, 1),
+        Vec4f(w_far/2, h_far/2, far, 1),
+        Vec4f(-w_far/2, h_far/2, far, 1)
+    ]
+
+    # Transform to world coordinates
+    world_pts = [Point3f(T * p) for p in points]
+
+    # Lines from origin to corners
+    for i in 2:5
+        lines!(scene, [world_pts[1], world_pts[i]], color=color)
+    end
+
+    for i in 6:9
+        lines!(scene, [world_pts[1], world_pts[i]], color=color, linestyle=:dot)
+    end
+
+    # Edges of near and far planes
+    near_ids = [2, 3, 4, 5, 2]
+    far_ids = [6, 7, 8, 9, 6]
+
+    lines!(scene, world_pts[near_ids], color=color)
+    lines!(scene, world_pts[far_ids], color=color)
+end
+
+function plot_3dcamera(camera::CameraProperties, color = :black)
+    loaded_mesh = load("./assets/camera.stl")
+
+    scale = 2
+    origin = camera.position
+    R = Matrix{Float64}(camera.quaternion_rotation)
+    T = Matrix(create_transform_matrix(origin, camera.euler_rotation))
+
+    # Plot axes
+    for (i, color) in enumerate((:red, :green, :blue))
+        endpoint = origin .+ scale * R[:, i]
+        lines!(ax3, [origin[1], endpoint[1]], [origin[2], endpoint[2]], [origin[3], endpoint[3]],
+               color=color, linewidth=2)
+    end
+
+    fx = camera.intrinsic[1, 1]
+    fov_x_rad = 2 * atan(1080 / (2 * fx))
+    fov_x_deg = rad2deg(fov_x_rad)
+    aspect = camera.intrinsic[2, 2] / camera.intrinsic[1, 1]
+    plot_frustum!(ax3, T; fov_deg = fov_x_deg, aspect = aspect, color = color)
+
+    mesh_transformed = transform_mesh(loaded_mesh, T)
+    mesh!(ax3, mesh_transformed, color=:gray)
+end
+
+function plot_3dcamera_rotation(camera::CameraProperties; color = :black, axindex = nothing)
     ax = if !isnothing(axindex) camera_rotation_axes[axindex] else ax3 end
     cameraModel = load("./assets/camera.stl")
     cameraMesh = mesh!(
@@ -111,8 +175,8 @@ function plot_3dcamera_rotation(info::Plot3dCameraInput; color = :black, axindex
         cameraModel,
         color = color,
     )
-    cameraRotationRad = deg2rad.(info.cameraRotation)
-    cameraRotation = RotXYZ(cameraRotationRad...)
+    cameraRotationRad = deg2rad.(camera.euler_rotation)
+    cameraRotation = RotRad(cameraRotationRad...)
     cameraRotationAxis = rotation_axis(cameraRotation)
     cameraRotationAngle = rotation_angle(cameraRotation)
     rotate!(cameraMesh, cameraRotationAxis, cameraRotationAngle)

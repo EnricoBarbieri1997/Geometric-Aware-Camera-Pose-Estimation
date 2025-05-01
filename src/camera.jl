@@ -1,6 +1,8 @@
 module Camera
 	export CameraProperties, IntrinsicParameters, build_camera_matrix, build_intrinsic_matrix, build_camera_matrix, lookat_rotation
 
+	using ..Space: RotDeg
+
 	using Rotations
 	using LinearAlgebra
 
@@ -66,7 +68,7 @@ module Camera
 
 		M = zeros(4, 4)
 
-		r = RotXYZ(deg2rad.(rotation)...)
+		r = RotDeg(rotation...)
 		r₁ = r' # inv(r)
 	
 		t₁ = -r₁ * translation
