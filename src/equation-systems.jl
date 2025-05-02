@@ -189,10 +189,10 @@ module EquationSystems
 		@var tx ty tz
 		@var lines[1:lines_count, 1:3]
 		P = build_camera_matrix(
-			problem.camera.intrinsic, 
+			problem.camera.intrinsic ./ problem.camera.intrinsic[2, 2], 
 			problem.camera.quaternion_rotation,
-			[tx; ty; tz]
-		) / problem.camera.intrinsic[2, 2]
+			[tx, ty, tz]
+		)
 
 		system_to_solve = []
 		for i in 1:lines_count

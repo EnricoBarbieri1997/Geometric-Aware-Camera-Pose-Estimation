@@ -155,10 +155,11 @@ module Scene
 					
 					conics = []
 					for i in 1:number_of_cylinders
+							camera_matrix = Matrix{Float64}(camera.matrix)
 							conic = ConicProperties(
-									pinv(camera.matrix') * cylinders[i].matrix * pinv(camera.matrix),
-									camera.matrix * cylinders[i].singular_point,
-									camera.matrix * cylinders[i].dual_matrix * camera.matrix',
+									pinv(camera_matrix') * cylinders[i].matrix * pinv(camera_matrix),
+									camera_matrix * cylinders[i].singular_point,
+									camera_matrix * cylinders[i].dual_matrix * camera_matrix',
 							)
 							push!(conics, conic)
 					end
@@ -177,7 +178,6 @@ module Scene
 										# @assert line' * conics[i].dual_matrix * line ≃ 0 "(3) Line of projected singular plane $(1) belongs to the dual conic $(1)"
 										# @assert line' * camera.matrix * cylinders[i].singular_point ≃ 0 "(8) Line $(j) of conic $(i) passes through the projected singular point"
 										err = (line' * camera.matrix * cylinders[i].dual_matrix * camera.matrix' * line)
-										display(err)
 										@assert err ≃ 0 "(9) Line $(j) of conic $(i) is tangent to the projected cylinder. $(err)"
 									end
 							end
@@ -766,9 +766,6 @@ module Scene
 							intrinsic_configuration;
 							starting_camera
 						)
-						display(intrinsic)
-						display(rotations_solution)
-						display(intrinsic_correction)
 					catch e
 						@error e
 						continue
@@ -796,18 +793,6 @@ module Scene
 									problem.dualquadrics,
 									problem.intrinsic_configuration,
 							)
-							problem_upto_translation.camera.matrix = build_camera_matrix(
-									problem_upto_translation.camera.intrinsic,
-									problem_upto_translation.camera.quaternion_rotation,
-									problem_upto_translation.camera.position
-							)
-
-							display("Camera $(i)")
-							display(scene.instances[i].camera.euler_rotation)
-							display(problem_upto_translation.camera.euler_rotation)
-							display(scene.instances[i].camera.intrinsic)
-							display(problem_upto_translation.camera.intrinsic)
-							display("Camera $(i)")
 
 							translation_system, parameters = intrinsic_rotation_translation_system_setup(problem_upto_translation)
 							solver, starts = solver_startsolutions(

@@ -1,5 +1,5 @@
 module CylindersBasedCameraResectioning
-    const GUI_ENABLED = get(ENV, "GUI_ENABLED", "true") == "true"
+    const GUI_ENABLED = get(ENV, "GUI_ENABLED", "false") == "true"
     const ASSERTS_ENABLED = get(ENV, "ASSERTS_ENABLED", "true") == "true"
     const IMAGE_HEIGHT = 1920
     const IMAGE_WIDTH = 1080
@@ -68,7 +68,7 @@ module CylindersBasedCameraResectioning
             )
             @info result
 
-            solution_error, _ = best_overall_solution!(
+            solution_error, _ = best_overall_solution_by_steps!(
                 result,
                 scene,
                 problems;

@@ -6,6 +6,7 @@ module Camera
 
 	using Rotations
 	using LinearAlgebra
+	using HomotopyContinuation.ModelKit: Expression
 
 	@kwdef mutable struct CameraProperties
 		position::Vector{Number} = [0, 0, 0]
@@ -131,7 +132,7 @@ module Camera
 		if (!use_translation_as_is)
 			t₁ = -r₁ * translation
 		end
-		return Matrix{Float64}(hcat(intrinsic, zeros(3)) * vcat(hcat(r₁, t₁), [0 0 0 1]))
+		return hcat(intrinsic, zeros(3)) * vcat(hcat(r₁, t₁), [0 0 0 1])
 	end
 
 	function lookat_axis(eye, at, up)
