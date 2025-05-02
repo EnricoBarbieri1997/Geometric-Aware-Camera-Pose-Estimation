@@ -105,8 +105,8 @@ for metric in metrics:
     plt.legend()
     plt.grid(True, which="both", linestyle="--", linewidth=0.5)
     plt.tight_layout()
-    os.makedirs("plots", exist_ok=True)
-    plt.savefig(f"plots/{metric}.pdf")
+    os.makedirs("./synthetic/plots", exist_ok=True)
+    plt.savefig(f"./synthetic/plots/{metric}.pdf")
 
 # Generate LaTeX
 latex = []

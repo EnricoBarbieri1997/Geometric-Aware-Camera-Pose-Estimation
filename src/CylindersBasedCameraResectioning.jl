@@ -1,5 +1,8 @@
 module CylindersBasedCameraResectioning
     const GUI_ENABLED = get(ENV, "GUI_ENABLED", "true") == "true"
+    const ASSERTS_ENABLED = get(ENV, "ASSERTS_ENABLED", "true") == "true"
+    const IMAGE_HEIGHT = 1920
+    const IMAGE_WIDTH = 1080
     include("includes.jl")
 
 	using ..Scene: ParametersSolutionsPair, best_overall_solution!, best_overall_solution_by_steps!, best_intrinsic_rotation_translation_system_solution!, camera_from_solution, create_scene_instances_and_problems, scene_instances_and_problems_from_files, intrinsic_rotation_system_setup, intrinsic_rotation_translation_system_setup, plot_interactive_scene, plot_reconstructed_scene, split_intrinsic_rotation_parameters
@@ -13,13 +16,13 @@ module CylindersBasedCameraResectioning
     using HomotopyContinuation, Observables, Random, Serialization
 
     function main()
-        intrinsic_configuration = IntrinsicParametersConfigurations.fₓ_fᵧ_cₓ_cᵧ
+        intrinsic_configuration = IntrinsicParametersConfigurations.none
         scene, problems = create_scene_instances_and_problems(;
-            number_of_instances=2,
-            number_of_cylinders=3,
+            number_of_instances=1,
+            number_of_cylinders=2,
             random_seed=27,
             intrinsic_configuration,
-            noise=5.0,
+            noise=0.0,
         )
 
         display(scene.figure; blocking=true)
@@ -59,7 +62,6 @@ module CylindersBasedCameraResectioning
         display("Number of start solutions: $numberof_start_solutions. Number of iterations needed: $(ceil(Int, numberof_start_solutions / chunk_size))")
         solution_error = Inf
         for start in Iterators.partition(starts, chunk_size)
-
             result = solve(
                 solver,
                 start;

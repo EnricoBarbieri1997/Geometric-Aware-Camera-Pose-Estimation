@@ -52,10 +52,12 @@ module Printing
             ["Intrinsic", "f_x", "f_y", "skew", "c_x", "c_y"],
         )
         intrinsic_indexes = [1, 5, 4, 7, 8]
+        original_intrinsic = original_camera.intrinsic ./ original_camera.intrinsic[3, 3]
+        calculated_intrinsic = calculated_camera.intrinsic ./ calculated_camera.intrinsic[3, 3]
         pretty_table_withdefaults(
             originalcalculateddata(
-                original_camera.intrinsic[intrinsic_indexes],
-                calculated_camera.intrinsic[intrinsic_indexes]
+                original_intrinsic[intrinsic_indexes],
+                calculated_intrinsic[intrinsic_indexes]
             );
             header = header,
         )

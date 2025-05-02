@@ -14,7 +14,8 @@ RUN pip install --no-cache-dir \
     opencv-python \
     matplotlib \
     numpy \
-    sympy
+    sympy \
+    scipy
 
 # Set the default command to keep the container running
 CMD ["tail", "-f", "/dev/null"]

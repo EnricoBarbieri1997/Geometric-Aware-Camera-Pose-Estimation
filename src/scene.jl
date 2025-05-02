@@ -1,11 +1,12 @@
 module Scene
 
+	using ..CylindersBasedCameraResectioning: ASSERTS_ENABLED, IMAGE_HEIGHT, IMAGE_WIDTH
 	using ..Geometry: Line, cylinder_rotation_from_axis, homogeneous_line_from_points, homogeneous_to_line, line_to_homogenous, homogeneous_line_intercept, get_cylinder_contours
 	using ..Space: RotDeg, transformation, random_transformation, identity_transformation, build_rotation_matrix, position_rotation
 	using ..Camera: CameraProperties, IntrinsicParameters, build_intrinsic_matrix, build_camera_matrix, lookat_rotation, random_camera_lookingat_center
 	using ..Printing: print_camera_differences
 	using ..Plotting: initfigure, get_or_add_2d_axis!, clean_plots!, plot_2dpoints, plot_line_2d, plot_image_background, Plot3dCameraInput, plot_3dcamera, plot_3dcamera_rotation, plot_3dcylinders, plot_2dcylinders
-	using ..EquationSystems: stack_homotopy_parameters, build_intrinsic_rotation_conic_system, build_intrinsic_rotation_translation_conic_system, build_camera_matrix_conic_system
+	using ..EquationSystems: stack_homotopy_parameters, build_intrinsic_rotation_conic_system, build_intrinsic_rotation_translation_conic_system, build_camera_matrix_conic_system, build_intrinsic_rotation_translation_conic_system_calibrated
 	using ..EquationSystems.Problems: CylinderCameraContoursProblem
 	using ..EquationSystems.Problems.IntrinsicParameters: Configurations as IntrinsicParametersConfigurations, has as isIntrinsicEnabled
 	# using ..EquationSystems.Minimization: build_intrinsic_rotation_conic_system
@@ -89,17 +90,17 @@ module Scene
 
 					push!(cylinders, cylinder)
 
-					begin #asserts
-							# @assert cylinder.matrix * cylinder.dual_matrix ≃ diagm([1, 1, 0, 1]) "(-1) The dual quadric is correct"
+					if (ASSERTS_ENABLED)
+						# @assert cylinder.matrix * cylinder.dual_matrix ≃ diagm([1, 1, 0, 1]) "(-1) The dual quadric is correct"
 
-							# @assert cylinder.singular_point' * cylinder.matrix * cylinder.singular_point ≃ 0 "(1) Singular point $(1) belongs to the cylinder $(1)"
-							# dual_singular_plane = cylinder.transform * reshape([1, 0, 0, -cylinder.radiuses[1]], :, 1)
-							# @assert (dual_singular_plane' * cylinder.dual_matrix * dual_singular_plane) ≃ 0 "(2) Perpendicular plane $(1) belongs to the dual cylinder $(1)"
+						# @assert cylinder.singular_point' * cylinder.matrix * cylinder.singular_point ≃ 0 "(1) Singular point $(1) belongs to the cylinder $(1)"
+						# dual_singular_plane = cylinder.transform * reshape([1, 0, 0, -cylinder.radiuses[1]], :, 1)
+						# @assert (dual_singular_plane' * cylinder.dual_matrix * dual_singular_plane) ≃ 0 "(2) Perpendicular plane $(1) belongs to the dual cylinder $(1)"
 
-							# @assert (cylinder.matrix * cylinder.singular_point) ≃ [0, 0, 0, 0] "(6) Singular point is right null space of cylinder matrix $(i)"
+						# @assert (cylinder.matrix * cylinder.singular_point) ≃ [0, 0, 0, 0] "(6) Singular point is right null space of cylinder matrix $(i)"
 
-							# @assert ((dual_singular_plane' * cylinder.singular_point) ≃ 0 && (dual_singular_plane' * cylinder.dual_matrix * dual_singular_plane) ≃ 0) "(7) Singular plane / point and dual quadric constraints $(i)"
-							# @assert cylinder.singular_point[4] ≃ 0 "(10) Singular point is at infinity $(i)"
+						# @assert ((dual_singular_plane' * cylinder.singular_point) ≃ 0 && (dual_singular_plane' * cylinder.dual_matrix * dual_singular_plane) ≃ 0) "(7) Singular plane / point and dual quadric constraints $(i)"
+						# @assert cylinder.singular_point[4] ≃ 0 "(10) Singular point is at infinity $(i)"
 					end
 			end
 
@@ -109,33 +110,33 @@ module Scene
 
 			instances = []
 
-			focal_length_x = 2666.666667
-			focal_length_y = 2250
+			focal_length_x = 2250
+			focal_length_y = 2666.666667
 			skew = 0
-			principal_point_x = 960
-			principal_point_y = 540
+			principal_point_x = 540
+			principal_point_y = 960
 
 			if (isIntrinsicEnabled.fₓ(intrinsic_configuration))
-					focal_length_x = rand_in_range(2500.0, 3000.0)
+				focal_length_x = rand_in_range(2500.0, 3000.0)
 			end
 			if (isIntrinsicEnabled.fᵧ(intrinsic_configuration))
-					focal_length_y = rand_in_range(0.8, 1.0) * focal_length_x
+				focal_length_y = rand_in_range(0.8, 1.0) * focal_length_x
 			end
 			if (isIntrinsicEnabled.skew(intrinsic_configuration))
-					skew = rand_in_range(0, 1)
+				skew = rand_in_range(0, 1)
 			end
 			if (isIntrinsicEnabled.cₓ(intrinsic_configuration))
-					principal_point_x = rand_in_range(1280, 1440)
+				principal_point_x = rand_in_range(1280, 1440)
 			end
 			if (isIntrinsicEnabled.cᵧ(intrinsic_configuration))
-					principal_point_y = principal_point_x * (9/16 + rand_in_range(-0.1, 0.1))
+				principal_point_y = principal_point_x * (9/16 + rand_in_range(-0.1, 0.1))
 			end
 			intrinsic = build_intrinsic_matrix(IntrinsicParameters(;
-					focal_length_x,
-					focal_length_y,
-					principal_point_x,
-					principal_point_y,
-					skew,
+				focal_length_x,
+				focal_length_y,
+				principal_point_x,
+				principal_point_y,
+				skew,
 			))
 
 			for i in 1:number_of_instances
@@ -149,7 +150,6 @@ module Scene
 							quaternion_rotation = quaternion_camera_rotation,
 							intrinsic = intrinsic,
 					)
-					camera.matrix = build_camera_matrix(intrinsic, rotation_matrix, position;)
 
 					instance.camera = camera
 					
@@ -171,12 +171,14 @@ module Scene
 									camera
 							)
 							for (j, line) in enumerate(lines)
-									conics_contours[i, j, :] = real.(line)
+									conics_contours[i, j, :] = line
 
-									begin #asserts
-											# @assert line' * conics[i].dual_matrix * line ≃ 0 "(3) Line of projected singular plane $(1) belongs to the dual conic $(1)"
-											# @assert line' * camera.matrix * cylinders[i].singular_point ≃ 0 "(8) Line $(j) of conic $(i) passes through the projected singular point"
-											# @assert line' * camera.matrix * cylinders[i].dual_matrix * camera.matrix' * line ≃ 0 "(9) Line $(j) of conic $(i) is tangent to the projected cylinder"
+									if (ASSERTS_ENABLED)
+										# @assert line' * conics[i].dual_matrix * line ≃ 0 "(3) Line of projected singular plane $(1) belongs to the dual conic $(1)"
+										# @assert line' * camera.matrix * cylinders[i].singular_point ≃ 0 "(8) Line $(j) of conic $(i) passes through the projected singular point"
+										err = (line' * camera.matrix * cylinders[i].dual_matrix * camera.matrix' * line)
+										display(err)
+										@assert err ≃ 0 "(9) Line $(j) of conic $(i) is tangent to the projected cylinder. $(err)"
 									end
 							end
 					end
@@ -230,8 +232,10 @@ module Scene
 							dualquadrics[store_index, :, :] = cylinders[i].dual_matrix ./ cylinders[i].dual_matrix[4, 4]
 					end
 
+					problem_camera = CameraProperties()
+					problem_camera.intrinsic = intrinsic
 					problem = CylinderCameraContoursProblem(
-							CameraProperties(),
+							problem_camera,
 							lines,
 							noise_free_lines,
 							points_at_infinity,
@@ -284,7 +288,7 @@ module Scene
 
 					cylinder.transform = transformation(position, cylinder.euler_rotation)
 					radius = Float64(cylinder_properties["radius"])
-					cylinder.radiuses = [radius[1], radius[1]] # TODO Support different radiuses for each cylinder
+					cylinder.radiuses = [0.5, 0.5] #[radius[1], radius[1]] # TODO Support different radiuses for each cylinder
 
 					axis = cylinder.transform * [0; 0; 1; 0]
 					axis = axis[1:3]
@@ -331,10 +335,6 @@ module Scene
 							quaternion_rotation = quaternion_camera_rotation,
 							intrinsic = intrinsic,
 					)
-					camera.matrix = build_camera_matrix(intrinsic, projection_rotation_matrix, projection_translation;
-						use_rotation_as_is = true,
-						use_translation_as_is = true,
-					)
 
 					instance.camera = camera
 
@@ -358,7 +358,7 @@ module Scene
 							line_homogenous = homogeneous_line_from_points(p1, p2)
 							conics_contours[i, j, :] = line_homogenous
 
-							# begin #asserts
+							# if (ASSERTS_ENABLED)
 							# 	@assert line_homogenous' * conics[i].dual_matrix * line_homogenous ≃ 0 "(3) Line of projected singular plane $(1) belongs to the dual conic $(1)"
 							# 	@assert line_homogenous' * camera.matrix * cylinders[i].singular_point ≃ 0 "(8) Line $(j) of conic $(i) passes through the projected singular point"
 							# 	@assert line_homogenous' * camera.matrix * cylinders[i].dual_matrix * camera.matrix' * line_homogenous ≃ 0 "(9) Line $(j) of conic $(i) is tangent to the projected cylinder"
@@ -416,7 +416,6 @@ module Scene
 						problem_camera_intrinsic[2, 3] = intrinsic[2, 3]
 					end
 					problem_camera.intrinsic = problem_camera_intrinsic
-					problem_camera.matrix = build_camera_matrix(problem_camera.intrinsic, problem_camera.quaternion_rotation, problem_camera.position)
 					problem = CylinderCameraContoursProblem(
 							problem_camera,
 							lines,
@@ -451,10 +450,14 @@ module Scene
 			conics_contours = instance.conics_contours
 			plot_3dcamera(camera)
 			get_or_add_2d_axis!(i)
-			plot_2dpoints([(conic.singular_point ./ conic.singular_point[3])[1:2] for conic in conics]; axindex = i)
+			plot_2dpoints([(conic.singular_point) for conic in conics]; axindex = i)
 			plot_2dcylinders(conics_contours, alpha=0.5; axindex = i)
 			centers = [camera.matrix * [position_rotation(cylinder.transform)[1]; 1] for cylinder in scene.cylinders]
+			top_bound = [camera.matrix * [(position_rotation(cylinder.transform)[1] + [0.0, 0.0, -cylinder.radiuses[1]]); 1] for cylinder in scene.cylinders]
+			bottom_bound = [camera.matrix * [(position_rotation(cylinder.transform)[1] + [0.0, 0.0, cylinder.radiuses[1]]); 1] for cylinder in scene.cylinders]
 			plot_2dpoints(centers; axindex = i)
+			plot_2dpoints(top_bound; axindex = i)
+			plot_2dpoints(bottom_bound; axindex = i)
 		end
 		if (noise > 0)
 			for (i, problem) in enumerate(problems)
@@ -549,7 +552,7 @@ module Scene
 					principal_point_y = principal_point_y,
 					skew = skew,
 			))
-			intrinsic_correction = I
+			intrinsic_correction = Matrix{Float64}(I, 3, 3)
 			if (focal_length_x < 0)
 					intrinsic_correction *= [
 							-1 0 0;
@@ -680,11 +683,30 @@ module Scene
 			return solution_error, all_possible_solutions
 	end
 
-	function intrinsic_rotation_translation_system_setup(problem)
-			translation_system = build_intrinsic_rotation_translation_conic_system(
+	function intrinsic_rotation_translation_system_setup(problem; calibrate = false)
+			if (calibrate)
+				translation_system = build_intrinsic_rotation_translation_conic_system_calibrated(
 					problem
-			)
-			parameters = stack_homotopy_parameters(problem.lines[1:3, :])
+				)
+				lines = hcat([(problem.camera.intrinsic' * line) for line in eachslice(problem.lines, dims=1)]...)'
+				if (ASSERTS_ENABLED)
+					errs = []
+					for (i, line) in enumerate(eachslice(problem.lines, dims=1))
+						eq = line' * problem.camera.matrix[1:3, 1:3] * problem.points_at_infinity[i, :]
+						push!(errs, eq)
+					end
+					for (i, line) in enumerate(eachslice(lines, dims=1))
+						eq = line' * problem.camera.quaternion_rotation' * problem.points_at_infinity[i, :]
+						@assert eq ≃ errs[i] "Camera calibration not successful for line $(i) with error $(eq)"
+					end
+				end
+				parameters = stack_homotopy_parameters(lines)
+			else
+				translation_system = build_intrinsic_rotation_translation_conic_system(
+					problem
+				)
+				parameters = stack_homotopy_parameters(problem.lines)
+			end
 
 			return translation_system, parameters
 	end
@@ -744,7 +766,11 @@ module Scene
 							intrinsic_configuration;
 							starting_camera
 						)
-					catch
+						display(intrinsic)
+						display(rotations_solution)
+						display(intrinsic_correction)
+					catch e
+						@error e
 						continue
 					end
 
@@ -752,16 +778,16 @@ module Scene
 					possible_cameras = []
 					# individual_problem_min_error = Inf
 					individual_problem_max_error = -Inf
+
 					for (i, problem) in enumerate(problems)
 							individual_problem_error = 0
 							quat = [1; rotations_solution[(i-1)*3+1:i*3]]
-							quat = quat / norm(quat)
-							camera_extrinsic_rotation = QuatRotation(quat) * inv(intrinsic_correction)
+							camera_extrinsic_rotation = (QuatRotation(quat) * inv(intrinsic_correction))'
 
 							problem_upto_translation = CylinderCameraContoursProblem(
 									CameraProperties(
-											euler_rotation = rad2deg.(eulerangles_from_rotationmatrix(camera_extrinsic_rotation')),
-											quaternion_rotation = camera_extrinsic_rotation',
+											euler_rotation = rad2deg.(eulerangles_from_rotationmatrix(camera_extrinsic_rotation)),
+											quaternion_rotation = camera_extrinsic_rotation,
 											intrinsic = intrinsic,
 									),
 									problem.lines,
@@ -770,40 +796,63 @@ module Scene
 									problem.dualquadrics,
 									problem.intrinsic_configuration,
 							)
+							problem_upto_translation.camera.matrix = build_camera_matrix(
+									problem_upto_translation.camera.intrinsic,
+									problem_upto_translation.camera.quaternion_rotation,
+									problem_upto_translation.camera.position
+							)
+
+							display("Camera $(i)")
+							display(scene.instances[i].camera.euler_rotation)
+							display(problem_upto_translation.camera.euler_rotation)
+							display(scene.instances[i].camera.intrinsic)
+							display(problem_upto_translation.camera.intrinsic)
+							display("Camera $(i)")
 
 							translation_system, parameters = intrinsic_rotation_translation_system_setup(problem_upto_translation)
-
-							translation_result = solve(
-									translation_system;
-									target_parameters = parameters,
-									start_system = :total_degree,
+							solver, starts = solver_startsolutions(
+								translation_system;
+								target_parameters = parameters,
+								start_system = :total_degree,
 							)
-							@info result
+							display("starts: $(starts)")
 
-							individual_problem_error += best_intrinsic_rotation_translation_system_solution!(
-									translation_result,
-									scene,
-									scene.instances[i],
-									problem_upto_translation
-							)
+							try
+								translation_result = solve(
+										translation_system;
+										target_parameters = parameters,
+										start_system = :total_degree,
+								)
+								@info result
 
-							possible_camera = problem_upto_translation.camera
-							push!(possible_cameras, possible_camera)
+								individual_problem_error += best_intrinsic_rotation_translation_system_solution!(
+										translation_result,
+										scene,
+										scene.instances[i],
+										problem_upto_translation
+								)
 
-							for (i, contour) in enumerate(eachslice(scene.instances[i].conics_contours, dims=1))
-									for line in eachslice(contour, dims=1)
-											eq = line' * intrinsic * camera_extrinsic_rotation * scene.cylinders[i].singular_point[1:3]
-											individual_problem_error += abs(eq)
-									end
-							end
-							# if (individual_problem_error < individual_problem_min_error)
-							#     individual_problem_min_error = individual_problem_error
-							# end
-							if (individual_problem_error > individual_problem_max_error)
-									individual_problem_max_error = individual_problem_error
+								possible_camera = problem_upto_translation.camera
+								push!(possible_cameras, possible_camera)
+
+								for (i, contour) in enumerate(eachslice(scene.instances[i].conics_contours, dims=1))
+										for line in eachslice(contour, dims=1)
+												eq = line' * intrinsic * camera_extrinsic_rotation * scene.cylinders[i].singular_point[1:3]
+												individual_problem_error += abs(eq)
+										end
+								end
+								if (individual_problem_error > individual_problem_max_error)
+										individual_problem_max_error = individual_problem_error
+								end
+							catch e
+								@error e
+								individual_problem_max_error = Inf
 							end
 					end
 					current_error = individual_problem_max_error
+					if individual_problem_max_error == Inf
+							continue
+					end
 					push!(all_possible_solutions, Dict(
 							"camera" => possible_cameras[1],
 							"solution" => current_error,

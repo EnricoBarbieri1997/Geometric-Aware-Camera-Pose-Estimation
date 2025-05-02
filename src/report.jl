@@ -55,10 +55,10 @@ module Report
 
 		number_of_seeds = 50
 		configurations = [
-			# IntrinsicParametersConfigurations.none,
+			IntrinsicParametersConfigurations.none,
 			# IntrinsicParametersConfigurations.fₓ,
 			# IntrinsicParametersConfigurations.fₓ_fᵧ,
-			IntrinsicParametersConfigurations.fₓ_fᵧ_cₓ_cᵧ,
+			# IntrinsicParametersConfigurations.fₓ_fᵧ_cₓ_cᵧ,
 			# IntrinsicParametersConfigurations.fₓ_fᵧ_skew_cₓ_cᵧ,
 		]
 
@@ -84,7 +84,7 @@ module Report
 			]),
 		])
 
-		noise_values = if isnothing(noises) collect(0.20:0.05:0.55) else noises end
+		noise_values = if isnothing(noises) collect(0.0:0.0005:0.04) else noises end
 		
 		results = []
 

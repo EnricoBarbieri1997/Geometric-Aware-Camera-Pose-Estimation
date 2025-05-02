@@ -1,6 +1,7 @@
 module EquationSystems
-	export stack_homotopy_parameters, build_intrinsic_rotation_conic_system, build_intrinsic_rotation_translation_conic_system, build_camera_matrix_conic_system, variables_jacobian_rank, joint_jacobian_rank
+	export stack_homotopy_parameters, build_intrinsic_rotation_conic_system, build_intrinsic_rotation_translation_conic_system, build_intrinsic_rotation_translation_conic_system_calibrated, build_camera_matrix_conic_system, variables_jacobian_rank, joint_jacobian_rank
 
+	using ..CylindersBasedCameraResectioning: IMAGE_HEIGHT, IMAGE_WIDTH
 	using ..Camera: IntrinsicParameters, build_intrinsic_matrix, build_camera_matrix
 	using ..Space: build_rotation_matrix
 
@@ -158,9 +159,7 @@ module EquationSystems
 			principal_point_x = cₓ,
 			principal_point_y = cᵧ,
 			skew = skew,
-		))
-
-		display(intrinsic)
+		)) / fᵧ
 
 		for (index, problem) in enumerate(problems)
 			lines_count = size(problem.lines)[1]
@@ -193,15 +192,21 @@ module EquationSystems
 			problem.camera.intrinsic, 
 			problem.camera.quaternion_rotation,
 			[tx; ty; tz]
-		)
+		) / problem.camera.intrinsic[2, 2]
 
 		system_to_solve = []
 		for i in 1:lines_count
-				equation = lines[i, :]' * P * problem.dualquadrics[i, :, :] * P' * lines[i, :]
-				push!(system_to_solve, equation)
+			equation = (lines[i, :]' * P * problem.dualquadrics[i, :, :] * P' * lines[i, :]) / (IMAGE_HEIGHT * IMAGE_WIDTH)
+			push!(system_to_solve, equation)
 		end
 		parameters::Vector{HomotopyContinuation.ModelKit.Variable} = stack_homotopy_parameters(lines)
 		return System(system_to_solve, variables=[tx, ty, tz], parameters=parameters)
+	end
+
+	function build_intrinsic_rotation_translation_conic_system_calibrated(problem::Problems.CylinderCameraContoursProblem)
+		new_problem = deepcopy(problem)
+		new_problem.camera.intrinsic = Matrix{Float64}(I, 3, 3)
+		return build_intrinsic_rotation_translation_conic_system(new_problem)
 	end
 
 	function build_camera_matrix_conic_system(lines_values)

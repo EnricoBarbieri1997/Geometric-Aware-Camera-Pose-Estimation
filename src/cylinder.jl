@@ -27,7 +27,7 @@ module Cylinder
 		dualCanonicalCylinderMatrix = zeros(4, 4)
 		dualCanonicalCylinderMatrix[[1, 2, 4], [1, 2, 4]] .= inv(canonicalCylinder[[1, 2, 4], [1, 2, 4]])
 
-		dualCylinderMatrix = inv(transform_matrix) * dualCanonicalCylinderMatrix * inv(transform_matrix')
+		dualCylinderMatrix = transform_matrix * dualCanonicalCylinderMatrix * transform_matrix'
 		dualCylinderSingularPoint = transform_matrix * [0; 0; 1; 0]
 
 		return cylinder, dualCylinderMatrix, dualCylinderSingularPoint

@@ -165,8 +165,10 @@ module Utils
 	end
 
 	function intrinsic_difference(calculated, truth)
-		fₓ, fᵧ, cₓ, cᵧ, skew = calculated[1, 1], calculated[2, 2], calculated[1, 3], calculated[2, 3], calculated[1, 2]
-		fₓₜ, fᵧₜ, cₓₜ, cᵧₜ, skewₜ = truth[1, 1], truth[2, 2], truth[1, 3], truth[2, 3], truth[1, 2]
+		calculated_normalized = calculated / calculated[3,3]
+		truth_normalized = truth / truth[3,3]
+		fₓ, fᵧ, cₓ, cᵧ, skew = calculated_normalized[1, 1], calculated_normalized[2, 2], calculated_normalized[1, 3], calculated_normalized[2, 3], calculated_normalized[1, 2]
+		fₓₜ, fᵧₜ, cₓₜ, cᵧₜ, skewₜ = truth_normalized[1, 1], truth_normalized[2, 2], truth_normalized[1, 3], truth_normalized[2, 3], truth_normalized[1, 2]
 
 		deltaF = normalized_diff(fₓ, fₓₜ)/2 + normalized_diff(fᵧ, fᵧₜ)/2
 		deltaUV = normalized_diff(cₓ, cₓₜ)/2 + normalized_diff(cᵧ, cᵧₜ)/2

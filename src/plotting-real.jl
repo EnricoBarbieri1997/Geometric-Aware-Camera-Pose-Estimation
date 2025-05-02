@@ -1,3 +1,5 @@
+using ..CylindersBasedCameraResectioning: IMAGE_WIDTH, IMAGE_HEIGHT
+
 using ..Space: RotRad, position_rotation, transformation as create_transform_matrix
 using ..Cylinder: CylinderProperties
 using ..Geometry: Line, Plane, plane_basis
@@ -12,13 +14,13 @@ using GeometryBasics
 
 function add_2d_axis!()
     index = length(ax2_array) + 1
-    col = ceil(Int, index / 2)
-    row = index % 2
-    if row == 0
-        row = 2
+    row = ceil(Int, index / 2)
+    col = index % 2
+    if col == 0
+        col = 2
     end
     ax = Axis(grid_2d[row, col], aspect = DataAspect(), title="View $index")
-    ax.limits[] = ((0, 1080), (-1920, 0))
+    ax.limits[] = ((0, IMAGE_WIDTH), (-IMAGE_HEIGHT, 0))
     push!(ax2_array, ax)
 end
 
@@ -72,6 +74,7 @@ end
 function initfigure()
     global f, scene3D, ax3, grid_2d, ax2_array, camera_roation_layout, camera_rotation_axes, cameras
     # set_theme!(scale_plot = true)
+    dump = Figure()
     f = Figure(size=(1200, 800))
     scene3D = LScene(f[1, 1], scenekw = (camera=cam3d!, show_axis=true))
     ax3 = scene3D.scene
@@ -157,10 +160,12 @@ function plot_3dcamera(camera::CameraProperties, color = :black)
                color=color, linewidth=2)
     end
 
-    fx = camera.intrinsic[1, 1]
+    intrinsic = camera.intrinsic / camera.intrinsic[3, 3]
+
+    fx = intrinsic[1, 1]
     fov_x_rad = 2 * atan(1080 / (2 * fx))
     fov_x_deg = rad2deg(fov_x_rad)
-    aspect = camera.intrinsic[2, 2] / camera.intrinsic[1, 1]
+    aspect = intrinsic[1, 1] / intrinsic[2, 2]
     plot_frustum!(ax3, T; fov_deg = fov_x_deg, aspect = aspect, color = color)
 
     mesh_transformed = transform_mesh(loaded_mesh, T)
@@ -269,7 +274,7 @@ end
 
 function plot_2dpoints(points; axindex = 1)
     for (i, point) in enumerate(points)
-        if length(point) == 3
+        if length(point) == 3 && point[3] != 0
             point = point ./ point[3]
         end
         scatter!(ax2_array[axindex], (point[1], -point[2]), color = colors[i])
@@ -300,10 +305,15 @@ function plot_2dcylinders(conic_contours; linestyle = :solid, alpha = 1, axindex
         for j in 1:(size(conic_contours)[2])
             line = conic_contours[i, j, :]
             if line == [0, 0, 0] continue end
-            y1 = function (x) return y(x, line) end
-            xs = 0:1:1080
-            ys1 = y1.(xs)
-            lines!(ax2_array[axindex], xs, -ys1, color = (colors[i], alpha), linestyle=linestyle)
+            if line[2] == 0
+                x = -line[3]/line[1]
+                lines!(ax2_array[axindex], [x, x], [0, -IMAGE_HEIGHT], color = (colors[i], alpha), linestyle=linestyle)
+            else
+                y1 = function (x) return y(x, line) end
+                xs = 0:IMAGE_WIDTH:IMAGE_WIDTH
+                ys1 = y1.(xs)
+                lines!(ax2_array[axindex], xs, -ys1, color = (colors[i], alpha), linestyle=linestyle)
+            end
         end
     end
 end

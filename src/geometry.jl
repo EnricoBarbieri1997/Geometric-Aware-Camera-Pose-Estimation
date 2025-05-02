@@ -175,29 +175,32 @@ module Geometry
 
 	function get_tangentpoints_circle_point(circle::Circle, point::Vector{<:Number})
 		variation = point - circle.center
-		orthogonal_variation = variation
-		axis = normalize(circle.axis)
-		if !isnothing(axis)
-			orthogonal_variation = cross(axis, variation)
-		else
-			orthogonal_variation = variation .* [1, -1]
-		end
 		d = norm(variation)
-		if d >= circle.radius
-			rho = circle.radius/d
-			ad = rho^2
-			bd = rho*sqrt(1-rho^2)
-			T1 = circle.center + ad * variation + bd * orthogonal_variation
-			T2 = circle.center + ad * variation - bd * orthogonal_variation
+		r = circle.radius
 
-			if (d/circle.radius-1) ≃ 1E-8
-				throw(TangentLineNotFound("The point is on the circle"))
-			else
-				return (T1, T2)
-			end
-		else
+		if d <= r
 			throw(TangentLineNotFound("The point is inside the circle"))
 		end
+		if (d/r-1) ≃ 1E-8
+			throw(TangentLineNotFound("The point is on the circle"))
+		end
+
+		R = sqrt(d^2 - r^2)
+		rho = r/d
+		ad = rho^2 * d
+		bd = rho * R / d * d
+		axis = normalize(circle.axis)
+		
+		adv = normalize(variation)
+		if !isnothing(axis)
+			bdv = normalize(cross(axis, adv))
+		else
+			bdv = normalize(adv .* [1, -1])
+		end
+
+		T1 = circle.center + ad * adv + bd * bdv
+		T2 = circle.center + ad * adv - bd * bdv
+		return T1, T2
 
 		throw(TangentLineNotFound("No tangent line possible"))
 	end

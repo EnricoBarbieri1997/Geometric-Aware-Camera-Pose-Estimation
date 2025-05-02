@@ -95,7 +95,7 @@ def save_results_to_json(filename, results):
     with open(filename, "w") as f:
         json.dump(results, f, indent=2)
 
-def merge_all_results_json(output_file="results.json", pattern="*_results.json"):
+def merge_all_results_json(output_file="./synthetic/results.json", pattern="./synthetic/*_results.json"):
     """
     Merges all *_results.json files in the current folder into a single file.
     """

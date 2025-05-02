@@ -15,6 +15,14 @@ module Camera
 		matrix::Matrix{<:Number} = Matrix{Float64}(I, 3, 4)
 	end
 
+	function Base.getproperty(obj::CameraProperties, name::Symbol)
+		if name == :matrix
+			return build_camera_matrix(obj.intrinsic ./ obj.intrinsic[2,2], obj.quaternion_rotation, obj.position)
+		else
+			return getfield(obj, name)
+		end
+	end
+
 	function build_camera_matrix(
 		translation::Union{Array{<:Number}, Vector{<:Number}} = [0, 0, 0],
 		rotation::Matrix{<:Number} = Matrix(I, 3, 3),
@@ -136,14 +144,14 @@ module Camera
 
 	function lookat_rotation(camera_pos::Vector{Float64}, target_pos::Vector{Float64}, up::Vector{Float64} = [0.0, 0.0, 1.0])
 		forward = normalize(target_pos - camera_pos)        # camera Z axis (pointing into the scene)
-    right = normalize(cross(forward, up))               # camera X axis
-    down = -normalize(cross(right, forward))             # camera Y axis (but downward in image plane)
+		right = normalize(cross(forward, up))               # camera X axis
+		down = -normalize(cross(right, forward))             # camera Y axis (but downward in image plane)
 
-    # Assemble camera-to-world rotation matrix
-    R_cam_to_world = hcat(right, down, forward)
+		# Assemble camera-to-world rotation matrix
+		R_cam_to_world = hcat(right, down, forward)
 
-    # Invert it to get world-to-camera rotation
-    # R_world_to_cam = transpose(R_cam_to_world)
+		# Invert it to get world-to-camera rotation
+		# R_world_to_cam = transpose(R_cam_to_world)
     return R_cam_to_world
 end
 
