@@ -783,8 +783,6 @@ module Scene
 
 					current_error = 0
 					possible_cameras = []
-					# individual_problem_min_error = Inf
-					individual_problem_max_error = -Inf
 
 					for (i, problem) in enumerate(problems)
 							individual_problem_error = 0
@@ -820,7 +818,7 @@ module Scene
 								)
 								@info result
 
-								individual_problem_error += best_intrinsic_rotation_translation_system_solution!(
+								current_error += best_intrinsic_rotation_translation_system_solution!(
 										translation_result,
 										scene,
 										scene.instances[i],
@@ -830,22 +828,19 @@ module Scene
 								possible_camera = problem_upto_translation.camera
 								push!(possible_cameras, possible_camera)
 
-								for (i, contour) in enumerate(eachslice(scene.instances[i].conics_contours, dims=1))
-										for line in eachslice(contour, dims=1)
-												eq = line' * intrinsic * camera_extrinsic_rotation * scene.cylinders[i].singular_point[1:3]
-												individual_problem_error += abs(eq)
-										end
-								end
-								if (individual_problem_error > individual_problem_max_error)
-										individual_problem_max_error = individual_problem_error
+								for (line, point_at_infinity) in zip(
+									eachslice(problem.lines, dims=1),
+									eachslice(problem.points_at_infinity, dims)
+								)
+									eq = line' * intrinsic * camera_extrinsic_rotation * point_at_infinity
+									current_error += abs(eq)
 								end
 							catch e
 								@error e
-								individual_problem_max_error = Inf
+								current_error = Inf
 							end
 					end
-					current_error = individual_problem_max_error
-					if individual_problem_max_error == Inf
+					if current_error == Inf
 							continue
 					end
 					push!(all_possible_solutions, Dict(
@@ -854,10 +849,10 @@ module Scene
 					))
 
 					if (current_error < solution_error)
-							solution_error = current_error
-							for (i, problem) in enumerate(problems)
-									problem.camera = possible_cameras[i]
-							end
+						solution_error = current_error
+						for (i, problem) in enumerate(problems)
+							problem.camera = possible_cameras[i]
+						end
 					end
 			end
 

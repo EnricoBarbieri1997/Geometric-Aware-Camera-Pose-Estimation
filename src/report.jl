@@ -55,10 +55,10 @@ module Report
 
 		number_of_seeds = 50
 		configurations = [
-			IntrinsicParametersConfigurations.none,
+			# IntrinsicParametersConfigurations.none,
 			# IntrinsicParametersConfigurations.fₓ,
 			# IntrinsicParametersConfigurations.fₓ_fᵧ,
-			# IntrinsicParametersConfigurations.fₓ_fᵧ_cₓ_cᵧ,
+			IntrinsicParametersConfigurations.fₓ_fᵧ_cₓ_cᵧ,
 			# IntrinsicParametersConfigurations.fₓ_fᵧ_skew_cₓ_cᵧ,
 		]
 
