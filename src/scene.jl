@@ -733,7 +733,6 @@ module Scene
 						eachslice(problem.lines, dims=1),
 						eachslice(problem.dualquadrics, dims=1)
 					)
-						display(dualquadric)
 						calibrated_line = intrinsic' * line
 						eq = calibrated_line' * camera_matrix * dualquadric * camera_matrix' * calibrated_line
 						current_error += abs(eq)
