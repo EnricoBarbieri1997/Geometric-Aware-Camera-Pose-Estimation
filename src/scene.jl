@@ -540,6 +540,12 @@ module Scene
 					intrinsic_solution_index += 1
 			end
 
+			focal_length_x = focal_length_x / focal_length_y
+			principal_point_x = principal_point_x / focal_length_y
+			principal_point_y = principal_point_y / focal_length_y
+			skew = skew / focal_length_y
+			focal_length_y = 1 / focal_length_y
+
 			# Spurious solutions
 			if (focal_length_x ≃ 0 || focal_length_y ≃ 0)
 				throw(ArgumentError("Spurious solution"))

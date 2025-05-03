@@ -153,13 +153,11 @@ module EquationSystems
 			push!(variables, cᵧ)
 		end
 
-		intrinsic = build_intrinsic_matrix(IntrinsicParameters(
-			focal_length_x = fₓ,
-			focal_length_y = fᵧ,
-			principal_point_x = cₓ,
-			principal_point_y = cᵧ,
-			skew = skew,
-		)) / fᵧ
+		intrinsic = [
+			fₓ skew cₓ;
+			0 1 cᵧ;
+			0 0 fᵧ
+		]
 
 		for (index, problem) in enumerate(problems)
 			lines_count = size(problem.lines)[1]
