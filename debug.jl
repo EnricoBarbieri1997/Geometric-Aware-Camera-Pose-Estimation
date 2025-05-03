@@ -1,5 +1,5 @@
 using CylindersBasedCameraResectioning.Geometry: get_tangentpoints_circle_point, Circle
-using GLMakie
+using CairoMakie
 
 # Example data
 center = [0.8, 1.2, 0.0]

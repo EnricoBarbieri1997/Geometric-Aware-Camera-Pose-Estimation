@@ -8,8 +8,8 @@ using ..Camera: CameraProperties
 using Reexport
 using LinearAlgebra: cross, deg2rad, dot, normalize
 using Rotations
-using GLMakie
-using GLMakie.FileIO
+using CairoMakie
+using Makie.FileIO
 using GeometryBasics
 
 function add_2d_axis!()

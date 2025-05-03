@@ -86,7 +86,6 @@ for metric in metrics:
                 plt.errorbar(
                     noise, mean, yerr=np.sqrt(variance), fmt='o', color=colors[idx]
                 )
-                plt.vlines(noise, min_val, max_val, color=colors[idx], alpha=0.5)
             else:
                 means.append(np.nan)
 
