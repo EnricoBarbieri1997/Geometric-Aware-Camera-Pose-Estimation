@@ -630,7 +630,7 @@ module Scene
 						continue
 					end
 
-					current_error = sum(intrinsic_difference(intrinsic, scene.instances[1].camera.intrinsic))
+					current_error = 0
 					display("int err:$(current_error)")
 					possible_cameras = []
 					individual_problem_max_error = -Inf
@@ -647,20 +647,14 @@ module Scene
 								i,
 							)
 							push!(possible_cameras, possible_camera)
-							current_error += rotations_difference(
-								possible_camera.quaternion_rotation,
-								scene.instances[i].camera.quaternion_rotation,
+							problem = problems[i]
+							for (line, point_at_infinity) in zip(
+								eachslice(problem.lines, dims=1),
+								eachslice(problem.points_at_infinity, dims=1)
 							)
-
-							# for (j, contour) in enumerate(eachslice(scene.instances[i].conics_contours, dims=1))
-							# 		for line in eachslice(contour, dims=1)
-							# 				eq = line' * intrinsic * camera_extrinsic_rotation * scene.cylinders[j].singular_point[1:3]
-							# 				individual_problem_error += abs(eq)
-							# 		end
-							# end
-							# if (individual_problem_error > individual_problem_max_error)
-							# 		individual_problem_max_error = individual_problem_error
-							# end
+								eq = line' * (intrinsic ./ intrinsic[2, 2]) * camera_extrinsic_rotation * point_at_infinity
+								current_error += abs(eq)
+							end
 					end
 					display("i+r err: $(current_error)")
 					# current_error = individual_problem_max_error
@@ -718,39 +712,36 @@ module Scene
 	end
 	function best_intrinsic_rotation_translation_system_solution!(
 			result,
-			scene,
-			instance,
 			problem,
 	)
 			solution_error = Inf
 			solutions_to_try = real_solutions(result)
 			reference_translation_result = nothing
+			intrinsic = problem.camera.intrinsic ./ problem.camera.intrinsic[2, 2]
 			for solution in solutions_to_try
 					tx, ty, tz = solution
 					position = [tx, ty, tz]
 
 					camera_matrix = build_camera_matrix(
-							problem.camera.intrinsic,
+							Matrix{Float64}(I, 3, 3),
 							problem.camera.quaternion_rotation,
 							position
 					)
 
-					acceptable = true
-					current_error = translations_difference(
-						position,
-						scene.instances[1].camera.position,
+					current_error = 0
+					for (line, dualquadric) in zip(
+						eachslice(problem.lines, dims=1),
+						eachslice(problem.dualquadrics, dims=1)
 					)
+						display(dualquadric)
+						calibrated_line = intrinsic' * line
+						eq = calibrated_line' * camera_matrix * dualquadric * camera_matrix' * calibrated_line
+						current_error += abs(eq)
+					end
 					display("t_err: $(current_error)")
-					# for (i, contour) in enumerate(eachslice(instance.conics_contours, dims=1))
-					# 		for line in eachslice(contour, dims=1)
-					# 				eq = line' * camera_matrix * scene.cylinders[i].dual_matrix * camera_matrix' * line
-					# 				current_error += abs(eq)
-					# 		end
-					# end
 					if (current_error < solution_error)
 							solution_error = current_error
 							problem.camera.position = position
-							problem.camera.matrix = camera_matrix
 					end
 			end
 
@@ -787,6 +778,7 @@ module Scene
 					for (i, problem) in enumerate(problems)
 							individual_problem_error = 0
 							quat = [1; rotations_solution[(i-1)*3+1:i*3]]
+							quat = quat / norm(quat)
 							camera_extrinsic_rotation = (QuatRotation(quat) * inv(intrinsic_correction))'
 
 							problem_upto_translation = CylinderCameraContoursProblem(
@@ -820,8 +812,6 @@ module Scene
 
 								current_error += best_intrinsic_rotation_translation_system_solution!(
 										translation_result,
-										scene,
-										scene.instances[i],
 										problem_upto_translation
 								)
 
@@ -830,10 +820,9 @@ module Scene
 
 								for (line, point_at_infinity) in zip(
 									eachslice(problem.lines, dims=1),
-									eachslice(problem.points_at_infinity, dims)
+									eachslice(problem.points_at_infinity, dims=1)
 								)
-									display(intrinsic)
-									eq = line' * (intrinsic ./ intrinsic[2, 2]) * camera_extrinsic_rotation * point_at_infinity
+									eq = line' * (intrinsic ./ intrinsic[2, 2]) * camera_extrinsic_rotation' * point_at_infinity
 									current_error += abs(eq)
 								end
 							catch e
@@ -888,7 +877,7 @@ module Scene
 						)
 						@info result
 
-						solution_error += best_intrinsic_rotation_translation_system_solution!(result, scene, scene.instances[i], problem)
+						solution_error += best_intrinsic_rotation_translation_system_solution!(result, problem)
 						plot_3dcamera(problem.camera, :green)
 					catch e
 						@error e
