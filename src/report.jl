@@ -55,10 +55,10 @@ module Report
 
 		number_of_seeds = 50
 		configurations = [
-			# IntrinsicParametersConfigurations.none,
+			IntrinsicParametersConfigurations.none,
 			# IntrinsicParametersConfigurations.fₓ,
 			# IntrinsicParametersConfigurations.fₓ_fᵧ,
-			IntrinsicParametersConfigurations.fₓ_fᵧ_cₓ_cᵧ,
+			# IntrinsicParametersConfigurations.fₓ_fᵧ_cₓ_cᵧ,
 			# IntrinsicParametersConfigurations.fₓ_fᵧ_skew_cₓ_cᵧ,
 		]
 
@@ -166,7 +166,7 @@ module Report
 								)
 								@info result
 
-								solution_error, _ = best_overall_solution_by_steps!(
+								solution_error, _ = best_overall_solution!(
 									result,
 									scene,
 									problems;

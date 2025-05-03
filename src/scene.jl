@@ -832,11 +832,13 @@ module Scene
 									eachslice(problem.lines, dims=1),
 									eachslice(problem.points_at_infinity, dims)
 								)
-									eq = line' * intrinsic * camera_extrinsic_rotation * point_at_infinity
+									display(intrinsic)
+									eq = line' * (intrinsic ./ intrinsic[2, 2]) * camera_extrinsic_rotation * point_at_infinity
 									current_error += abs(eq)
 								end
 							catch e
-								@error e
+								Base.showerror(stdout, e)
+								Base.show_backtrace(stdout, catch_backtrace())
 								current_error = Inf
 							end
 					end
