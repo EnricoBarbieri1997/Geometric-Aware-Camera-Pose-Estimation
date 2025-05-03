@@ -101,14 +101,14 @@ module Report
 		scenes = Vector{Union{Tuple{SceneData, Vector{CylinderCameraContoursProblem}}, Nothing}}(undef, number_of_seeds)
 		fill!(scenes, nothing)
 		seeds = Vector{Int}(undef, number_of_seeds)
-		current_noise_results = Vector{Union{ReportData, Exception, Nothing}}(undef, length(noise_values))
-		fill!(current_noise_results, nothing)
+		current_noise_results = Vector{Union{ReportData, Exception, Nothing}}(undef, number_of_seeds)
 
 		for configuration in configurations
 			possible_scene_configurations = get(cylinder_views_per_config, configuration, [(2, 1)])
 			for scene_configuration in possible_scene_configurations
 				number_of_cylinders, number_of_instances = scene_configuration
 				for (noise_index, noise) in enumerate(noise_values)
+					fill!(current_noise_results, nothing)
 					current_seed_index = 1
 					while current_seed_index <= number_of_seeds
 						display("Seed index: $current_seed_index. Configuration: $configuration. Scene configuration: $scene_configuration. Noise: $noise")
@@ -197,7 +197,7 @@ module Report
 									),
 								)
 							end
-							current_noise_results[noise_index] = ReportData(
+							current_noise_results[current_seed_index] = ReportData(
 								report_configuration,
 								ReportResult(
 									time() - start,
@@ -223,9 +223,9 @@ module Report
 								scenes[current_seed_index] = nothing
 							else
 								if isnothing(report_configuration)
-									current_noise_results[noise_index] = e
+									current_noise_results[current_seed_index] = e
 								else
-									current_noise_results[noise_index] = ReportData(report_configuration, ReportException(e))
+									current_noise_results[current_seed_index] = ReportData(report_configuration, ReportException(e))
 								end
 								current_seed_index = current_seed_index + 1
 							end
@@ -344,6 +344,7 @@ module Report
 			mean_rotation_error = reduce((tot, view) -> view.rotation + tot, report.result.errors.views; init=0) / n_views
 			mean_translation_error = reduce((tot, view) -> view.translation + tot, report.result.errors.views; init=0) / n_views
 
+			display("index: $(index), noise: $(report.configuration.noise), sc: $(sample_counts[index]), ec: $(errored_count[index])")
 			sample_index = sample_counts[index] + errored_count[index] + 1
 			errors_all[1:3, index, sample_index] = report.result.errors.intrinsic
 			errors_all[4, index, sample_index] = mean_cameramatrix_error
@@ -400,6 +401,9 @@ module Report
 				push!(json_results, create_single_noise_result("ours", noise_steps[i], delta_f, delta_uv, delta_skew, success_rate, delta_r, delta_t))
 			end
 			for report in errored
+				if !is_initialized(report)
+					continue
+				end
 				push!(json_results, create_single_noise_result("ours", report.configuration.noise, [], [], [], [], [], []))
 			end
 			save_results_to_json("assets/methods_compare/ours_results.json", json_results)

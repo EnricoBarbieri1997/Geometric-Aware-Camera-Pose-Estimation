@@ -630,7 +630,8 @@ module Scene
 						continue
 					end
 
-					current_error = 0
+					current_error = sum(intrinsic_difference(intrinsic, scene.instances[1].camera.intrinsic))
+					display("int err:$(current_error)")
 					possible_cameras = []
 					individual_problem_max_error = -Inf
 					for i in 1:length(problems)
@@ -646,18 +647,23 @@ module Scene
 								i,
 							)
 							push!(possible_cameras, possible_camera)
+							current_error += rotations_difference(
+								possible_camera.quaternion_rotation,
+								scene.instances[i].camera.quaternion_rotation,
+							)
 
-							for (j, contour) in enumerate(eachslice(scene.instances[i].conics_contours, dims=1))
-									for line in eachslice(contour, dims=1)
-											eq = line' * intrinsic * camera_extrinsic_rotation * scene.cylinders[j].singular_point[1:3]
-											individual_problem_error += abs(eq)
-									end
-							end
-							if (individual_problem_error > individual_problem_max_error)
-									individual_problem_max_error = individual_problem_error
-							end
+							# for (j, contour) in enumerate(eachslice(scene.instances[i].conics_contours, dims=1))
+							# 		for line in eachslice(contour, dims=1)
+							# 				eq = line' * intrinsic * camera_extrinsic_rotation * scene.cylinders[j].singular_point[1:3]
+							# 				individual_problem_error += abs(eq)
+							# 		end
+							# end
+							# if (individual_problem_error > individual_problem_max_error)
+							# 		individual_problem_max_error = individual_problem_error
+							# end
 					end
-					current_error = individual_problem_max_error
+					display("i+r err: $(current_error)")
+					# current_error = individual_problem_max_error
 					push!(all_possible_solutions, possible_cameras[1])
 
 					if (current_error < solution_error)
@@ -730,13 +736,17 @@ module Scene
 					)
 
 					acceptable = true
-					current_error = 0
-					for (i, contour) in enumerate(eachslice(instance.conics_contours, dims=1))
-							for line in eachslice(contour, dims=1)
-									eq = line' * camera_matrix * scene.cylinders[i].dual_matrix * camera_matrix' * line
-									current_error += abs(eq)
-							end
-					end
+					current_error = translations_difference(
+						position,
+						scene.instances[1].camera.position,
+					)
+					display("t_err: $(current_error)")
+					# for (i, contour) in enumerate(eachslice(instance.conics_contours, dims=1))
+					# 		for line in eachslice(contour, dims=1)
+					# 				eq = line' * camera_matrix * scene.cylinders[i].dual_matrix * camera_matrix' * line
+					# 				current_error += abs(eq)
+					# 		end
+					# end
 					if (current_error < solution_error)
 							solution_error = current_error
 							problem.camera.position = position

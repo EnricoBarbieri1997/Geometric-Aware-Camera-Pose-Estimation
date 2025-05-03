@@ -305,7 +305,7 @@ if __name__ == "__main__":
     debug = 0
     iterations_count = 50 if not use_saved else 1
     results = []
-    noises = np.arange(0.0, 5.00, 0.05) if not use_saved else [0.0]
+    noises = np.arange(0.0, 0.04, 0.0005) if not use_saved else [0.0]
     print(use_saved)
     for noise in noises:
         print(f"Noise: {noise:.2f}")

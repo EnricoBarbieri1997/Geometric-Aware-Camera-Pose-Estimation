@@ -3,12 +3,12 @@ import numpy as np
 
 # Static data
 error_types = [r'$\Delta f$', r'$\Delta c$']
-methods = ['Ours', 'Right Cylinder', 'Quadric based']
+methods = ['Ours', 'Right Cylinder', 'Gummeson']
 
 errors = np.array([
     [0.06, 0.32],   # Ours: Δf, Δc
     [np.nan, np.nan],  # Right Cylinder: no valid solution
-    [0.0, np.nan]    # Quadric based: Δf, Δc
+    [0.0, np.nan]    # Gummeson: Δf, Δc
 ])
 
 # Parameters

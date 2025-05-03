@@ -25,7 +25,7 @@ module CylindersBasedCameraResectioning
             noise=0.0,
         )
 
-        display(scene.figure; blocking=true)
+        display(scene.figure)
 
         rotation_intrinsic_system, parameters = intrinsic_rotation_system_setup(problems)
 

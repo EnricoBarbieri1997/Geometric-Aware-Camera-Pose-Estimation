@@ -1,5 +1,5 @@
 module Utils
-	export almostequal, ≃, rand_in_range, quat_from_rotmatrix, vector_difference, matrix_difference, rotations_difference, eulerangles_from_rotationmatrix, translations_difference, isvalid_startsolution
+	export almostequal, ≃, rand_in_range, quat_from_rotmatrix, vector_difference, matrix_difference, intrinsic_difference, rotations_difference, eulerangles_from_rotationmatrix, translations_difference, isvalid_startsolution
 
 	using LinearAlgebra: diagm, norm, normalize, svdvals, tr
 	using Rotations

@@ -13,9 +13,10 @@ def customPlotFun(y, pos):
 
 # Label maps
 method_labels = {
-    "ours": "Ours",
-    "quadric_based": "Quadric-based",
-    "right_cylinder": "Right Cylinder",
+    "ours_localization": "Ours",
+    "ours_calibration": "Ours",
+    "quadric_based": "Gummeson",
+    "right_cylinder": "Ding",
     # "zhang_4": "Zhang 4 views",
     # "zhang_30": "Zhang 30 views"
 }
@@ -30,7 +31,8 @@ metric_labels = {
 }
 
 method_supports = {
-    "ours": {"delta_f": True, "delta_uv": True, "delta_skew": True, "delta_r": True, "delta_t": True, "success_rate": True},
+    "ours_localization": {"delta_f": False, "delta_uv": False, "delta_skew": False, "delta_r": True, "delta_t": True, "success_rate": True},
+    "ours_calibration": {"delta_f": True, "delta_uv": True, "delta_skew": True, "delta_r": False, "delta_t": False, "success_rate": True},
     "quadric_based": {"delta_f": True, "delta_uv": False, "delta_skew": False, "delta_r": True, "delta_t": True, "success_rate": True},
     "right_cylinder": {"delta_f": True, "delta_uv": True, "delta_skew": False, "delta_r": False, "delta_t": False, "success_rate": True},
     "zhang_4": {"delta_f": True, "delta_uv": True, "delta_skew": False, "delta_r": True, "delta_t": True, "success_rate": True},
@@ -39,8 +41,8 @@ method_supports = {
 
 methods = list(method_labels.keys())
 metrics = list(metric_labels.keys())
-colors = ["blue", "purple", "green", "orange", "red"]
-linestyles = ["-", "--", "-.", ":", ":"]
+colors = ["blue", "blue", "purple", "green", "orange", "red"]
+linestyles = ["-", "-", "--", "-.", ":", ":"]
 
 # Load data
 with open("./synthetic/results.json") as f:
