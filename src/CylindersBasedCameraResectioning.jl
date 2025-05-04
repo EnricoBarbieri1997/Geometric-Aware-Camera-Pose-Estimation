@@ -5,7 +5,7 @@ module CylindersBasedCameraResectioning
     const IMAGE_WIDTH = 1080
     include("includes.jl")
 
-	using ..Scene: ParametersSolutionsPair, best_overall_solution!, best_overall_solution_by_steps!, best_intrinsic_rotation_translation_system_solution!, camera_from_solution, create_scene_instances_and_problems, scene_instances_and_problems_from_files, intrinsic_rotation_system_setup, intrinsic_rotation_translation_system_setup, plot_interactive_scene, plot_reconstructed_scene, split_intrinsic_rotation_parameters
+	using ..Scene: ParametersSolutionsPair, averaged_solution!, best_overall_solution!, best_overall_solution_by_steps!, best_intrinsic_rotation_translation_system_solution!, camera_from_solution, create_scene_instances_and_problems, scene_instances_and_problems_from_files, intrinsic_rotation_system_setup, intrinsic_rotation_translation_system_setup, plot_interactive_scene, plot_reconstructed_scene, split_intrinsic_rotation_parameters
 	using ..EquationSystems: stack_homotopy_parameters, variables_jacobian_rank, joint_jacobian_rank
     using ..EquationSystems.Problems.IntrinsicParameters: Configurations as IntrinsicParametersConfigurations
     using ..Plotting
@@ -60,7 +60,7 @@ module CylindersBasedCameraResectioning
         chunk_size = 500000
         numberof_start_solutions = length(starts)
         display("Number of start solutions: $numberof_start_solutions. Number of iterations needed: $(ceil(Int, numberof_start_solutions / chunk_size))")
-        solution_error = Inf
+        previous_solution = nothing
         for start in Iterators.partition(starts, chunk_size)
             result = solve(
                 solver,
@@ -68,11 +68,11 @@ module CylindersBasedCameraResectioning
             )
             # @info result
 
-            solution_error, _ = best_overall_solution!(
+            previous_solution, _ = averaged_solution!(
                 result,
                 scene,
                 problems;
-                start_error=solution_error,
+                previous_solution=previous_solution,
                 intrinsic_configuration,
             )
         end

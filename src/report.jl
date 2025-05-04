@@ -1,5 +1,5 @@
 module Report
-	using ..Scene: SceneData, best_overall_solution!, best_overall_solution_by_steps!, create_scene_instances_and_problems, intrinsic_rotation_system_setup, plot_scene, plot_reconstructed_scene
+	using ..Scene: SceneData, averaged_solution!, best_overall_solution!, best_overall_solution_by_steps!, create_scene_instances_and_problems, intrinsic_rotation_system_setup, plot_scene, plot_reconstructed_scene
 	using ..EquationSystems.Problems: CylinderCameraContoursProblem
 	using ..EquationSystems.Problems.IntrinsicParameters: Configurations as IntrinsicParametersConfigurations
 	using ..Plotting: initfigure, plot_3dcamera, Plot3dCameraInput
@@ -166,7 +166,7 @@ module Report
 								)
 								@info result
 
-								solution_error, _ = best_overall_solution_by_steps!(
+								solution_error, _ = best_overall_solution!(
 									result,
 									scene,
 									problems;
