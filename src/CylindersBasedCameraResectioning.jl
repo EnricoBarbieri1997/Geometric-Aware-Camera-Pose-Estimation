@@ -66,9 +66,9 @@ module CylindersBasedCameraResectioning
                 solver,
                 start;
             )
-            @info result
+            # @info result
 
-            solution_error, _ = best_overall_solution_by_steps!(
+            solution_error, _ = best_overall_solution!(
                 result,
                 scene,
                 problems;
