@@ -33,7 +33,7 @@ metric_labels = {
 }
 
 method_supports = {
-    "ours_localization": {"delta_f": False, "delta_uv": False, "delta_skew": False, "delta_r": True, "delta_t": True, "success_rate": True},
+    "ours_localization": {"delta_f": False, "delta_uv": False, "delta_skew": False, "delta_r": True, "delta_t": True, "success_rate": False},
     "ours_calibration": {"delta_f": True, "delta_uv": True, "delta_skew": True, "delta_r": False, "delta_t": False, "success_rate": True},
     "quadric_based": {"delta_f": True, "delta_uv": False, "delta_skew": False, "delta_r": True, "delta_t": True, "success_rate": True},
     "right_cylinder": {"delta_f": True, "delta_uv": True, "delta_skew": False, "delta_r": False, "delta_t": False, "success_rate": True},
@@ -97,14 +97,6 @@ for metric in metrics:
                 means.append(np.nan)
 
         x_values = np.array(noise_levels) * 100
-        plt.plot(
-            x_values,
-            means,
-            '.',  # only markers
-            color=colors[idx],
-            markersize=0.0000001,
-            label=method_labels[method]
-        )
         if len(x_values) >= 4:
             x_smooth = np.linspace(x_values.min(), x_values.max(), 300)
             spline = make_interp_spline(x_values, means, k=3)  # k=3 → cubic
@@ -114,7 +106,17 @@ for metric in metrics:
                 y_smooth,
                 color=colors[idx],
                 linestyle=linestyles[idx],
-                linewidth=1  # thinner line
+                linewidth=1,  # thinner line,
+                label=method_labels[method]
+            )
+        else:
+            plt.plot(
+                x_values,
+                means,
+                '.',  # only markers
+                color=colors[idx],
+                markersize=0.0000001,
+                label=method_labels[method]
             )
 
     plt.xlabel("Noise Level 10^2")
