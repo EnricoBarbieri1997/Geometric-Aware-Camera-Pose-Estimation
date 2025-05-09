@@ -5,7 +5,7 @@ module CylindersBasedCameraResectioning
     const IMAGE_WIDTH = 1080
     include("includes.jl")
 
-	using ..Scene: ParametersSolutionsPair, best_overall_solution!, best_overall_solution_by_steps!, best_intrinsic_rotation_translation_system_solution!, camera_from_solution, create_scene_instances_and_problems, scene_instances_and_problems_from_files, intrinsic_rotation_system_setup, intrinsic_rotation_translation_system_setup, plot_interactive_scene, plot_reconstructed_scene, split_intrinsic_rotation_parameters
+	using ..Scene: ParametersSolutionsPair, averaged_solution!, best_overall_solution!, best_overall_solution_by_steps!, best_intrinsic_rotation_translation_system_solution!, camera_from_solution, create_scene_instances_and_problems, scene_instances_and_problems_from_files, intrinsic_rotation_system_setup, intrinsic_rotation_translation_system_setup, plot_interactive_scene, plot_reconstructed_scene, split_intrinsic_rotation_parameters
 	using ..EquationSystems: stack_homotopy_parameters, variables_jacobian_rank, joint_jacobian_rank
     using ..EquationSystems.Problems.IntrinsicParameters: Configurations as IntrinsicParametersConfigurations
     using ..Plotting
@@ -16,13 +16,13 @@ module CylindersBasedCameraResectioning
     using HomotopyContinuation, Observables, Random, Serialization
 
     function main()
-        intrinsic_configuration = IntrinsicParametersConfigurations.none
+        intrinsic_configuration = IntrinsicParametersConfigurations.fₓ_fᵧ_cₓ_cᵧ
         scene, problems = create_scene_instances_and_problems(;
-            number_of_instances=1,
-            number_of_cylinders=2,
+            number_of_instances=2,
+            number_of_cylinders=3,
             random_seed=27,
             intrinsic_configuration,
-            noise=0.0,
+            noise=0.5,
         )
 
         display(scene.figure)
@@ -60,20 +60,20 @@ module CylindersBasedCameraResectioning
         chunk_size = 500000
         numberof_start_solutions = length(starts)
         display("Number of start solutions: $numberof_start_solutions. Number of iterations needed: $(ceil(Int, numberof_start_solutions / chunk_size))")
-        solution_error = Inf
+        start_error = Inf
         for start in Iterators.partition(starts, chunk_size)
             result = solve(
                 solver,
                 start;
             )
-            @info result
+            # @info result
 
-            solution_error, _ = best_overall_solution_by_steps!(
+            start_error, _ = best_overall_solution_by_steps!(
                 result,
-                scene,
                 problems;
-                start_error=solution_error,
                 intrinsic_configuration,
+                start_error=start_error,
+                scene,
             )
         end
 

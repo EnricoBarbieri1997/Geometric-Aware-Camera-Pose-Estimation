@@ -30,3 +30,4 @@ tmp
 juliacache
 
 assets/**/colmap/*.db*
+assets/**/frames/*

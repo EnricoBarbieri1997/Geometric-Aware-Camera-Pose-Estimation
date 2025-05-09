@@ -2,14 +2,16 @@ import json
 import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.ticker as ticker
+from matplotlib.ticker import LogLocator, FuncFormatter
 from collections import defaultdict
 import os
+from scipy.interpolate import make_interp_spline
 
 def customPlotFun(y, pos):
-    if y == 0.0001:
+    if y <= 0.0001:
         return "≤ 0.0001"
     else:
-        return format(y)
+        return f"{y:.5f}".rstrip('0').rstrip('.')
 
 # Label maps
 method_labels = {
@@ -31,7 +33,7 @@ metric_labels = {
 }
 
 method_supports = {
-    "ours_localization": {"delta_f": False, "delta_uv": False, "delta_skew": False, "delta_r": True, "delta_t": True, "success_rate": True},
+    "ours_localization": {"delta_f": False, "delta_uv": False, "delta_skew": False, "delta_r": True, "delta_t": True, "success_rate": False},
     "ours_calibration": {"delta_f": True, "delta_uv": True, "delta_skew": True, "delta_r": False, "delta_t": False, "success_rate": True},
     "quadric_based": {"delta_f": True, "delta_uv": False, "delta_skew": False, "delta_r": True, "delta_t": True, "success_rate": True},
     "right_cylinder": {"delta_f": True, "delta_uv": True, "delta_skew": False, "delta_r": False, "delta_t": False, "success_rate": True},
@@ -77,37 +79,58 @@ for metric in metrics:
         for noise in noise_levels:
             vals = grouped[metric][method][noise]
             if vals:
-                vals = [max(v, 0.0001) for v in vals]
-                mean = np.mean(vals)
+                vals = np.array([max(v, 0.0001) for v in vals])
                 variance = np.var(vals)
-                min_val = np.min(vals)
-                max_val = np.max(vals)
+                q25 = np.percentile(vals, 25)
+                q75 = np.percentile(vals, 75)
+                vals_iqr = vals[(vals >= q25) & (vals <= q75)]
+                mean = np.mean(vals_iqr) if len(vals_iqr) > 0 else np.mean(vals)
                 means.append(mean)
-                plt.errorbar(
-                    noise, mean, yerr=np.sqrt(variance), fmt='o', color=colors[idx]
-                )
+                err_low = max(mean - q25, 0)
+                err_high = max(q75 - mean,0)
+
+                if (err_low != 0 and err_high != 0):
+                    plt.errorbar(
+                        noise * 100, mean, yerr=[[err_low], [err_high]], fmt='o', color=colors[idx]
+                    )
             else:
                 means.append(np.nan)
 
-        plt.plot(
-            noise_levels,
-            means,
-            label=method_labels[method],
-            color=colors[idx],
-            linestyle=linestyles[idx],
-            marker='o'
-        )
+        x_values = np.array(noise_levels) * 100
+        if len(x_values) >= 4:
+            x_smooth = np.linspace(x_values.min(), x_values.max(), 300)
+            spline = make_interp_spline(x_values, means, k=3)  # k=3 → cubic
+            y_smooth = spline(x_smooth)
+            plt.plot(
+                x_smooth,
+                y_smooth,
+                color=colors[idx],
+                linestyle=linestyles[idx],
+                linewidth=1,  # thinner line,
+                label=method_labels[method]
+            )
+        else:
+            plt.plot(
+                x_values,
+                means,
+                '.',  # only markers
+                color=colors[idx],
+                markersize=0.0000001,
+                label=method_labels[method]
+            )
 
-    plt.xlabel("Noise Level")
+    plt.xlabel("Noise Level 10^2")
     plt.ylabel(metric_labels[metric])
-    plt.yscale("log")
-    plt.gca().yaxis.set_major_formatter(customPlotFun)
+    if metric in ["delta_r", "delta_t"]:
+        plt.yscale("log")
+        plt.gca().yaxis.set_major_locator(LogLocator(base=10.0, subs=[1.0]))
+        plt.gca().yaxis.set_major_formatter(FuncFormatter(customPlotFun))
     plt.title(f"{metric_labels[metric]} vs Noise")
     plt.legend()
     plt.grid(True, which="both", linestyle="--", linewidth=0.5)
     plt.tight_layout()
     os.makedirs("./synthetic/plots", exist_ok=True)
-    plt.savefig(f"./synthetic/plots/{metric}.pdf")
+    plt.savefig(f"./synthetic/plots/{metric}.pdf", dpi=300)
 
 # Generate LaTeX
 latex = []

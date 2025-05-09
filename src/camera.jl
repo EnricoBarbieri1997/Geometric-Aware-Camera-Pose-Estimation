@@ -1,5 +1,5 @@
 module Camera
-	export CameraProperties, IntrinsicParameters, build_camera_matrix, build_intrinsic_matrix, build_camera_matrix, lookat_rotation
+	export CameraProperties, IntrinsicParameters, build_camera_matrix, build_intrinsic_matrix, build_camera_matrix, lookat_rotation, is_in_front_of_camera
 
 	using ..Space: RotDeg
 	using ..Utils: rand_in_range
@@ -170,5 +170,18 @@ end
 		camera_translation = camera_translationdirection * rand_in_range(20.0, 30.0)
 		camera_object_rotation = lookat_rotation(camera_translation, [0.0, 0.0, 0.0])
 		return camera_translation, camera_object_rotation
+	end
+
+	function is_in_front_of_camera(camera)
+		position = camera.position
+		rotation = camera.euler_rotation
+		pitch, yaw, roll = deg2rad.(rotation)
+		forward = [
+			cos(pitch) * sin(yaw),
+			-sin(pitch),
+			cos(pitch) * cos(yaw)
+		]
+		to_origin = -position
+		return dot(forward, to_origin) > 0
 	end
 end

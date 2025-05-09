@@ -1,7 +1,7 @@
 module Utils
 	export almostequal, ≃, rand_in_range, quat_from_rotmatrix, vector_difference, matrix_difference, intrinsic_difference, rotations_difference, eulerangles_from_rotationmatrix, translations_difference, isvalid_startsolution
 
-	using LinearAlgebra: diagm, norm, normalize, svdvals, tr
+	using LinearAlgebra: Adjoint, diagm, norm, normalize, svdvals, tr
 	using Rotations
 	using Random
 	using HomotopyContinuation: jacobian
@@ -181,7 +181,7 @@ module Utils
 		return sqrt(sum((m1 - m2) .^ 2))
 	end
 
-	function rotations_difference(q1::QuatRotation, q2::QuatRotation)
+	function rotations_difference(q1::Union{QuatRotation, Matrix{Float64}, Adjoint{Float64, Matrix{Float64}}}, q2::Union{QuatRotation, Matrix{Float64}, Adjoint{Float64, Matrix{Float64}}})
 		R1 = Matrix(q1)  # convert quaternion to rotation matrix
 		R2 = Matrix(q2)
 		diff = clamp((tr(R1 * transpose(R2)) - 1) / 2, -1, 1)

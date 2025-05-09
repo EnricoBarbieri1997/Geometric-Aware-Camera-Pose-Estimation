@@ -69,12 +69,20 @@ module EquationSystems
 				end
 			end
 		end
+		mutable struct CylinderCameraContoursProblemValidationData
+			lines::Array{Float64, 2}
+			points_at_infinity::Array{Float64, 2}
+			dualquadrics::Array{Float64, 3}
+			line_indexes::Array{Float64, 1}
+		end
 		mutable struct CylinderCameraContoursProblem
 			camera::CameraProperties
 			lines::Array{Float64, 2}
 			noise_free_lines::Array{Float64, 2}
 			points_at_infinity::Array{Float64, 2}
 			dualquadrics::Array{Float64, 3}
+			line_indexes::Array{Float64, 1}
+			validation::CylinderCameraContoursProblemValidationData
 			intrinsic_configuration::UInt8
 		end
 
@@ -91,6 +99,10 @@ module EquationSystems
 				noise_free_lines,
 				points_at_infinity,
 				dualquadrics,
+				collect(1:size(lines)[1]),
+				CylinderCameraContoursProblemValidationData(
+					[], [], [], []
+				),
 				IntrinsicParameters.focal_length_x | IntrinsicParameters.focal_length_y | IntrinsicParameters.skew | IntrinsicParameters.principal_point_x | IntrinsicParameters.principal_point_y
 			)
 		end
@@ -119,12 +131,15 @@ module EquationSystems
 			throw(ArgumentError("At least one problem is needed"))
 		end
 
-		defult_intrinsic = problems[1].camera.intrinsic
-		fₓ = defult_intrinsic[1, 1]
-		fᵧ = defult_intrinsic[2, 2]
-		skew = defult_intrinsic[1, 2]
-		cₓ = defult_intrinsic[1, 3]
-		cᵧ = defult_intrinsic[2, 3]
+		default_intrinsic = problems[1].camera.intrinsic
+		fᵧ = default_intrinsic[2, 2]
+		default_intrinsic = default_intrinsic ./ fᵧ
+		factor = 1 / fᵧ
+		fₓ = default_intrinsic[1, 1]
+		fᵧ = 1
+		skew = default_intrinsic[1, 2]
+		cₓ = default_intrinsic[1, 3]
+		cᵧ = default_intrinsic[2, 3]
 
 		system_to_solve = []
 		variables::Vector{HomotopyContinuation.ModelKit.Variable} = []
@@ -137,8 +152,9 @@ module EquationSystems
 			push!(variables, fₓ)
 		end
 		if Problems.IntrinsicParameters.has.fᵧ(intrinsic_configuration)
-			@var fᵧ
-			push!(variables, fᵧ)
+			@var factor
+			fᵧ = 1
+			push!(variables, factor)
 		end
 		if Problems.IntrinsicParameters.has.skew(intrinsic_configuration)
 			@var skew
@@ -153,13 +169,11 @@ module EquationSystems
 			push!(variables, cᵧ)
 		end
 
-		intrinsic = build_intrinsic_matrix(IntrinsicParameters(
-			focal_length_x = fₓ,
-			focal_length_y = fᵧ,
-			principal_point_x = cₓ,
-			principal_point_y = cᵧ,
-			skew = skew,
-		)) / fᵧ
+		intrinsic = [
+			fₓ skew cₓ;
+			0 fᵧ cᵧ;
+			0 0 factor
+		]
 
 		for (index, problem) in enumerate(problems)
 			lines_count = size(problem.lines)[1]
