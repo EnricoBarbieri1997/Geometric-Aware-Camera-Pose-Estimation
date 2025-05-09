@@ -16,13 +16,13 @@ module CylindersBasedCameraResectioning
     using HomotopyContinuation, Observables, Random, Serialization
 
     function main()
-        intrinsic_configuration = IntrinsicParametersConfigurations.none
+        intrinsic_configuration = IntrinsicParametersConfigurations.fₓ_fᵧ_cₓ_cᵧ
         scene, problems = create_scene_instances_and_problems(;
-            number_of_instances=1,
-            number_of_cylinders=2,
+            number_of_instances=2,
+            number_of_cylinders=3,
             random_seed=27,
             intrinsic_configuration,
-            noise=0.0,
+            noise=0.5,
         )
 
         display(scene.figure)
@@ -60,7 +60,7 @@ module CylindersBasedCameraResectioning
         chunk_size = 500000
         numberof_start_solutions = length(starts)
         display("Number of start solutions: $numberof_start_solutions. Number of iterations needed: $(ceil(Int, numberof_start_solutions / chunk_size))")
-        previous_solution = nothing
+        start_error = Inf
         for start in Iterators.partition(starts, chunk_size)
             result = solve(
                 solver,
@@ -68,12 +68,12 @@ module CylindersBasedCameraResectioning
             )
             # @info result
 
-            previous_solution, _ = averaged_solution!(
+            start_error, _ = best_overall_solution_by_steps!(
                 result,
-                scene,
                 problems;
-                previous_solution=previous_solution,
                 intrinsic_configuration,
+                start_error=start_error,
+                scene,
             )
         end
 

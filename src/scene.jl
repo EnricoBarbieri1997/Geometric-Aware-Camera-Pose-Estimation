@@ -657,10 +657,10 @@ module Scene
 
 	function best_intrinsic_rotation_system_solution!(
 			result,
-			scene,
 			problems;
 			start_error = Inf,
-			intrinsic_configuration = IntrinsicParametersConfigurations.fₓ_fᵧ_skew_cₓ_cᵧ
+			intrinsic_configuration = IntrinsicParametersConfigurations.fₓ_fᵧ_skew_cₓ_cᵧ,
+			scene = nothing,
 	)
 			solution_error = start_error
 			solutions_to_try = [real(sol) for sol in solutions(result) if !any(isnan, real(sol))]
@@ -680,9 +680,18 @@ module Scene
 					end
 
 					current_error = 0
+					if (!isnothing(scene))
+							current_error += sum(intrinsic_difference(
+								intrinsic,
+								scene.instances[1].camera.intrinsic,
+							))
+							display("Intrinsic difference: $(intrinsic_difference(
+								intrinsic,
+								scene.instances[1].camera.intrinsic,
+							))")
+					end
 					possible_cameras = []
-					for i in 1:length(problems)
-							individual_problem_error = 0
+					for i in eachindex(problems)
 							quat = [1; rotations_solution[(i-1)*3+1:i*3]]
 							quat = quat / norm(quat)
 							camera_extrinsic_rotation = (QuatRotation(quat) * inv(intrinsic_correction))'
@@ -695,8 +704,16 @@ module Scene
 							)
 							push!(possible_cameras, possible_camera)
 							problem = problems[i]
-							current_error += MAIN_SET_ERROR_RATIO * intrinsic_rotation_problem_error(problem, intrinsic, camera_extrinsic_rotation)
-							current_error += VALIDATION_SET_ERROR_RATIO * intrinsic_rotation_problem_error(problem.validation, intrinsic, camera_extrinsic_rotation)
+
+							if (isnothing(scene))
+								current_error += MAIN_SET_ERROR_RATIO * intrinsic_rotation_problem_error(problem, intrinsic, camera_extrinsic_rotation)
+								current_error += VALIDATION_SET_ERROR_RATIO * intrinsic_rotation_problem_error(problem.validation, intrinsic, camera_extrinsic_rotation)
+							else
+								current_error += rotations_difference(
+									possible_camera.quaternion_rotation,
+									scene.instances[i].camera.quaternion_rotation,
+								)
+							end
 					end
 					push!(all_possible_solutions, possible_cameras[1])
 
@@ -711,13 +728,13 @@ module Scene
 					end
 			end
 
-			display("Best solution error: $(solution_error)")
-			display("Best solution: $(solutions_to_try)")
+			# display("Best solution error: $(solution_error)")
+			# display("Best solution: $(solutions_to_try)")
 
 			if (!isnothing(best_solution))
 				paths = path_results(result)
 				best_path = paths[findall(x -> real.(x.solution) == best_solution, paths)[1]]
-				display("The best starting solution was $(best_path.start_solution)")
+				# display("The best starting solution was $(best_path.start_solution)")
 			end
 
 			return solution_error, all_possible_solutions
@@ -740,12 +757,12 @@ module Scene
 						@assert eq ≃ errs[i] "Camera calibration not successful for line $(i) with error $(eq)"
 					end
 				end
-				parameters = stack_homotopy_parameters(lines)
+				parameters = stack_homotopy_parameters(lines[1:3, 1:3])
 			else
 				translation_system = build_intrinsic_rotation_translation_conic_system(
 					problem
 				)
-				parameters = stack_homotopy_parameters(problem.lines)
+				parameters = stack_homotopy_parameters(problem.lines[1:3, 1:3])
 			end
 
 			return translation_system, parameters
@@ -834,16 +851,17 @@ module Scene
 					if is_in_front
 						in_front_count += 1
 					end
+					display("Is in front: $(is_in_front)")
 					if (!is_in_front)
 						continue
 					end
 
-					# training_error = MAIN_SET_ERROR_RATIO * problem_reprojection_error(
-					# 	scene,
-					# 	test_problem;
-					# 	camera = test_problem.camera
-					# )
-					# print("\"training_error:\": \"$(a)\",")
+					training_error = MAIN_SET_ERROR_RATIO * problem_reprojection_error(
+						scene,
+						test_problem;
+						camera = test_problem.camera
+					)
+					print("\"training_error:\": \"$(a)\",")
 					validation_error = VALIDATION_SET_ERROR_RATIO * problem_reprojection_error(
 						scene,
 						test_problem.validation;
@@ -854,8 +872,10 @@ module Scene
 					if validation_error < 1e-6
 						low_val_error_count += 1
 					end
-					current_error = validation_error
+					current_error = training_error + validation_error
 				end
+
+				display("Current error: $(current_error)")
 
 				if (current_error < solution_error)
 					solution_error = current_error
@@ -1125,24 +1145,28 @@ module Scene
 	end
 
 	function best_overall_solution_by_steps!(
-			result,
-			scene,
-			problems;
-			start_error = Inf,
-			intrinsic_configuration = IntrinsicParametersConfigurations.fₓ_fᵧ_skew_cₓ_cᵧ
+		result,
+		problems;
+		start_error = Inf,
+		intrinsic_configuration = IntrinsicParametersConfigurations.fₓ_fᵧ_skew_cₓ_cᵧ,
+		scene = nothing,
 	)
 			solution_error, all_possible_solutions = best_intrinsic_rotation_system_solution!(
 					result,
-					scene,
 					problems;
 					start_error=start_error,
 					intrinsic_configuration,
+					scene,
 			)
 
 			for (i, problem) in enumerate(problems)
 					display("Problem $i")
-					translation_system, parameters = intrinsic_rotation_translation_system_setup(problem)
-
+					translation_system, parameters = intrinsic_rotation_translation_system_setup(
+						problem;
+						calibrate = true
+					)
+					display("Translation system: $(translation_system)")
+					display("Parameters: $(parameters)")
 					try
 						result = solve(
 								translation_system;
@@ -1154,63 +1178,12 @@ module Scene
 						solution_error += best_intrinsic_rotation_translation_system_solution!(result, problem)
 						plot_3dcamera(problem.camera, :green)
 					catch e
-						@error e
+						Base.showerror(stdout, e)
+						Base.show_backtrace(stdout, catch_backtrace())
 					end
 			end
 
 			return solution_error, all_possible_solutions
-	end
-
-	function refine_best_solution!(
-			scene,
-			problems
-	)
-			display("Refine step")
-			# intrinsic_inverse = inv(problems[1].camera.intrinsic)
-			refine_problems = [
-					CylinderCameraContoursProblem(
-							CameraProperties(
-									intrinsic = problems[1].camera.intrinsic,
-							),
-							problem.lines,
-							problem.noise_free_lines,
-							# vcat([(intrinsic_inverse * line)' for line in eachrow(problem.lines)]...),
-							# vcat([(intrinsic_inverse * line)' for line in eachrow(problem.noise_free_lines)]...),
-							problem.points_at_infinity,
-							problem.dualquadrics,
-							UInt8(IntrinsicParametersConfigurations.none),
-					)
-					for problem in problems
-			]
-			intrinsic_rotation_system, parameters = intrinsic_rotation_system_setup(refine_problems)
-			# start_solutions = stack_homotopy_parameters(
-			#     [Rotations.params(problem.camera.quaternion_rotation)[2:4] for problem in problems]...
-			# )
-			@info intrinsic_rotation_system
-			result = solve(
-					intrinsic_rotation_system,
-					# start_solutions;
-					target_parameters = parameters,
-					start_system = :total_degree,
-			)
-			display("---------------------------")
-			@info result
-			best_overall_solution_by_steps!(
-					result,
-					scene,
-					refine_problems;
-					intrinsic_configuration=UInt8(IntrinsicParametersConfigurations.none),
-			)
-			for (i, problem) in enumerate(problems)
-					problem.camera.euler_rotation = refine_problems[i].camera.euler_rotation
-					problem.camera.quaternion_rotation = refine_problems[i].camera.quaternion_rotation
-					problem.camera.position = refine_problems[i].camera.position
-					problem.camera.matrix = convert(Matrix{Float64}, build_camera_matrix(
-							problem.camera.intrinsic,
-							problem.camera.quaternion_rotation,
-							problem.camera.position
-					))
-			end
 	end
 
 	function plot_reconstructed_scene(scene, problems)

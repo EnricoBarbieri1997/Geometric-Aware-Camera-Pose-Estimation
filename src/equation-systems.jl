@@ -101,7 +101,7 @@ module EquationSystems
 				dualquadrics,
 				collect(1:size(lines)[1]),
 				CylinderCameraContoursProblemValidationData(
-					[], [], []
+					[], [], [], []
 				),
 				IntrinsicParameters.focal_length_x | IntrinsicParameters.focal_length_y | IntrinsicParameters.skew | IntrinsicParameters.principal_point_x | IntrinsicParameters.principal_point_y
 			)
@@ -151,6 +151,11 @@ module EquationSystems
 			fᵧ = fₓ
 			push!(variables, fₓ)
 		end
+		if Problems.IntrinsicParameters.has.fᵧ(intrinsic_configuration)
+			@var factor
+			fᵧ = 1
+			push!(variables, factor)
+		end
 		if Problems.IntrinsicParameters.has.skew(intrinsic_configuration)
 			@var skew
 			push!(variables, skew)
@@ -162,11 +167,6 @@ module EquationSystems
 		if Problems.IntrinsicParameters.has.cᵧ(intrinsic_configuration)
 			@var cᵧ
 			push!(variables, cᵧ)
-		end
-		if Problems.IntrinsicParameters.has.fᵧ(intrinsic_configuration)
-			@var factor
-			fᵧ = 1
-			push!(variables, factor)
 		end
 
 		intrinsic = [
