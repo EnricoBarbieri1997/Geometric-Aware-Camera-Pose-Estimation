@@ -627,7 +627,13 @@ module Scene
 		)
 	end
 
-	function intrinsic_rotation_system_setup(problems)
+	function intrinsic_rotation_system_setup(
+		problems;
+		algebraic_estimation = false,
+	)
+			if (algebraic_estimation)
+				
+			end
 			rotation_intrinsic_system = build_intrinsic_rotation_conic_system(
 				problems
 			)
@@ -861,7 +867,6 @@ module Scene
 						test_problem;
 						camera = test_problem.camera
 					)
-					print("\"training_error:\": \"$(a)\",")
 					validation_error = VALIDATION_SET_ERROR_RATIO * problem_reprojection_error(
 						scene,
 						test_problem.validation;

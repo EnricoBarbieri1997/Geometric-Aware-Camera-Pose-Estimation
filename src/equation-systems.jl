@@ -55,17 +55,18 @@ module EquationSystems
 				end
 			end
 			module Configurations
-				using ..IntrinsicParameters: focal_length_x, focal_length_y, skew, principal_point_x, principal_point_y
+				using ..IntrinsicParameters: focal_length_x, focal_length_y, skew as skew_val, principal_point_x, principal_point_y
 				@enum T begin
 					none = 0
 					fₓ = UInt8(focal_length_x)
 					fᵧ = UInt8(focal_length_y)
+					skew = UInt8(skew_val)
 					fₓ_fᵧ = focal_length_x | focal_length_y
-					fₓ_fᵧ_skew = focal_length_x | focal_length_y | skew
-					fₓ_fᵧ_skew_cₓ = focal_length_x | focal_length_y | skew | principal_point_x
-					fₓ_fᵧ_skew_cᵧ = focal_length_x | focal_length_y | skew | principal_point_y
+					fₓ_fᵧ_skew = focal_length_x | focal_length_y | skew_val
+					fₓ_fᵧ_skew_cₓ = focal_length_x | focal_length_y | skew_val | principal_point_x
+					fₓ_fᵧ_skew_cᵧ = focal_length_x | focal_length_y | skew_val | principal_point_y
 					fₓ_fᵧ_cₓ_cᵧ = focal_length_x | focal_length_y | principal_point_x | principal_point_y
-					fₓ_fᵧ_skew_cₓ_cᵧ = focal_length_x | focal_length_y | skew | principal_point_x | principal_point_y
+					fₓ_fᵧ_skew_cₓ_cᵧ = focal_length_x | focal_length_y | skew_val | principal_point_x | principal_point_y
 				end
 			end
 		end

@@ -55,7 +55,8 @@ module Report
 
 		number_of_seeds = 50
 		configurations = [
-			IntrinsicParametersConfigurations.none,
+			# IntrinsicParametersConfigurations.none,
+			IntrinsicParametersConfigurations.skew,
 			# IntrinsicParametersConfigurations.fₓ,
 			# IntrinsicParametersConfigurations.fₓ_fᵧ,
 			# IntrinsicParametersConfigurations.fₓ_fᵧ_cₓ_cᵧ,
@@ -64,6 +65,9 @@ module Report
 
 		cylinder_views_per_config = Dict([
 			(IntrinsicParametersConfigurations.none, [
+				(2, 1),
+			]),
+			(IntrinsicParametersConfigurations.skew, [
 				(2, 1),
 			]),
 			(IntrinsicParametersConfigurations.fₓ, [
@@ -84,7 +88,7 @@ module Report
 			]),
 		])
 
-		noise_values = if isnothing(noises) collect(0.0:0.0005:0.04) else noises end
+		noise_values = if isnothing(noises) collect(0.0:0.0005:0.5) else noises end
 		
 		results = []
 
@@ -166,12 +170,12 @@ module Report
 								)
 								@info result
 
-								solution_error, _ = best_overall_solution!(
+								solution_error, _ = best_overall_solution_by_steps!(
 									result,
-									scene,
 									problems;
 									start_error=solution_error,
 									intrinsic_configuration=configuration,
+									scene,
 								)
 								if solution_error < 1e-6
 									break

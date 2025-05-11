@@ -1,6 +1,6 @@
 module CylindersBasedCameraResectioning
     const GUI_ENABLED = get(ENV, "GUI_ENABLED", "false") == "true"
-    const ASSERTS_ENABLED = get(ENV, "ASSERTS_ENABLED", "true") == "true"
+    const ASSERTS_ENABLED = get(ENV, "ASSERTS_ENABLED", "false") == "true"
     const IMAGE_HEIGHT = 1920
     const IMAGE_WIDTH = 1080
     include("includes.jl")
@@ -27,7 +27,10 @@ module CylindersBasedCameraResectioning
 
         display(scene.figure)
 
-        rotation_intrinsic_system, parameters = intrinsic_rotation_system_setup(problems)
+        rotation_intrinsic_system, parameters = intrinsic_rotation_system_setup(
+            problems;
+            algebraic_estimation=true,
+        )
 
         start_solutions = nothing
         start_parameters = nothing
