@@ -35,17 +35,23 @@ def draw_shapes_zoomed(img, lines, ellipses):
         for pt1, pt2 in line_pairs:
             pt1_disp = to_display_coords(*pt1)
             pt2_disp = to_display_coords(*pt2)
-            lines.append(np.cross(pt1 + (1.0, ), pt2 + (1.0, )))
-            points.append(pt1)
+            try:
+                lines.append(np.cross(pt1 + (1.0, ), pt2 + (1.0, )))
+                points.append(pt1)
+            finally:
+                pass
             cv2.line(img, pt1_disp, pt2_disp, color_to_bgr(color), 2)
             cv2.circle(img, pt1_disp, 5, color_to_bgr(color), -1)
             cv2.circle(img, pt2_disp, 5, color_to_bgr(color), -1)
-        vanishing_point = np.cross(lines[0], lines[1])
-        vanishing_point /= vanishing_point[2]
-        vanishing_point = (vanishing_point[0], vanishing_point[1])
-        cv2.circle(img, to_display_coords(*vanishing_point), 5, color_to_bgr(color), -1)
-        for pt in points:
-            cv2.line(img, to_display_coords(*pt), to_display_coords(*vanishing_point), color_to_bgr(color), 2, lineType=4)
+        try:
+            vanishing_point = np.cross(lines[0], lines[1])
+            vanishing_point /= vanishing_point[2]
+            vanishing_point = (vanishing_point[0], vanishing_point[1])
+            cv2.circle(img, to_display_coords(*vanishing_point), 5, color_to_bgr(color), -1)
+            for pt in points:
+                cv2.line(img, to_display_coords(*pt), to_display_coords(*vanishing_point), color_to_bgr(color), 2, lineType=4)
+        finally:
+            pass
     # for ellipse in ellipses:
     #     pts_disp = np.array([to_display_coords(*pt) for pt in ellipse])
     #     for pt in pts_disp:
