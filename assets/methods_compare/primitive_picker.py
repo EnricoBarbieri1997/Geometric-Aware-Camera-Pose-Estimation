@@ -30,18 +30,28 @@ def to_display_coords(x, y):
 
 def draw_shapes_zoomed(img, lines, ellipses):
     for color, line_pairs in lines.items():
+        lines = []
+        points = []
         for pt1, pt2 in line_pairs:
             pt1_disp = to_display_coords(*pt1)
             pt2_disp = to_display_coords(*pt2)
+            lines.append(np.cross(pt1 + (1.0, ), pt2 + (1.0, )))
+            points.append(pt1)
             cv2.line(img, pt1_disp, pt2_disp, color_to_bgr(color), 2)
             cv2.circle(img, pt1_disp, 5, color_to_bgr(color), -1)
             cv2.circle(img, pt2_disp, 5, color_to_bgr(color), -1)
-    for ellipse in ellipses:
-        pts_disp = np.array([to_display_coords(*pt) for pt in ellipse])
-        for pt in pts_disp:
-            cv2.circle(img, pt, 5, (0, 0, 255), -1)
-        if len(pts_disp) >= 4:
-            cv2.ellipse(img, cv2.fitEllipse(pts_disp.astype(np.int32)), (0, 0, 255), 1)
+        vanishing_point = np.cross(lines[0], lines[1])
+        vanishing_point /= vanishing_point[2]
+        vanishing_point = (vanishing_point[0], vanishing_point[1])
+        cv2.circle(img, to_display_coords(*vanishing_point), 5, color_to_bgr(color), -1)
+        for pt in points:
+            cv2.line(img, to_display_coords(*pt), to_display_coords(*vanishing_point), color_to_bgr(color), 2, lineType=4)
+    # for ellipse in ellipses:
+    #     pts_disp = np.array([to_display_coords(*pt) for pt in ellipse])
+    #     for pt in pts_disp:
+    #         cv2.circle(img, pt, 5, (0, 0, 255), -1)
+    #     if len(pts_disp) >= 4:
+    #         cv2.ellipse(img, cv2.fitEllipse(pts_disp.astype(np.int32)), (0, 0, 255), 1)
 
 def get_viewport(image_shape, offset, zoom, window_size):
     # Convert screen offset to image space
