@@ -14,10 +14,10 @@ using GeometryBasics
 
 function add_2d_axis!()
     index = length(ax2_array) + 1
-    row = ceil(Int, index / 2)
-    col = index % 2
-    if col == 0
-        col = 2
+    col = ceil(Int, index / 2)
+    row = index % 2
+    if row == 0
+        row = 2
     end
     ax = Axis(grid_2d[row, col], aspect = DataAspect(), title="View $index")
     ax.limits[] = ((0, IMAGE_WIDTH), (-IMAGE_HEIGHT, 0))
@@ -87,7 +87,7 @@ function initfigure()
     scatter!(ax3, (0, 0, -30), color = :blue, markersize = 10, alpha=0.5)
     rowsize!(f.layout, 1, Relative(2/3))
     colsize!(f.layout, 1, Relative(2/3))
-    grid_2d = f[1, 3] = GridLayout()
+    grid_2d = f[1, 2] = GridLayout()
     Label(grid_2d[:, :, Top()], "Conics")
     ax2_array = []
     add_2d_axis!()

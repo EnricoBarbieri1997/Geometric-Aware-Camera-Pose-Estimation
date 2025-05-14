@@ -366,17 +366,7 @@ module Scene
 					)
 
 					instance.camera = camera
-
-					conics = []
-					for i in 1:number_of_cylinders
-							conic = ConicProperties(
-									pinv(camera.matrix') * cylinders[i].matrix * pinv(camera.matrix),
-									camera.matrix * cylinders[i].singular_point,
-									camera.matrix * cylinders[i].dual_matrix * camera.matrix',
-							)
-							push!(conics, conic)
-					end
-					instance.conics = conics
+					instance.conics = []
 
 					conics_contours = Array{Float64}(undef, number_of_cylinders, 2, 3)
 					for i in 1:number_of_cylinders
@@ -415,16 +405,38 @@ module Scene
 					points_at_infinity = Matrix{Float64}(undef, numberoflines_tosolvefor, 3)
 					dualquadrics = Array{Float64}(undef, numberoflines_tosolvefor, 4, 4)
 					possible_picks = collect(1:(number_of_cylinders*2))
+					line_indexes = Vector{Float64}(undef, numberoflines_tosolvefor)
 					for store_index in (1:numberoflines_tosolvefor)
-							line_index = store_index # rand(possible_picks)
-							possible_picks = filter(x -> x != line_index, possible_picks)
-							i = ceil(Int, line_index / 2)
-							j = (line_index - 1) % 2 + 1
+						line_index = store_index # rand(possible_picks)
+						possible_picks = filter(x -> x != line_index, possible_picks)
+						i = ceil(Int, line_index / 2)
+						j = (line_index - 1) % 2 + 1
 
-							line = conics_contours[i, j, :]
-							lines[store_index, :] = normalize(line)
-							points_at_infinity[store_index, :] = normalize(cylinders[i].singular_point[1:3])
-							dualquadrics[store_index, :, :] = cylinders[i].dual_matrix ./ cylinders[i].dual_matrix[4, 4]
+						line_indexes[store_index] = line_index
+
+						line = conics_contours[i, j, :]
+						lines[store_index, :] = normalize(line)
+						points_at_infinity[store_index, :] = normalize(cylinders[i].singular_point[1:3])
+						dualquadrics[store_index, :, :] = cylinders[i].dual_matrix ./ cylinders[i].dual_matrix[4, 4]
+					end
+
+					number_of_spare_lines = length(possible_picks)
+					validation_data = CylinderCameraContoursProblemValidationData(
+						Matrix{Float64}(undef, number_of_spare_lines, 3),
+						Matrix{Float64}(undef, number_of_spare_lines, 3),
+						Array{Float64}(undef, number_of_spare_lines, 4, 4),
+						Vector{Float64}(undef, numberoflines_tosolvefor)
+					)
+					for store_index in (1:number_of_spare_lines)
+						line_index = possible_picks[1]
+						possible_picks = filter(x -> x != line_index, possible_picks)
+						i = ceil(Int, line_index / 2)
+						j = (line_index - 1) % 2 + 1
+
+						validation_data.lines[store_index, :] = normalize(conics_contours[i, j, :])
+						validation_data.points_at_infinity[store_index, :] = normalize(cylinders[i].singular_point[1:3])
+						validation_data.dualquadrics[store_index, :, :] = cylinders[i].dual_matrix ./ cylinders[i].dual_matrix[4, 4]
+						validation_data.line_indexes[store_index] = line_index
 					end
 
 					problem_camera = CameraProperties()
@@ -451,6 +463,8 @@ module Scene
 							lines,
 							points_at_infinity,
 							dualquadrics,
+							line_indexes,
+							validation_data,
 							UInt8(intrinsic_configuration),
 					)
 					push!(problems, problem)
@@ -578,7 +592,7 @@ module Scene
 			skew = skew / factor
 
 			# Spurious solutions
-			if (focal_length_x ≃ 0 || focal_length_y ≃ 0)
+			if (factor ≃ 0 || focal_length_x ≃ 0 || focal_length_y ≃ 0)
 				throw(ArgumentError("Spurious solution"))
 			end
 
@@ -628,12 +642,8 @@ module Scene
 	end
 
 	function intrinsic_rotation_system_setup(
-		problems;
-		algebraic_estimation = false,
+		problems
 	)
-			if (algebraic_estimation)
-				
-			end
 			rotation_intrinsic_system = build_intrinsic_rotation_conic_system(
 				problems
 			)
@@ -681,6 +691,7 @@ module Scene
 							intrinsic_configuration;
 							starting_camera
 						)
+						display(solution[2])
 					catch
 						continue
 					end
@@ -724,8 +735,8 @@ module Scene
 					push!(all_possible_solutions, possible_cameras[1])
 
 					if (current_error < solution_error)
-							display("New best solution error: $(current_error)")
-							display("New best solution: $(solution)")
+							# display("New best solution error: $(current_error)")
+							# display("New best solution: $(solution)")
 							solution_error = current_error
 							best_solution = solution
 							for (i, problem) in enumerate(problems)
@@ -1170,8 +1181,6 @@ module Scene
 						problem;
 						calibrate = true
 					)
-					display("Translation system: $(translation_system)")
-					display("Parameters: $(parameters)")
 					try
 						result = solve(
 								translation_system;

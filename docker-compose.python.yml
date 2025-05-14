@@ -6,4 +6,4 @@ services:
       dockerfile: Dockerfile.python
     working_dir: /app
     volumes:
-      - ./assets/methods_compare:/app
+      - ./:/app

@@ -1,5 +1,5 @@
 module CylindersBasedCameraResectioning
-    const GUI_ENABLED = get(ENV, "GUI_ENABLED", "false") == "true"
+    const GUI_ENABLED = get(ENV, "GUI_ENABLED", "true") == "true"
     const ASSERTS_ENABLED = get(ENV, "ASSERTS_ENABLED", "false") == "true"
     const IMAGE_HEIGHT = 1920
     const IMAGE_WIDTH = 1080
@@ -9,7 +9,7 @@ module CylindersBasedCameraResectioning
 	using ..EquationSystems: stack_homotopy_parameters, variables_jacobian_rank, joint_jacobian_rank
     using ..EquationSystems.Problems.IntrinsicParameters: Configurations as IntrinsicParametersConfigurations
     using ..Plotting
-	using ..Printing: print_camera_differences
+	using ..Printing: print_camera_differences, print_relative_motion_errors
     using ..Camera: build_camera_matrix
     using ..Homotopies: ParameterHomotopy as MyParameterHomotopy
 
@@ -324,9 +324,12 @@ module CylindersBasedCameraResectioning
             number_of_instances=2,
         )
         intrinsic_configuration = problems[1].intrinsic_configuration
-        display(scene.figure)
 
         rotation_intrinsic_system, parameters = intrinsic_rotation_system_setup(problems)
+        # display(parameters)
+
+        display(scene.figure)
+        # return
 
         solver = starts = nothing
 
@@ -341,16 +344,14 @@ module CylindersBasedCameraResectioning
         display("Number of start solutions: $numberof_start_solutions. Number of iterations needed: $(ceil(Int, numberof_start_solutions / chunk_size))")
         solution_error = Inf
         for start in Iterators.partition(starts, chunk_size)
-
             result = solve(
                 solver,
                 start;
             )
             @info result
 
-            solution_error, _ = best_overall_solution!(
+            solution_error, _ = best_overall_solution_by_steps!(
                 result,
-                scene,
                 problems;
                 start_error=solution_error,
                 intrinsic_configuration,
@@ -362,6 +363,8 @@ module CylindersBasedCameraResectioning
             print_camera_differences(instance.camera, problems[i].camera)
             display("--------------------")
         end
+
+        print_relative_motion_errors(scene, problems)
 
         for problem in problems
             plot_3dcamera(problem.camera, :green)

@@ -53,13 +53,13 @@ function multiple_seeds_multiple_configuration(;
 )
   Random.seed!(940)
 
-  number_of_seeds = 50
+  number_of_seeds = 5
   configurations = [
     # IntrinsicParametersConfigurations.none,
-    IntrinsicParametersConfigurations.skew,
+    # IntrinsicParametersConfigurations.skew,
     # IntrinsicParametersConfigurations.fₓ,
     # IntrinsicParametersConfigurations.fₓ_fᵧ,
-    # IntrinsicParametersConfigurations.fₓ_fᵧ_cₓ_cᵧ,
+    IntrinsicParametersConfigurations.fₓ_fᵧ_cₓ_cᵧ,
     # IntrinsicParametersConfigurations.fₓ_fᵧ_skew_cₓ_cᵧ,
   ]
 

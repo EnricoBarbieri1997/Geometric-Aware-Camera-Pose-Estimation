@@ -1,9 +1,10 @@
 module Printing
-    export print_camera_differences, print_error_analysis, create_single_noise_result, save_results_to_json
+    export print_camera_differences, print_error_analysis, print_relative_motion_errors, create_single_noise_result, save_results_to_json
 
     using ..Utils: vector_difference, matrix_difference, rotations_difference, translations_difference, intrinsic_difference
     using PrettyTables, JSON
     using Rotations: params as rotations_params
+    using LinearAlgebra: norm
 
     transparent_first_col = Highlighter(
             (data, i, j) -> (j == 1),
@@ -168,6 +169,45 @@ module Printing
                 "ΔR",
                 "ΔT",
             ])
+        end
+        data = hcat(data_rows, errors)
+        pretty_table_withdefaults(data;
+            header = header,
+            highlighters = (transparent_first_col, low_value_good, high_value_bad)
+        )
+    end
+
+    function print_relative_motion_errors(scene, problems)
+        views_header = ["Views $(i) - $(i+1)" for i in 1:(size(scene.instances, 1)-1)]
+        header = vcat(["Metric/View pair"], views_header)
+        data_rows = [
+            "ΔR_gt",
+            "ΔR",
+            "ΔR diff",
+            "ΔT_gt",
+            "ΔT",
+            "ΔT diff",
+        ]
+        errors = Matrix{Float64}(undef, length(data_rows), length(views_header))
+        for i in 1:(length(scene.instances)-1)
+            view1 = scene.instances[i]
+            view2 = scene.instances[i + 1]
+            errors[1, i] = rotations_difference(
+                view1.camera.quaternion_rotation,
+                view2.camera.quaternion_rotation
+            )
+            errors[4, i] = norm(view2.camera.position - view1.camera.position)
+
+            problem1 = problems[i]
+            problem2 = problems[i + 1]
+            errors[2, i] = rotations_difference(
+                problem1.camera.quaternion_rotation,
+                problem2.camera.quaternion_rotation
+            )
+            errors[5, i] = norm(problem2.camera.position - problem1.camera.position)
+
+            errors[3, i] = abs(errors[1, i] - errors[2, i])
+            errors[6, i] = abs(errors[4, i] - errors[5, i])
         end
         data = hcat(data_rows, errors)
         pretty_table_withdefaults(data;

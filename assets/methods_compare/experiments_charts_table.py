@@ -35,7 +35,7 @@ metric_labels = {
 method_supports = {
     "ours": {"delta_f": True, "delta_uv": True, "delta_skew": False, "delta_r": True, "delta_t": True, "success_rate": True},
     "ours_skew": {"delta_f": False, "delta_uv": False, "delta_skew": True, "delta_r": False, "delta_t": False, "success_rate": False},
-    "quadric_based": {"delta_f": True, "delta_uv": False, "delta_skew": False, "delta_r": True, "delta_t": True, "success_rate": True},
+    "quadric_based": {"delta_f": False, "delta_uv": False, "delta_skew": False, "delta_r": True, "delta_t": True, "success_rate": True},
     "right_cylinder": {"delta_f": True, "delta_uv": True, "delta_skew": False, "delta_r": False, "delta_t": False, "success_rate": True},
     "zhang_4": {"delta_f": True, "delta_uv": True, "delta_skew": False, "delta_r": True, "delta_t": True, "success_rate": True},
     "zhang_30": {"delta_f": True, "delta_uv": True, "delta_skew": False, "delta_r": True, "delta_t": True, "success_rate": True},
@@ -121,10 +121,12 @@ for metric in metrics:
 
     plt.xlabel("Noise Level 10^2")
     plt.ylabel(metric_labels[metric])
-    if metric in ["delta_r", "delta_t"]:
+    if metric in ["delta_r", "delta_t", "delta_uv", "delta_f"]:
         plt.yscale("log")
         plt.gca().yaxis.set_major_locator(LogLocator(base=10.0, subs=[1.0]))
         plt.gca().yaxis.set_major_formatter(FuncFormatter(customPlotFun))
+    if metric in ["delta_skew"]:
+        plt.ylim(0, 2)
     plt.title(f"{metric_labels[metric]} vs Noise")
     plt.legend()
     plt.grid(True, which="both", linestyle="--", linewidth=0.5)

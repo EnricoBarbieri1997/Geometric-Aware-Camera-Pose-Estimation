@@ -2,8 +2,12 @@
 
 # Define the noise levels
 $noiseLevels = @()
-for ($n = 0.40; $n -le 0.50; $n += 0.05) {
-    $noiseLevels += [math]::Round($n, 2)
+for ($n = 0.00; $n -le 0.034; $n += 0.0005) {
+    if ($n % 0.002 -eq 0) {
+        continue
+    }
+
+    $noiseLevels += [math]::Round($n, 6)
 }
 
 # Path to your project directory (one level up from this script)
