@@ -196,7 +196,9 @@ module EquationSystems
 			parameters = stack_homotopy_parameters(parameters, lines)
 		end
 
-		return System(system_to_solve, variables = variables, parameters = parameters)
+		a = System(system_to_solve, variables = variables, parameters = parameters)
+		display(degree.(a))
+		return a
 	end
 
 	function build_intrinsic_rotation_translation_conic_system(problem::Problems.CylinderCameraContoursProblem)

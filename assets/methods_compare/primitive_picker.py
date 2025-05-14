@@ -5,7 +5,7 @@ import numpy as np
 
 WINDOW_NAME = "Primitive Selector"
 
-STATE_FILE = "./real/primitives.json"  # Change this to select different state files
+STATE_FILE = "./real/markers.json"  # Change this to select different state files
 
 IMAGE_PATH = "../test_scenes/markers/"
 IMAGES = sorted([
