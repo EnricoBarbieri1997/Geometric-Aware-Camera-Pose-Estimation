@@ -320,7 +320,7 @@ module CylindersBasedCameraResectioning
         scene, problems = scene_instances_and_problems_from_files(
             "./assets/test_scenes/markers/scene.json",
             "./assets/methods_compare/real/markers.json";
-            number_of_instances=1,
+            number_of_instances=2,
         )
         intrinsic_configuration = problems[1].intrinsic_configuration
 

@@ -859,14 +859,13 @@ module Scene
 				tx, ty, tz = solution
 				test_problem = deepcopy(problem)
 				test_problem.camera.position = [tx, ty, tz]
-				print("{\n\"position\": [$(tx), $(ty), $(tz)],")
+				# print("{\n\"position\": [$(tx), $(ty), $(tz)],")
 
 				if (!isnothing(scene))
 					is_in_front = is_in_front_of_camera(test_problem.camera)
 					if is_in_front
 						in_front_count += 1
 					end
-					display("Is in front: $(is_in_front)")
 					if (!is_in_front)
 						continue
 					end
@@ -1240,8 +1239,8 @@ module Scene
 					Base.showerror(stdout, e)
 					Base.show_backtrace(stdout, catch_backtrace())
 
-					push!(excluded_solutions, best_solution)
-					valid_solution_found = false
+					# push!(excluded_solutions, best_solution)
+					# valid_solution_found = false
 				end
 			end
 		end
