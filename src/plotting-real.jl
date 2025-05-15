@@ -308,12 +308,12 @@ function plot_2dcylinders(conic_contours; linestyle = :solid, alpha = 1, axindex
             if line == [0, 0, 0] continue end
             if line[2] == 0
                 x = -line[3]/line[1]
-                lines!(ax2_array[axindex], [x, x], [0, -IMAGE_HEIGHT], color = (colors[i], alpha), linestyle=linestyle)
+                lines!(ax2_array[axindex], [x, x], [0, -IMAGE_HEIGHT], color = (colors[i], alpha), linestyle=linestyle, linewidth=4)
             else
                 y1 = function (x) return y(x, line) end
                 xs = 0:IMAGE_WIDTH:IMAGE_WIDTH
                 ys1 = y1.(xs)
-                lines!(ax2_array[axindex], xs, -ys1, color = (colors[i], alpha), linestyle=linestyle)
+                lines!(ax2_array[axindex], xs, -ys1, color = (colors[i], alpha), linestyle=linestyle, linewidth=4)
             end
         end
     end
@@ -335,8 +335,10 @@ function save_2d_figures(path, scene, problems; scene_file_path)
         instance = scene.instances[i]
         problem = problems[i]
 
+        figure_height = floor(IMAGE_WIDTH * 9 / 16)
+
         figure2d = Figure(
-            size = (IMAGE_WIDTH, IMAGE_HEIGHT),
+            size = (IMAGE_WIDTH, figure_height),
             # backgroundcolor=:transparent
         )
         ax2d_figure = Axis(figure2d[1,1]; aspect = DataAspect(),
@@ -347,7 +349,10 @@ function save_2d_figures(path, scene, problems; scene_file_path)
             # titlevisible = false,
             # spinewidth = 0.0,
         )
-        ax2d_figure.limits[] = ((0, IMAGE_WIDTH), (-IMAGE_HEIGHT, 0))
+        # ax2d_figure.limits[] = ((0, IMAGE_WIDTH), (-IMAGE_HEIGHT, 0))
+        image_center = floor(-IMAGE_HEIGHT / 2) + (if (i == 1) 50 else 100 end)
+        half_height = floor(figure_height / 2)
+        ax2d_figure.limits[] = ((0, IMAGE_WIDTH), (image_center - half_height, image_center + half_height))
         push!(ax2_array, ax2d_figure)
         axindex = length(ax2_array)
 
@@ -371,7 +376,7 @@ function save_2d_figures(path, scene, problems; scene_file_path)
         plot_2dcylinders(reconstructued_contours, linestyle=:dash; axindex)
 
         hidedecorations!(ax2d_figure)
-        ax2d_figure.scene.viewport[] = Rect(0, 0, IMAGE_WIDTH, IMAGE_HEIGHT)
+        # ax2d_figure.scene.viewport[] = Rect(0, IMAGE_HEIGHT - floor(figure_height / 2), IMAGE_WIDTH, figure_height)
         # resize_to_layout!(figure2d)
         save(joinpath(path, "camera_$(i).png"), figure2d)
     end

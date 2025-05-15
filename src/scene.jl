@@ -9,7 +9,7 @@ module Scene
 	using ..EquationSystems: stack_homotopy_parameters, build_intrinsic_rotation_conic_system, build_intrinsic_rotation_translation_conic_system, build_camera_matrix_conic_system, build_intrinsic_rotation_translation_conic_system_calibrated
 	using ..EquationSystems.Problems: CylinderCameraContoursProblem, CylinderCameraContoursProblemValidationData
 	using ..EquationSystems.Problems.IntrinsicParameters: Configurations as IntrinsicParametersConfigurations, has as isIntrinsicEnabled
-	# using ..EquationSystems.Minimization: build_intrinsic_rotation_conic_system
+	using ..EquationSystems.Minimization: build_intrinsic_rotation_conic_system as build_intrinsic_rotation_conic_system_minimization
 	using ..Utils
 	using ..Scene
 	using ..Cylinder: CylinderProperties, standard_and_dual as standard_and_dual_cylinder
@@ -23,7 +23,7 @@ module Scene
 	using FileIO
 
 	const MAIN_SET_ERROR_RATIO = 1.0
-	const VALIDATION_SET_ERROR_RATIO = 1.0
+	const VALIDATION_SET_ERROR_RATIO = 2.0
 
 	struct ParametersSolutionsPair
 		start_parameters::Vector{Float64}
@@ -565,12 +565,14 @@ module Scene
 			intrinsic_solution_index = 1
 			if (isIntrinsicEnabled.fₓ(intrinsic_configuration))
 					focal_length_x = intrinsics_solution[intrinsic_solution_index]
-					focal_length_y = focal_length_x
 					intrinsic_solution_index += 1
 			end
 			if (isIntrinsicEnabled.fᵧ(intrinsic_configuration))
 					focal_length_y = 1
 					factor = intrinsics_solution[intrinsic_solution_index]
+					if (!isIntrinsicEnabled.fₓ(intrinsic_configuration))
+						focal_length_x = 1
+					end
 					intrinsic_solution_index += 1
 			end
 			if (isIntrinsicEnabled.skew(intrinsic_configuration))
@@ -586,7 +588,7 @@ module Scene
 					intrinsic_solution_index += 1
 			end
 
-			if (isIntrinsicEnabled.fₓ(intrinsic_configuration))
+			if (isIntrinsicEnabled.fₓ(intrinsic_configuration) || isIntrinsicEnabled.fᵧ(intrinsic_configuration))
 				focal_length_x = focal_length_x / factor
 			end
 			if (isIntrinsicEnabled.fᵧ(intrinsic_configuration))
@@ -845,10 +847,10 @@ module Scene
 			problem;
 			scene = nothing,
 			reference_instance = nothing,
+			use_plain_errors = false,
 	)
 			solution_error = Inf
 			solutions_to_try = real_solutions(result)
-			reference_translation_result = nothing
 			intrinsic = problem.camera.intrinsic ./ problem.camera.intrinsic[2, 2]
 			
 			val_errors = Float64[]
@@ -866,10 +868,9 @@ module Scene
 					if is_in_front
 						in_front_count += 1
 					end
-					if (!is_in_front)
-						continue
-					end
-
+					# if (!is_in_front)
+					# 	continue
+					# end
 					training_error = MAIN_SET_ERROR_RATIO * problem_reprojection_error(
 						scene,
 						test_problem;
@@ -918,13 +919,16 @@ module Scene
 				end
 			end
 
-			mean_val = mean(val_errors)
-			std_val = std(val_errors)
+			if (!use_plain_errors)
+				display("correct")
+				mean_val = mean(val_errors)
+				std_val = std(val_errors)
 
-			solution_error = -(2.0 * low_val_error_count +
-			1.5 * in_front_count +
-			-1.0 * std_val +
-			-1.0 * mean_val)
+				solution_error = -(2.0 * low_val_error_count +
+				1.5 * in_front_count +
+				-1.0 * std_val +
+				-1.0 * mean_val)
+			end
 
 			return solution_error
 	end
@@ -1225,9 +1229,10 @@ module Scene
 						translation_result,
 						problem;
 						scene,
+						use_plain_errors = true,
 					)
 
-					if (validation_cylinders != nothing)
+					if (!isnothing(validation_cylinders))
 						for cylinder in validation_cylinders
 							get_cylinder_contours(
 								cylinder,

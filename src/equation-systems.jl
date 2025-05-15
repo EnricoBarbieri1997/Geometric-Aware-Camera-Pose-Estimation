@@ -149,12 +149,14 @@ module EquationSystems
 		intrinsic_configuration = problems[1].intrinsic_configuration
 		if Problems.IntrinsicParameters.has.fₓ(intrinsic_configuration)
 			@var fₓ
-			fᵧ = fₓ
 			push!(variables, fₓ)
 		end
 		if Problems.IntrinsicParameters.has.fᵧ(intrinsic_configuration)
 			@var factor
 			fᵧ = 1
+			if (!Problems.IntrinsicParameters.has.fₓ(intrinsic_configuration))
+				fₓ = 1
+			end
 			push!(variables, factor)
 		end
 		if Problems.IntrinsicParameters.has.skew(intrinsic_configuration)

@@ -5,13 +5,13 @@ import numpy as np
 
 WINDOW_NAME = "Primitive Selector"
 
-STATE_FILE = "./real/lights.json"  # Change this to select different state files
+STATE_FILE = "./real/markers.json"  # Change this to select different state files
 
-IMAGE_PATH = "../test_scenes/lights/"
+IMAGE_PATH = "../test_scenes/markers/high_contrast/"
 IMAGES = sorted([
     os.path.join(IMAGE_PATH, f)
     for f in os.listdir(IMAGE_PATH)
-    if f.endswith(".png")
+    if f.endswith(".JPG")
 ])
 IMAGE_INDEX = 0
 

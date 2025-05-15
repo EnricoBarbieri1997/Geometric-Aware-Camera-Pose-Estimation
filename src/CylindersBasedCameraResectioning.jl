@@ -354,7 +354,6 @@ module CylindersBasedCameraResectioning
                 problems;
                 start_error=solution_error,
                 intrinsic_configuration,
-                scene,
             )
         end
 
