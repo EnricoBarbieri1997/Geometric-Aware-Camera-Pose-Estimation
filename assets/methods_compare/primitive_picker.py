@@ -5,9 +5,9 @@ import numpy as np
 
 WINDOW_NAME = "Primitive Selector"
 
-STATE_FILE = "./real/markers.json"  # Change this to select different state files
+STATE_FILE = "./real/lights.json"  # Change this to select different state files
 
-IMAGE_PATH = "../test_scenes/markers/"
+IMAGE_PATH = "../test_scenes/lights/"
 IMAGES = sorted([
     os.path.join(IMAGE_PATH, f)
     for f in os.listdir(IMAGE_PATH)
@@ -38,7 +38,7 @@ def draw_shapes_zoomed(img, lines, ellipses):
             try:
                 lines.append(np.cross(pt1 + (1.0, ), pt2 + (1.0, )))
                 points.append(pt1)
-            finally:
+            except Exception as e:
                 pass
             cv2.line(img, pt1_disp, pt2_disp, color_to_bgr(color), 2)
             cv2.circle(img, pt1_disp, 5, color_to_bgr(color), -1)
@@ -50,7 +50,7 @@ def draw_shapes_zoomed(img, lines, ellipses):
             cv2.circle(img, to_display_coords(*vanishing_point), 5, color_to_bgr(color), -1)
             for pt in points:
                 cv2.line(img, to_display_coords(*pt), to_display_coords(*vanishing_point), color_to_bgr(color), 2, lineType=4)
-        finally:
+        except Exception as e:
             pass
     # for ellipse in ellipses:
     #     pts_disp = np.array([to_display_coords(*pt) for pt in ellipse])
