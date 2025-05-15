@@ -16,7 +16,7 @@ module CylindersBasedCameraResectioning
     using HomotopyContinuation, Observables, Random, Serialization
 
     function main()
-        intrinsic_configuration = IntrinsicParametersConfigurations.none
+        intrinsic_configuration = IntrinsicParametersConfigurations.fₓ_fᵧ_skew_cₓ_cᵧ
         scene, problems = create_scene_instances_and_problems(;
             number_of_instances=2,
             number_of_cylinders=3,
@@ -375,5 +375,63 @@ module CylindersBasedCameraResectioning
         display(scene.figure)
     end
 
-    export explore_path, main, monodromy, markers
+    function lights()
+        scene, problems = scene_instances_and_problems_from_files(
+            "./assets/test_scenes/lights/scene.json",
+            "./assets/methods_compare/real/lights.json";
+            number_of_instances=2,
+        )
+        intrinsic_configuration = problems[1].intrinsic_configuration
+
+        rotation_intrinsic_system, parameters = intrinsic_rotation_system_setup(problems)
+        # display(parameters)
+
+        display(scene.figure)
+        # return
+
+        solver = starts = nothing
+
+        solver, starts = solver_startsolutions(
+            rotation_intrinsic_system;
+            target_parameters = parameters,
+            start_system = :total_degree,
+        )
+
+        chunk_size = 500000
+        numberof_start_solutions = length(starts)
+        display("Number of start solutions: $numberof_start_solutions. Number of iterations needed: $(ceil(Int, numberof_start_solutions / chunk_size))")
+        solution_error = Inf
+        for start in Iterators.partition(starts, chunk_size)
+            result = solve(
+                solver,
+                start;
+            )
+            @info result
+
+            solution_error, _ = best_overall_solution_by_steps!(
+                result,
+                problems;
+                start_error=solution_error,
+                intrinsic_configuration,
+            )
+        end
+
+        for (i, instance) in enumerate(scene.instances)
+            display("View $i")
+            print_camera_differences(instance.camera, problems[i].camera)
+            display("--------------------")
+        end
+
+        # print_relative_motion_errors(scene, problems)
+
+        for problem in problems
+            plot_3dcamera(problem.camera, :green)
+        end
+
+        plot_reconstructed_scene(scene, problems)
+
+        display(scene.figure)
+    end
+
+    export explore_path, main, monodromy, markers, lights
 end

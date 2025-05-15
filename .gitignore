@@ -30,10 +30,8 @@ tmp
 juliacache
 
 assets/**/colmap/*.db*
-assets/**/colmap/images
-assets/**/colmap/recentered/images
-assets/**/colmap/stereo
-assets/**/colmap/recentered/stereo
+assets/**/colmap/**/images
+assets/**/colmap/**/stereo
 assets/**/colmap/**/cameras.bin
 assets/**/colmap/**/points3D.bin
 assets/**/colmap/**/images.bin

@@ -2,11 +2,7 @@
 
 # Define the noise levels
 $noiseLevels = @()
-for ($n = 0.00; $n -le 0.034; $n += 0.0005) {
-    if ($n % 0.002 -eq 0) {
-        continue
-    }
-
+for ($n = 0.00; $n -le 0.04; $n += 0.0016) {
     $noiseLevels += [math]::Round($n, 6)
 }
 

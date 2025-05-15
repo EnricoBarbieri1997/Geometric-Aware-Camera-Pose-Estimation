@@ -26,7 +26,7 @@ method_labels = {
 metric_labels = {
     "delta_f": r"$\Delta f$",
     "delta_uv": r"$\Delta c$",
-    "delta_skew": r"$\Delta$ $\gamma$",
+    "delta_skew": r"$\Delta$ $\alpha$",
     "delta_r": r"$\Delta R$",
     "delta_t": r"$\Delta t$",
     "success_rate": "Success Rate",

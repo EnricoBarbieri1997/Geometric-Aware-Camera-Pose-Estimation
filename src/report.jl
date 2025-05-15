@@ -59,8 +59,8 @@ function multiple_seeds_multiple_configuration(;
     # IntrinsicParametersConfigurations.skew,
     # IntrinsicParametersConfigurations.fₓ,
     # IntrinsicParametersConfigurations.fₓ_fᵧ,
-    IntrinsicParametersConfigurations.fₓ_fᵧ_cₓ_cᵧ,
-    # IntrinsicParametersConfigurations.fₓ_fᵧ_skew_cₓ_cᵧ,
+    # IntrinsicParametersConfigurations.fₓ_fᵧ_cₓ_cᵧ,
+    IntrinsicParametersConfigurations.fₓ_fᵧ_skew_cₓ_cᵧ,
   ]
 
   cylinder_views_per_config = Dict([
@@ -89,7 +89,7 @@ function multiple_seeds_multiple_configuration(;
   ])
 
   noise_values = if isnothing(noises)
-    collect(0.0:0.0005:0.5)
+    collect(0.0:0.0016:0.04)
   else
     noises
   end
