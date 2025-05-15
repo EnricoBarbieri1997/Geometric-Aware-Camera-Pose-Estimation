@@ -2,7 +2,7 @@ using ..CylindersBasedCameraResectioning: IMAGE_WIDTH, IMAGE_HEIGHT
 
 using ..Space: RotRad, position_rotation, transformation as create_transform_matrix
 using ..Cylinder: CylinderProperties
-using ..Geometry: Line, Plane, plane_basis
+using ..Geometry: Line, Plane, plane_basis, get_cylinder_contours
 using ..Camera: CameraProperties
 
 using Reexport
@@ -11,6 +11,7 @@ using Rotations
 using GLMakie
 using GLMakie.FileIO
 using GeometryBasics
+using JSON
 
 function add_2d_axis!()
     index = length(ax2_array) + 1
@@ -323,4 +324,55 @@ function plot_image_background(img; axindex = 1)
     image!(ax2_array[axindex], img;
         transformation = (scale = Vec3f(1), translation = Vec3f(0, -1 * h, -1)),
     )
+end
+
+function save_2d_figures(path, scene, problems; scene_file_path)
+    number_of_cylinders = size(scene.cylinders)[1]
+    scene_file = open(scene_file_path, "r") do io
+        JSON.parse(io)
+    end
+    for i in 1:2
+        instance = scene.instances[i]
+        problem = problems[i]
+
+        figure2d = Figure(
+            size = (IMAGE_WIDTH, IMAGE_HEIGHT),
+            # backgroundcolor=:transparent
+        )
+        ax2d_figure = Axis(figure2d[1,1]; aspect = DataAspect(),
+            # xticklabelsvisible = false,
+            # yticklabelsvisible = false,
+            # xlabelvisible = false,
+            # ylabelvisible = false,
+            # titlevisible = false,
+            # spinewidth = 0.0,
+        )
+        ax2d_figure.limits[] = ((0, IMAGE_WIDTH), (-IMAGE_HEIGHT, 0))
+        push!(ax2_array, ax2d_figure)
+        axindex = length(ax2_array)
+
+        image_path = scene_file["cameras"][i]["image"]
+        img = load(joinpath("./", image_path))
+        img = rotr90(img)
+        plot_image_background(img; axindex)
+        conics_contours = instance.conics_contours
+        plot_2dcylinders(conics_contours, alpha=0.5; axindex)
+
+        reconstructued_contours = Array{Float64}(undef, number_of_cylinders, 2, 3)
+        for i in 1:number_of_cylinders
+                lines = get_cylinder_contours(
+                        scene.cylinders[i],
+                        problem.camera
+                )
+                for (j, line) in enumerate(lines)
+                        reconstructued_contours[i, j, :] = line
+                end
+        end
+        plot_2dcylinders(reconstructued_contours, linestyle=:dash; axindex)
+
+        hidedecorations!(ax2d_figure)
+        ax2d_figure.scene.viewport[] = Rect(0, 0, IMAGE_WIDTH, IMAGE_HEIGHT)
+        # resize_to_layout!(figure2d)
+        save(joinpath(path, "camera_$(i).png"), figure2d)
+    end
 end

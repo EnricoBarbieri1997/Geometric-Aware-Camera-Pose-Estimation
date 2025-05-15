@@ -430,6 +430,8 @@ module CylindersBasedCameraResectioning
 
         plot_reconstructed_scene(scene, problems)
 
+        save_2d_figures("assets/test_scenes/lights/figures/", scene, problems; scene_file_path = "./assets/test_scenes/lights/scene.json")
+
         display(scene.figure)
     end
 
