@@ -32,11 +32,17 @@ juliacache
 assets/**/colmap/*.db*
 assets/**/colmap/**/images
 assets/**/colmap/**/stereo
+assets/**/colmap/**/*.ply
+assets/**/colmap/**/*.ply.vis
 assets/**/colmap/**/cameras.bin
 assets/**/colmap/**/points3D.bin
 assets/**/colmap/**/images.bin
 assets/**/colmap/**/cameras.txt
 assets/**/colmap/**/points3D.txt
 assets/**/colmap/**/images.txt
+assets/**/colmap/**/*.blend
+assets/**/colmap/**/*.blend1
 
 assets/**/frames/*
+assets/**/*.obj
+assets/**/*.mtl

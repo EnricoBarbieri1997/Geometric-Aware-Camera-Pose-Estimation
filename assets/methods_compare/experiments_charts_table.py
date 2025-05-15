@@ -75,7 +75,9 @@ for metric in metrics:
         if not method_supports.get(method, {}).get(metric, False):
             continue
 
-        noise_levels = sorted(grouped[metric][method].keys())[::3]
+        noise_levels = sorted(grouped[metric][method].keys())
+        if metric in ["delta_f", "delta_uv", "delta_r", "delta_t", "success_rate"]:
+            noise_levels = noise_levels[::3]
         means = []
         for noise in noise_levels:
             vals = grouped[metric][method][noise]
