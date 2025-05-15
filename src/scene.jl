@@ -1225,7 +1225,7 @@ module Scene
 					)
 					@info translation_result
 
-					solution_error += best_intrinsic_rotation_translation_system_solution!(
+					best_intrinsic_rotation_translation_system_solution!(
 						translation_result,
 						problem;
 						scene,

@@ -112,19 +112,19 @@ for metric in metrics:
     # plt.ylabel(metric_labels[metric])
     plt.gca().xaxis.set_major_locator(MaxNLocator(nbins=5))
     plt.gca().yaxis.set_major_locator(MaxNLocator(nbins=5))
-    if metric in ["delta_r", "delta_t", "delta_uv", "delta_f"]:
+    if metric in ["delta_r", "delta_t", "delta_uv", "delta_f", "delta_skew"]:
         plt.yscale("log")
         # plt.gca().yaxis.set_major_locator(LogLocator(base=10.0, subs=[1.0]))
         # plt.gca().yaxis.set_major_formatter(FuncFormatter(customPlotFun))
-    if metric in ["delta_skew"]:
-        plt.ylim(0, 2)
+    # if metric in ["delta_skew"]:
+    #     plt.ylim(0, 2)
     # plt.title(f"{metric_labels[metric]} vs Noise")
     plt.legend()
     plt.grid(True, which="both", linestyle="--", linewidth=0.5)
     plt.tight_layout()
     os.makedirs("./synthetic/plots", exist_ok=True)
     # plt.subplots_adjust(left=0, right=1, top=1, bottom=0)
-    plt.savefig(f"./synthetic/plots/{metric}.pdf", dpi=300, bbox_inches='tight', pad_inches=0)
+    plt.savefig(f"./synthetic/plots/{metric}.pdf", dpi=300, bbox_inches='tight', pad_inches=0.05)
 
 # Generate LaTeX
 latex = []

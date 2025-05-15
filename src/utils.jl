@@ -172,7 +172,7 @@ module Utils
 
 		deltaF = normalized_diff(fₓ, fₓₜ)/2 + normalized_diff(fᵧ, fᵧₜ)/2
 		deltaUV = normalized_diff(cₓ, cₓₜ)/2 + normalized_diff(cᵧ, cᵧₜ)/2
-		deltaSkew = 2 * abs(skew - skewₜ)
+		deltaSkew = normalized_diff(skew, skewₜ) # 2 * abs(skew - skewₜ)
 
 		return [deltaF, deltaUV, deltaSkew]
 	end
@@ -189,7 +189,7 @@ module Utils
 	end
 
 	function translations_difference(t1::Vector{<:Number}, t2::Vector{<:Number})
-		return norm(t1 - t2)
+		return norm(t1 - t2) / max(norm(t1), norm(t2))
 	end
 
 	function isvalid_startsolution(system, solution, parameters)

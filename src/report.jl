@@ -354,11 +354,16 @@ function report_error_analysis(report_path, noise_steps; number_of_samples=5, ou
 
     display("index: $(index), noise: $(report.configuration.noise), sc: $(sample_counts[index]), ec: $(errored_count[index])")
     sample_index = sample_counts[index] + errored_count[index] + 1
-    errors_all[1:3, index, sample_index] = report.result.errors.intrinsic
+    real_skew = report.configuration.scene.instances[1].camera.intrinsic[1, 2]
+    display(real_skew)
+    skew_error = report.result.errors.intrinsic[3] / 2
+    errors_all[1:2, index, sample_index] = report.result.errors.intrinsic[1:2]
+    errors_all[3, index, sample_index] = skew_error
     errors_all[4, index, sample_index] = mean_cameramatrix_error
     errors_all[5, index, sample_index] = mean_rotation_error
     errors_all[6, index, sample_index] = mean_translation_error
-    errors_mean[1:3, index] += report.result.errors.intrinsic
+    errors_mean[1:2, index] += report.result.errors.intrinsic[1:2]
+    errors_mean[3, index] += skew_error
     errors_mean[4, index] += mean_cameramatrix_error
     errors_mean[5, index] += mean_rotation_error
     errors_mean[6, index] += mean_translation_error

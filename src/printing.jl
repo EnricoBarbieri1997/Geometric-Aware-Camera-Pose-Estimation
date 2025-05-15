@@ -196,7 +196,7 @@ module Printing
                 view1.camera.quaternion_rotation,
                 view2.camera.quaternion_rotation
             )
-            errors[4, i] = norm(view2.camera.position - view1.camera.position)
+            errors[4, i] = translations_difference(view2.camera.position, view1.camera.position)
 
             problem1 = problems[i]
             problem2 = problems[i + 1]
@@ -204,7 +204,7 @@ module Printing
                 problem1.camera.quaternion_rotation,
                 problem2.camera.quaternion_rotation
             )
-            errors[5, i] = norm(problem2.camera.position - problem1.camera.position)
+            errors[5, i] = translations_difference(problem2.camera.position, problem1.camera.position)
 
             errors[3, i] = normalized_diff(errors[1, i], errors[2, i])
             errors[6, i] = normalized_diff(errors[4, i], errors[5, i])
