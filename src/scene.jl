@@ -868,9 +868,9 @@ module Scene
 					if is_in_front
 						in_front_count += 1
 					end
-					# if (!is_in_front)
-					# 	continue
-					# end
+					if (!is_in_front)
+						continue
+					end
 					training_error = MAIN_SET_ERROR_RATIO * problem_reprojection_error(
 						scene,
 						test_problem;

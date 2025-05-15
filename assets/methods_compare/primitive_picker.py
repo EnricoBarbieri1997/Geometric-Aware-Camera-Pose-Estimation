@@ -7,11 +7,11 @@ WINDOW_NAME = "Primitive Selector"
 
 STATE_FILE = "./real/markers.json"  # Change this to select different state files
 
-IMAGE_PATH = "../test_scenes/markers/high_contrast/"
+IMAGE_PATH = "../test_scenes/markers/picked"
 IMAGES = sorted([
     os.path.join(IMAGE_PATH, f)
     for f in os.listdir(IMAGE_PATH)
-    if f.endswith(".JPG")
+    if f.endswith(".png")
 ])
 IMAGE_INDEX = 0
 
