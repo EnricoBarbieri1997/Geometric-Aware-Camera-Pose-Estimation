@@ -108,7 +108,7 @@ for metric in metrics:
         )
         plt.plot(x_values, means, 'o', color=colors[idx], markersize=4.0)
 
-    plt.xlabel("Noise Level 10^2")
+    # plt.xlabel("Noise Level 10^2")
     # plt.ylabel(metric_labels[metric])
     plt.gca().xaxis.set_major_locator(MaxNLocator(nbins=5))
     plt.gca().yaxis.set_major_locator(MaxNLocator(nbins=5))
@@ -118,7 +118,7 @@ for metric in metrics:
         # plt.gca().yaxis.set_major_formatter(FuncFormatter(customPlotFun))
     if metric in ["delta_skew"]:
         plt.ylim(0, 2)
-    plt.title(f"{metric_labels[metric]} vs Noise")
+    # plt.title(f"{metric_labels[metric]} vs Noise")
     plt.legend()
     plt.grid(True, which="both", linestyle="--", linewidth=0.5)
     plt.tight_layout()
