@@ -1,7 +1,7 @@
 module Printing
     export print_camera_differences, print_error_analysis, print_relative_motion_errors, create_single_noise_result, save_results_to_json
 
-    using ..Utils: vector_difference, matrix_difference, rotations_difference, translations_difference, intrinsic_difference
+    using ..Utils: normalized_diff, vector_difference, matrix_difference, rotations_difference, translations_difference, intrinsic_difference
     using PrettyTables, JSON
     using Rotations: params as rotations_params
     using LinearAlgebra: norm
@@ -119,7 +119,7 @@ module Printing
             "Translation" translations_difference(
                 calculated_camera.position,
                 original_camera.position
-            );
+            ) / norm(original_camera.position);
         ]
         pretty_table_withdefaults(data;
             header = header,
@@ -206,8 +206,8 @@ module Printing
             )
             errors[5, i] = norm(problem2.camera.position - problem1.camera.position)
 
-            errors[3, i] = abs(errors[1, i] - errors[2, i])
-            errors[6, i] = abs(errors[4, i] - errors[5, i])
+            errors[3, i] = normalized_diff(errors[1, i], errors[2, i])
+            errors[6, i] = normalized_diff(errors[4, i], errors[5, i])
         end
         data = hcat(data_rows, errors)
         pretty_table_withdefaults(data;

@@ -169,7 +169,7 @@ function plot_3dcamera(camera::CameraProperties, color = :black)
     plot_frustum!(ax3, T; fov_deg = fov_x_deg, aspect = aspect, color = color)
 
     mesh_transformed = transform_mesh(loaded_mesh, T)
-    mesh!(ax3, mesh_transformed, color=:gray)
+    mesh!(ax3, mesh_transformed, color=color)
     push!(cameras, Dict(
         :camera => camera,
         :mesh => mesh_transformed,

@@ -16,20 +16,19 @@ module CylindersBasedCameraResectioning
     using HomotopyContinuation, Observables, Random, Serialization
 
     function main()
-        intrinsic_configuration = IntrinsicParametersConfigurations.fₓ_fᵧ_cₓ_cᵧ
+        intrinsic_configuration = IntrinsicParametersConfigurations.none
         scene, problems = create_scene_instances_and_problems(;
             number_of_instances=2,
             number_of_cylinders=3,
             random_seed=27,
             intrinsic_configuration,
-            noise=0.5,
+            noise=0.0,
         )
 
         display(scene.figure)
 
         rotation_intrinsic_system, parameters = intrinsic_rotation_system_setup(
-            problems;
-            algebraic_estimation=true,
+            problems
         )
 
         start_solutions = nothing
@@ -321,7 +320,7 @@ module CylindersBasedCameraResectioning
         scene, problems = scene_instances_and_problems_from_files(
             "./assets/test_scenes/markers/scene.json",
             "./assets/methods_compare/real/markers.json";
-            number_of_instances=2,
+            number_of_instances=1,
         )
         intrinsic_configuration = problems[1].intrinsic_configuration
 
@@ -355,6 +354,7 @@ module CylindersBasedCameraResectioning
                 problems;
                 start_error=solution_error,
                 intrinsic_configuration,
+                scene,
             )
         end
 
@@ -364,7 +364,7 @@ module CylindersBasedCameraResectioning
             display("--------------------")
         end
 
-        print_relative_motion_errors(scene, problems)
+        # print_relative_motion_errors(scene, problems)
 
         for problem in problems
             plot_3dcamera(problem.camera, :green)

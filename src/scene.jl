@@ -23,7 +23,7 @@ module Scene
 	using FileIO
 
 	const MAIN_SET_ERROR_RATIO = 1.0
-	const VALIDATION_SET_ERROR_RATIO = 1.5
+	const VALIDATION_SET_ERROR_RATIO = 1.0
 
 	struct ParametersSolutionsPair
 		start_parameters::Vector{Float64}
@@ -317,7 +317,7 @@ module Scene
 
 					cylinder.transform = transformation(position, cylinder.euler_rotation)
 					radius = Float64(cylinder_properties["radius"])
-					cylinder.radiuses = [0.5, 0.5] #[radius[1], radius[1]] # TODO Support different radiuses for each cylinder
+					cylinder.radiuses = [radius, radius]
 
 					axis = cylinder.transform * [0; 0; 1; 0]
 					axis = axis[1:3]
@@ -375,6 +375,7 @@ module Scene
 							p1 = [line[1][1], line[1][2]]
 							p2 = [line[2][1], line[2][2]]
 							line_homogenous = homogeneous_line_from_points(p1, p2)
+							display(line_homogenous ./ line_homogenous[3])
 							conics_contours[i, j, :] = line_homogenous
 
 							# if (ASSERTS_ENABLED)
@@ -585,11 +586,21 @@ module Scene
 					intrinsic_solution_index += 1
 			end
 
-			focal_length_x = focal_length_x / factor
-			focal_length_y = focal_length_y / factor
-			principal_point_x = principal_point_x / factor
-			principal_point_y = principal_point_y / factor
-			skew = skew / factor
+			if (isIntrinsicEnabled.fₓ(intrinsic_configuration))
+				focal_length_x = focal_length_x / factor
+			end
+			if (isIntrinsicEnabled.fᵧ(intrinsic_configuration))
+				focal_length_y = focal_length_y / factor
+			end
+			if (isIntrinsicEnabled.skew(intrinsic_configuration))
+				skew = skew / factor
+			end
+			if (isIntrinsicEnabled.cₓ(intrinsic_configuration))
+				principal_point_x = principal_point_x / factor
+			end
+			if (isIntrinsicEnabled.cᵧ(intrinsic_configuration))
+				principal_point_y = principal_point_y / factor
+			end
 
 			# Spurious solutions
 			if (factor ≃ 0 || focal_length_x ≃ 0 || focal_length_y ≃ 0)
@@ -677,6 +688,7 @@ module Scene
 			start_error = Inf,
 			intrinsic_configuration = IntrinsicParametersConfigurations.fₓ_fᵧ_skew_cₓ_cᵧ,
 			scene = nothing,
+			excluded_solutions = [],
 	)
 			solution_error = start_error
 			solutions_to_try = [real(sol) for sol in solutions(result) if !any(isnan, real(sol))]
@@ -684,6 +696,9 @@ module Scene
 			best_solution = nothing
 			starting_camera = problems[1].camera
 			for solution in solutions_to_try
+					if (any(x -> x ≃ solution, excluded_solutions))
+						continue
+					end
 					intrinsic = rotations_solution = intrinsic_correction = nothing
 					try
 						intrinsic, rotations_solution, intrinsic_correction = split_intrinsic_rotation_parameters(
@@ -691,7 +706,6 @@ module Scene
 							intrinsic_configuration;
 							starting_camera
 						)
-						display(solution[2])
 					catch
 						continue
 					end
@@ -702,10 +716,10 @@ module Scene
 								intrinsic,
 								scene.instances[1].camera.intrinsic,
 							))
-							display("Intrinsic difference: $(intrinsic_difference(
-								intrinsic,
-								scene.instances[1].camera.intrinsic,
-							))")
+							# display("Intrinsic difference: $(intrinsic_difference(
+							# 	intrinsic,
+							# 	scene.instances[1].camera.intrinsic,
+							# ))")
 					end
 					possible_cameras = []
 					for i in eachindex(problems)
@@ -754,7 +768,7 @@ module Scene
 				# display("The best starting solution was $(best_path.start_solution)")
 			end
 
-			return solution_error, all_possible_solutions
+			return solution_error, all_possible_solutions, best_solution
 	end
 
 	function intrinsic_rotation_translation_system_setup(problem; calibrate = false)
@@ -830,6 +844,7 @@ module Scene
 			result,
 			problem;
 			scene = nothing,
+			reference_instance = nothing,
 	)
 			solution_error = Inf
 			solutions_to_try = real_solutions(result)
@@ -844,26 +859,9 @@ module Scene
 				tx, ty, tz = solution
 				test_problem = deepcopy(problem)
 				test_problem.camera.position = [tx, ty, tz]
-				# print("{\n\"position\": [$(tx), $(ty), $(tz)],")
+				print("{\n\"position\": [$(tx), $(ty), $(tz)],")
 
-				if (isnothing(scene))
-					camera_matrix = build_camera_matrix(
-							Matrix{Float64}(I, 3, 3),
-							test_problem.camera.quaternion_rotation,
-							test_problem.camera.position
-					)
-
-					current_error = MAIN_SET_ERROR_RATIO * intrinsic_rotation_translation_problem_error(
-						test_problem,
-						intrinsic,
-						camera_matrix
-					)
-					current_error += VALIDATION_SET_ERROR_RATIO * intrinsic_rotation_translation_problem_error(
-						test_problem.validation,
-						intrinsic,
-						camera_matrix
-					)
-				else
+				if (!isnothing(scene))
 					is_in_front = is_in_front_of_camera(test_problem.camera)
 					if is_in_front
 						in_front_count += 1
@@ -889,9 +887,31 @@ module Scene
 						low_val_error_count += 1
 					end
 					current_error = training_error + validation_error
+				elseif (!isnothing(reference_instance))
+					current_error = translations_difference(
+						test_problem.camera.position,
+						reference_instance.camera.position
+					)
+				else
+					camera_matrix = build_camera_matrix(
+							Matrix{Float64}(I, 3, 3),
+							test_problem.camera.quaternion_rotation,
+							test_problem.camera.position
+					)
+
+					current_error = MAIN_SET_ERROR_RATIO * intrinsic_rotation_translation_problem_error(
+						test_problem,
+						intrinsic,
+						camera_matrix
+					)
+					current_error += VALIDATION_SET_ERROR_RATIO * intrinsic_rotation_translation_problem_error(
+						test_problem.validation,
+						intrinsic,
+						camera_matrix
+					)
 				end
 
-				display("Current error: $(current_error)")
+				# display("Current error: $(current_error)")
 
 				if (current_error < solution_error)
 					solution_error = current_error
@@ -1166,43 +1186,79 @@ module Scene
 		start_error = Inf,
 		intrinsic_configuration = IntrinsicParametersConfigurations.fₓ_fᵧ_skew_cₓ_cᵧ,
 		scene = nothing,
+		validation_cylinders = nothing,
 	)
-			solution_error, all_possible_solutions = best_intrinsic_rotation_system_solution!(
-					result,
-					problems;
-					start_error=start_error,
-					intrinsic_configuration,
-					scene,
+		valid_solution_found = false
+		excluded_solutions = []
+		solution_error, all_possible_solutions = nothing, nothing
+		tryied_solutons = 0
+		problems_to_solve = nothing
+		while (!valid_solution_found && tryied_solutons < length(real_solutions(result)))
+			valid_solution_found = true
+			tryied_solutons += 1
+			display("Solution: $(tryied_solutons)")
+			# display(excluded_solutions)
+			problems_to_solve = deepcopy(problems)
+			solution_error, all_possible_solutions, best_solution = best_intrinsic_rotation_system_solution!(
+				result,
+				problems_to_solve;
+				start_error=start_error,
+				intrinsic_configuration,
+				scene,
+				excluded_solutions,
 			)
 
-			for (i, problem) in enumerate(problems)
-					display("Problem $i")
-					translation_system, parameters = intrinsic_rotation_translation_system_setup(
-						problem;
-						calibrate = true
+			for (i, problem) in enumerate(problems_to_solve)
+				display("Problem $i")
+				translation_system, parameters = intrinsic_rotation_translation_system_setup(
+					problem;
+					calibrate = true
+				)
+				try
+					translation_result = solve(
+							translation_system;
+							target_parameters = parameters,
+							start_system = :total_degree,
 					)
-					try
-						result = solve(
-								translation_system;
-								target_parameters = parameters,
-								start_system = :total_degree,
-						)
-						@info result
+					@info translation_result
 
-						solution_error += best_intrinsic_rotation_translation_system_solution!(result, problem)
-						plot_3dcamera(problem.camera, :green)
-					catch e
-						Base.showerror(stdout, e)
-						Base.show_backtrace(stdout, catch_backtrace())
+					solution_error += best_intrinsic_rotation_translation_system_solution!(
+						translation_result,
+						problem;
+						scene,
+					)
+
+					if (validation_cylinders != nothing)
+						for cylinder in validation_cylinders
+							get_cylinder_contours(
+								cylinder,
+								problem.camera
+							)
+						end
 					end
-			end
+				catch e
+					Base.showerror(stdout, e)
+					Base.show_backtrace(stdout, catch_backtrace())
 
-			return solution_error, all_possible_solutions
+					push!(excluded_solutions, best_solution)
+					valid_solution_found = false
+				end
+			end
+		end
+
+		if (valid_solution_found)
+			for (i, problem) in enumerate(problems)
+				problem.camera = problems_to_solve[i].camera
+			end
+		end
+
+		return solution_error, all_possible_solutions
 	end
 
 	function plot_reconstructed_scene(scene, problems)
 			number_of_cylinders = size(scene.cylinders)[1]
 			for (i, problem) in enumerate(problems)
+					plot_3dcamera(problem.camera, :green)
 					reconstructued_contours = Array{Float64}(undef, number_of_cylinders, 2, 3)
 					for i in 1:number_of_cylinders
 							lines = get_cylinder_contours(

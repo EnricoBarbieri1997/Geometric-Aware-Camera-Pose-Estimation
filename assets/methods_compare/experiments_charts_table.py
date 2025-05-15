@@ -2,7 +2,7 @@ import json
 import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.ticker as ticker
-from matplotlib.ticker import LogLocator, FuncFormatter
+from matplotlib.ticker import LogLocator, FuncFormatter, MaxNLocator
 from collections import defaultdict
 import os
 from scipy.interpolate import make_interp_spline
@@ -68,13 +68,14 @@ for entry in data:
 # Plot each metric
 for metric in metrics:
     plt.figure(figsize=(5, 4))
+    plt.rcParams.update({'font.size': 16})
 
     for idx, method in enumerate(methods):
         # Skip if the method does not support this metric
         if not method_supports.get(method, {}).get(metric, False):
             continue
 
-        noise_levels = sorted(grouped[metric][method].keys())
+        noise_levels = sorted(grouped[metric][method].keys())[::3]
         means = []
         for noise in noise_levels:
             vals = grouped[metric][method][noise]
@@ -91,40 +92,28 @@ for metric in metrics:
 
                 if (err_low != 0 and err_high != 0):
                     plt.errorbar(
-                        noise * 100, mean, yerr=[[err_low], [err_high]], fmt='o', color=colors[idx]
+                        noise * 100, mean, yerr=[[err_low], [err_high]], fmt='o', color=colors[idx], alpha=0.6, markersize=0.1
                     )
             else:
                 means.append(np.nan)
 
         x_values = np.array(noise_levels) * 100
-        if len(x_values) >= 4:
-            x_smooth = np.linspace(x_values.min(), x_values.max(), 300)
-            spline = make_interp_spline(x_values, means, k=3)  # k=3 → cubic
-            y_smooth = spline(x_smooth)
-            plt.plot(
-                x_smooth,
-                y_smooth,
-                color=colors[idx],
-                linestyle=linestyles[idx],
-                linewidth=1,  # thinner line,
-                label=method_labels[method]
-            )
-        else:
-            plt.plot(
-                x_values,
-                means,
-                '.',  # only markers
-                color=colors[idx],
-                markersize=0.0000001,
-                label=method_labels[method]
-            )
+        plt.plot(
+            x_values,
+            means,
+            color=colors[idx],
+            label=method_labels[method]
+        )
+        plt.plot(x_values, means, 'o', color=colors[idx], markersize=4.0)
 
     plt.xlabel("Noise Level 10^2")
-    plt.ylabel(metric_labels[metric])
+    # plt.ylabel(metric_labels[metric])
+    plt.gca().xaxis.set_major_locator(MaxNLocator(nbins=5))
+    plt.gca().yaxis.set_major_locator(MaxNLocator(nbins=5))
     if metric in ["delta_r", "delta_t", "delta_uv", "delta_f"]:
         plt.yscale("log")
-        plt.gca().yaxis.set_major_locator(LogLocator(base=10.0, subs=[1.0]))
-        plt.gca().yaxis.set_major_formatter(FuncFormatter(customPlotFun))
+        # plt.gca().yaxis.set_major_locator(LogLocator(base=10.0, subs=[1.0]))
+        # plt.gca().yaxis.set_major_formatter(FuncFormatter(customPlotFun))
     if metric in ["delta_skew"]:
         plt.ylim(0, 2)
     plt.title(f"{metric_labels[metric]} vs Noise")
@@ -132,7 +121,8 @@ for metric in metrics:
     plt.grid(True, which="both", linestyle="--", linewidth=0.5)
     plt.tight_layout()
     os.makedirs("./synthetic/plots", exist_ok=True)
-    plt.savefig(f"./synthetic/plots/{metric}.pdf", dpi=300)
+    # plt.subplots_adjust(left=0, right=1, top=1, bottom=0)
+    plt.savefig(f"./synthetic/plots/{metric}.pdf", dpi=300, bbox_inches='tight', pad_inches=0)
 
 # Generate LaTeX
 latex = []

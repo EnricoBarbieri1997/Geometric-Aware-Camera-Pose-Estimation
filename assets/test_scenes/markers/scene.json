@@ -1,21 +1,21 @@
 {
-    "configuration": 27,
+    "configuration": 0,
     "cylinders": [
         {
             "position": [0, 0, 0],
-            "radius": 0.0001,
+            "radius": 1.0,
             "length": 4,
             "axis": [1, 0, 0]
         },
         {
             "position": [0, 0, 0],
-            "radius": 0.0001,
+            "radius": 1.0,
             "length": 4,
             "axis": [0, 1, 0]
         },
         {
             "position": [0, 0, 0],
-            "radius": 0.0001,
+            "radius": 1.0,
             "length": 4,
             "axis": [0, 0, 1]
         }

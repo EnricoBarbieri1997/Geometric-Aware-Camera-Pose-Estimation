@@ -176,11 +176,7 @@ end
 		position = camera.position
 		rotation = camera.euler_rotation
 		pitch, yaw, roll = deg2rad.(rotation)
-		forward = [
-			cos(pitch) * sin(yaw),
-			-sin(pitch),
-			cos(pitch) * cos(yaw)
-		]
+		forward = camera.quaternion_rotation * [0, 0, 1]
 		to_origin = -position
 		return dot(forward, to_origin) > 0
 	end
