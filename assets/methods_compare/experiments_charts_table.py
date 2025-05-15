@@ -116,8 +116,8 @@ for metric in metrics:
         plt.yscale("log")
         # plt.gca().yaxis.set_major_locator(LogLocator(base=10.0, subs=[1.0]))
         # plt.gca().yaxis.set_major_formatter(FuncFormatter(customPlotFun))
-    # if metric in ["delta_skew"]:
-    #     plt.ylim(0, 2)
+    if metric in ["delta_skew"]:
+        plt.ylim(0, 1)
     # plt.title(f"{metric_labels[metric]} vs Noise")
     plt.legend()
     plt.grid(True, which="both", linestyle="--", linewidth=0.5)
