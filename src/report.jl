@@ -89,7 +89,7 @@ function multiple_seeds_multiple_configuration(;
   ])
 
   noise_values = if isnothing(noises)
-    collect(0.0:0.0016:0.04)
+    collect(0.0:0.0005:0.002)
   else
     noises
   end

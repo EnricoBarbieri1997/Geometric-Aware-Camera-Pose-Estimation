@@ -68,7 +68,7 @@ for entry in data:
 # Plot each metric
 for metric in metrics:
     plt.figure(figsize=(5, 4))
-    plt.rcParams.update({'font.size': 16})
+    plt.rcParams.update({'font.size': 20})
 
     for idx, method in enumerate(methods):
         # Skip if the method does not support this metric
@@ -83,6 +83,8 @@ for metric in metrics:
             vals = grouped[metric][method][noise]
             if vals:
                 vals = np.array([max(v, 0.0001) for v in vals])
+                if metric == "delta_skew":
+                    vals = vals / 10
                 variance = np.var(vals)
                 q25 = np.percentile(vals, 25)
                 q75 = np.percentile(vals, 75)
@@ -108,10 +110,11 @@ for metric in metrics:
         )
         plt.plot(x_values, means, 'o', color=colors[idx], markersize=4.0)
 
-    # plt.xlabel("Noise Level 10^2")
     # plt.ylabel(metric_labels[metric])
     plt.gca().xaxis.set_major_locator(MaxNLocator(nbins=5))
     plt.gca().yaxis.set_major_locator(MaxNLocator(nbins=5))
+    for label in plt.gca().yaxis.get_ticklabels():
+        label.set_verticalalignment('top')
     if metric in ["delta_r", "delta_t", "delta_uv", "delta_f", "delta_skew"]:
         plt.yscale("log")
         # plt.gca().yaxis.set_major_locator(LogLocator(base=10.0, subs=[1.0]))
@@ -122,9 +125,16 @@ for metric in metrics:
     plt.legend()
     plt.grid(True, which="both", linestyle="--", linewidth=0.5)
     plt.tight_layout()
+    
+    plt.xlabel(r'$\sigma$', fontsize=16)  # Centered under x-axis
+    if metric in ["delta_f", "delta_uv", "delta_r", "delta_t", "success_rate"]:
+        plt.text(0.79, -0.2, r'$\times 10^{-2}$', transform=plt.gca().transAxes, fontsize=16)
+    if metric in ["delta_skew"]:
+        plt.text(0.79, -0.2, r'$\times 10^{-3}$', transform=plt.gca().transAxes, fontsize=16)
+
     os.makedirs("./synthetic/plots", exist_ok=True)
     # plt.subplots_adjust(left=0, right=1, top=1, bottom=0)
-    plt.savefig(f"./synthetic/plots/{metric}.pdf", dpi=300, bbox_inches='tight', pad_inches=0.05)
+    plt.savefig(f"./synthetic/plots/{metric}.pdf", dpi=300, bbox_inches='tight', pad_inches=0.04)
 
 # Generate LaTeX
 latex = []

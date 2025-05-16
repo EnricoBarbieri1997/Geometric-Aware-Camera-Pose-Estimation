@@ -172,7 +172,7 @@ module Utils
 
 		deltaF = normalized_diff(fₓ, fₓₜ)/2 + normalized_diff(fᵧ, fᵧₜ)/2
 		deltaUV = normalized_diff(cₓ, cₓₜ)/2 + normalized_diff(cᵧ, cᵧₜ)/2
-		deltaSkew = normalized_diff(skew, skewₜ) # 2 * abs(skew - skewₜ)
+		deltaSkew = abs(skew - skewₜ) # 2 * abs(skew - skewₜ)
 
 		return [deltaF, deltaUV, deltaSkew]
 	end
