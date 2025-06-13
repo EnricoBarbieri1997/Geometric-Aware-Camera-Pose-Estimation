@@ -1,0 +1,221 @@
+% A LaTeX template for ARTICLE version of the MSc Thesis submissions to 
+% Politecnico di Milano (PoliMi) - School of Industrial and Information Engineering
+%
+% P. F. Antonietti, S. Bonetti, A. Gruttadauria, G. Mescolini, A. Zingaro
+% e-mail: template-tesi-ingind@polimi.it
+%
+% Last Revision: October 2021
+%
+% Copyright 2021 Politecnico di Milano, Italy. Inc. All rights reserved.
+
+\documentclass[11pt,a4paper]{article} 
+
+%------------------------------------------------------------------------------
+%	REQUIRED PACKAGES AND  CONFIGURATIONS
+%------------------------------------------------------------------------------
+% PACKAGES FOR TITLES
+\usepackage{titlesec}
+\usepackage{color}
+
+% PACKAGES FOR LANGUAGE AND FONT
+\usepackage[utf8]{inputenc}
+\usepackage[english]{babel}
+\usepackage[T1]{fontenc} % Font encoding
+
+% PACKAGES FOR IMAGES
+\usepackage{graphicx}
+\graphicspath{{images/}}
+\usepackage{eso-pic} % For the background picture on the title page
+\usepackage{subfig} % Numbered and caption subfigures using \subfloat
+\usepackage{caption} % Coloured captions
+\usepackage{transparent}
+
+% STANDARD MATH PACKAGES
+\usepackage{amsmath}
+\usepackage{amsthm}
+\usepackage{bm}
+\usepackage[overload]{empheq}  % For braced-style systems of equations
+
+% PACKAGES FOR TABLES
+\usepackage{tabularx}
+\usepackage{longtable} % tables that can span several pages
+\usepackage{colortbl}
+
+% PACKAGES FOR ALGORITHMS (PSEUDO-CODE)
+\usepackage{algorithm}
+\usepackage{algorithmic}
+
+% PACKAGES FOR REFERENCES & BIBLIOGRAPHY
+\usepackage[colorlinks=true,linkcolor=black,anchorcolor=black,citecolor=black,filecolor=black,menucolor=black,runcolor=black,urlcolor=black]{hyperref} % Adds clickable links at references
+\usepackage{cleveref}
+\usepackage[square, numbers, sort&compress]{natbib} % Square brackets, citing references with numbers, citations sorted by appearance in the text and compressed
+\bibliographystyle{plain} % You may use a different style adapted to your field
+
+% PACKAGES FOR THE APPENDIX
+\usepackage{appendix}
+
+% PACKAGES FOR ITEMIZE & ENUMERATES 
+\usepackage{enumitem}
+
+% OTHER PACKAGES
+\usepackage{amsthm,thmtools,xcolor} % Coloured "Theorem"
+\usepackage{comment} % Comment part of code
+\usepackage{fancyhdr} % Fancy headers and footers
+\usepackage{lipsum} % Insert dummy text
+\usepackage{tcolorbox} % Create coloured boxes (e.g. the one for the key-words)
+
+% MY PACKAGES
+\usepackage{amssymb,amsfonts}
+\usepackage{booktabs}
+\usepackage{pifont}
+\usepackage{tikz}
+\usepackage{xspace}
+\usepackage{caption}
+
+%-------------------------------------------------------------------------
+%	NEW COMMANDS DEFINED
+%-------------------------------------------------------------------------
+% EXAMPLES OF NEW COMMANDS -> here you see how to define new commands
+\newcommand{\bea}{\begin{eqnarray}} % Shortcut for equation arrays
+\newcommand{\eea}{\end{eqnarray}}
+\newcommand{\e}[1]{\times 10^{#1}}  % Powers of 10 notation
+\newcommand{\mathbbm}[1]{\text{\usefont{U}{bbm}{m}{n}#1}} % From mathbbm.sty
+\newcommand{\pdev}[2]{\frac{\partial#1}{\partial#2}}
+% NB: you can also override some existing commands with the keyword \renewcommand
+% MY COMMANDS
+\newcommand{\cmark}{\textcolor{green!70!black}{\ding{51}}} % check mark
+\newcommand{\xmark}{\textcolor{red!70!black}{\ding{55}}} % cross mark
+\newcommand{\mehmark}{\textcolor{yellow!50!red}{\ding{55}}} % cross mark
+
+\newcommand{\eg}{\emph{e.g.}\xspace}
+\newcommand{\Eg}{\emph{E.g.}\xspace}
+\newcommand{\etal}{\emph{et al}\xspace}
+
+\newcommand{\KK}{\mathsf{K}}
+\newcommand{\RR}{\mathsf{R}}
+\newcommand{\CC}{\mathsf{C}}
+\newcommand{\II}{\mathsf{I}}
+
+\newcommand{\rem}[3]{%
+    {\colorbox{#2}{\sffamily\scriptsize\bfseries\textcolor{white}{#1}}}
+    {\sffamily\small\itshape\textcolor{#2}{#3}}
+}
+
+\DeclareMathOperator{\acos}{acos}
+\DeclareMathOperator{\NEop}{NE}
+\newcommand{\NE}[2]{\NEop(#1, #2)}
+
+\captionsetup{font=footnotesize}
+
+\newcommand{\seq}{\!\!=\!}
+
+%----------------------------------------------------------------------------
+%	ADD YOUR PACKAGES (be careful of package interaction)
+%----------------------------------------------------------------------------
+
+
+%----------------------------------------------------------------------------
+%	ADD YOUR DEFINITIONS AND COMMANDS (be careful of existing commands)
+%----------------------------------------------------------------------------
+
+
+% Do not change Configuration_files/config.tex file unless you really know what you are doing. 
+% This file ends the configuration procedures (e.g. customizing commands, definition of new commands)
+\input{configuration_files/config}
+
+% Insert here the info that will be displayed into your Title page 
+% -> title of your work
+\renewcommand{\title}{Pose and camera calibration from cylinders via a silhouette based homotopy continuation}
+% -> author name and surname
+\renewcommand{\author}{Enrico Barbieri}
+% -> MSc course
+\newcommand{\course}{Computer science and Engineering - Ingegneria Informatica}
+% -> advisor name and surname
+\newcommand{\advisor}{Prof. Luca Magri}
+% IF AND ONLY IF you need to modify the co-supervisors you also have to modify the file Configuration_files/title_page.tex (ONLY where it is marked)
+\newcommand{\firstcoadvisor}{Giacomo Boracchi} % insert if any otherwise comment
+% \newcommand{\secondcoadvisor}{Name Surname} % insert if any otherwise comment
+% -> author ID
+\newcommand{\ID}{Student ID}
+% -> academic year
+\newcommand{\YEAR}{20XX-20XX}
+% -> abstract (only in English)
+\renewcommand{\abstract}{We address simultaneous camera calibration and pose estimation from multiple images of known 3D cylindrical objects taken by the same camera.  Our approach introduces a tailored homotopy-based technique to handle  non-linear constraints  arising from the geometry of  cylinder silhouettes. A novel correction step is introduced to recover improper solutions introduced by the homotopy. In contrast to existing methods, that address either calibration or pose estimation via algebraic approaches, our numerical solution addresses both tasks simultaneously achieving superior accuracy and robustness, as demonstrated through extensive experiments. Code is available at (\href{https://github.com/EnricoBarbieri1997/cylinder-based-homotopy-camera-calibration}{Github}).
+}
+
+% -> key-words (only in English)
+\newcommand{\keywords}{here, the keywords, of your thesis}
+
+%-------------------------------------------------------------------------
+%	BEGIN OF YOUR DOCUMENT
+%-------------------------------------------------------------------------
+\begin{document}
+
+%-----------------------------------------------------------------------------
+% TITLE PAGE
+%-----------------------------------------------------------------------------
+% Do not change Configuration_files/TitlePage.tex (Modify it IF AND ONLY IF you need to add or delete the Co-advisors)
+% This file creates the Title Page of the document
+\input{configuration_files/title_page}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%     THESIS MAIN TEXT     %%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%-----------------------------------------------------------------------------
+% CONTENT
+%-----------------------------------------------------------------------------
+
+\input{chapters/introduction}
+
+\input{chapters/problem_formulation}
+
+\input{chapters/related_work}
+
+\input{chapters/geometric_constraints}
+
+\input{chapters/method}
+
+\input{chapters/experiments}
+
+\input{chapters/conclusions}
+
+%-----------------------------------------------------------------------------
+% BIBLIOGRAPHY
+%-----------------------------------------------------------------------------
+\bibliography{bibliography.bib}
+
+\appendix
+\section{Appendix A}
+If you need to include an appendix to support the research in your thesis, you can place it at the end of the manuscript.
+An appendix contains supplementary material (figures, tables, data, codes, mathematical proofs, surveys, \dots)
+which supplement the main results contained in the previous sections.
+
+\section{Appendix B}
+It may be necessary to include another appendix to better organize the presentation of supplementary material.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%     ABSTRACT IN ITALIAN LANGUAGE AND ACKNOWLEDGMENTS     %%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\cleardoublepage
+
+%-----------------------------------------------------------------------------
+% SOMMARIO
+%-----------------------------------------------------------------------------
+\section*{Abstract in lingua italiana}
+Qui va l'Abstract in lingua italiana della tesi seguito dalla lista di parole chiave.
+\vspace{15pt}
+\begin{tcolorbox}[arc=0pt, boxrule=0pt, colback=bluePoli!60, width=\textwidth, colupper=white]
+    \textbf{Parole chiave:} qui, le parole chiave, della tesi, in italiano 
+\end{tcolorbox}
+
+%-----------------------------------------------------------------------------
+% ACKNOWLEDGEMENTS
+%-----------------------------------------------------------------------------
+\section*{Acknowledgements}
+Here you might want to acknowledge someone.
+
+%-------------------------------------------------------------------------
+%	END OF YOUR DOCUMENT
+%-------------------------------------------------------------------------
+\end{document}

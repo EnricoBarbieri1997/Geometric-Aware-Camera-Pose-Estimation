@@ -1,0 +1,19 @@
+\newcommand{\cmark}{\ding{51}} % check mark
+\newcommand{\xmark}{\ding{55}} % cross mark
+\newcommand{\phantomsupscript}[1]{\textsuperscript{\rlap{#1}}}
+
+\begin{table}[H]
+    \centering
+    \rowcolors{2}{gray!20}{white}
+    \begin{tabularx}{\textwidth}{l X X X X}
+        \toprule
+        \textbf{}           & \textbf{Ours} & \textbf{Ding} & \textbf{Gummeson} & \textbf{Guo} \\
+        \midrule
+        Calibration         & \cmark\phantomsupscript{1} & \cmark & \xmark\phantomsupscript{2} & \cmark \\
+        Localization        & \cmark & \xmark & \cmark & \cmark\phantomsupscript{3} \\
+        \bottomrule
+    \end{tabularx}
+    \caption{Comparison of methods for camera calibration and localization.\\
+    Note: (1) Our method also finds the skew parameter; (2) Gummeson illustrates a variation to extract the focal length, if square, but with loss of performance. (3) Guo requires the camera position to be known}
+    \label{tab:MethodsFeatureComparison}
+\end{table}

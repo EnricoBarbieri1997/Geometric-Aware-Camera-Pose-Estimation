@@ -1,0 +1,86 @@
+\section{Experiments}
+We implemented our solver in \textsc{Julia} and our code is available at \textsl{removed for review}. Accuracy and robustness are assessed both in a synthetic controlled scenario and on a real scene.
+\subsection{Synthetic experiments}
+
+We generated 50 different synthetic configurations consisting of $N = 2$ cameras and $M = 3$ cylinders. The cylinders are placed in general 3D positions, while all cameras share the same intrinsic matrix $\KK$ and are also positioned generically in space, with their optical axes oriented toward the barycenter of the cylinders.
+We evaluate the performance of our method on the two tasks of camera calibration and camera pose estimation.
+As regard camera calibration, we consider the relative errors $\Delta f, \Delta c$ and $\Delta s$ on focal lenghts, principal point and skew. In formulas:
+\begin{equation}
+\Delta f = \frac{1}{2}\frac{|f_x-\overline{f_x}|}{\overline{f_x}}+\frac{1}{2}\frac{|f_y-\overline{f_y}|}{\overline{f_y}},\quad 
+\Delta c = \frac{1}{2}\frac{|c_x-\overline{c_x}|}{|\overline{c_x}|}+\frac{1}{2}\frac{|c_y-\overline{c_y}|}{|\overline{c_y}|}, \quad
+ \Delta \alpha = \frac{|\alpha-\overline{\alpha}|}{\overline{\alpha}}.
+\end{equation}
+Poses are evaluated in terms of a rotation error in degree $\Delta \RR$ and a transaltion error $\Delta \mathbf{t}$:
+\begin{equation}
+ \Delta \RR = \cos^{-1}\left(\frac{\mathrm{trace}(\RR \overline{\RR}^\top) - 1}{2} \right),\quad
+  \Delta \mathbf{t} = \frac{||\mathbf{t}-\overline{\mathbf{t}}||}{||\overline{\mathbf{t}}||}
+\end{equation}
+
+
+To assess the robustness of our method, we perturbed the observed silhouette lines in $\mathcal{L}_0$ by increasing levels of noise, adopting the same settings as in~\cite{gummeson22pose}. Instead of perturbing the line parameters directly, each line is modified by displacing its intersection points with the image boundaries using a random 2D vector whose magnitude matches the prescribed noise level. This results in a more realistic, albeit more severe, form of perturbation.
+
+We compare our camera calibration results with the method proposed by Ding~\cite{CalibrationFreePlacedRightCylinder}. For a fair comparison, we first assume zero skew ($s = 0$) as the formulation of Ding cannot  estimate this parameter. The results are reported in Figures~\ref{fig:delta_f} and~\ref{fig:delta_uv} in logarithmic scale. Our method consistently outperforms Ding's across all noise levels.
+
+We also evaluate separately the estimation of the skew parameter, shown in Figure~\ref{fig:delta_skew}. While the performance is slightly worse in this case, it is worth noting that, due to the small magnitude of the true skew values, relative error metrics tend to amplify minor fluctuations. In practice, however, for modest noise values the estimated skew remains in the sub $10\%$ range while for higher ones it diverges towards a $50\%$ error.
+
+
+Results on pose estimation are shown in Figures~\ref{fig:delta_r} and~\ref{fig:delta_t}. Gummeson~\cite{gummeson22pose} represents our closest competitor, as our method can be seen as a generalization of theirs to the case of unknown intrinsics. Our approach consistently outperforms the baseline across all noise levels, demonstrating the advantages of using silhouette-based homotopy continuation over Gröbner basis methods.
+Finally, Figure~\ref{fig:success_rate} reports the success rate of the method. While other approaches that rely on matrix factorizations often fail when the matrices involved become nearly singular, our method consistently finds a physically feasible solution. This highlights the numerical stability of our approach .
+Note that, as highlighted in Table~\ref{tab:MethodsFeatureComparison}, our method is the only one capable of  solving both camera pose and calibration.
+
+    \begin{figure}[htbp]
+        \centering
+    
+        \subfigure[$\Delta f$ vs. noise.]{
+            \includegraphics[width=0.28\linewidth]{images/compares/delta_f.pdf}
+            \label{fig:delta_f}
+            % \caption{Relative focal length error $\Delta f$ vs. noise level.}
+        }
+        \hfill
+        \subfigure[$\Delta c$ vs. noise.]{
+            \includegraphics[width=0.28\linewidth]{images/compares/delta_uv.pdf}
+            \label{fig:delta_uv}
+            % \caption{Center offset error $\Delta c$ vs. noise level.}
+        }
+        \hfill
+        \subfigure[$\Delta s$ vs. noise.]{
+            \includegraphics[width=0.28\linewidth]{images/compares/delta_skew.pdf}
+            \label{fig:delta_skew}
+            % \caption{Skew error $\Delta \alpha$ vs. noise level. A significant relative value error is present but the method shows resiliance w.r.t noise. }
+        }
+    
+
+        \subfigure[$\Delta \RR$ (degrees) vs. noise.]{
+            \includegraphics[width=0.28\linewidth]{images/compares/delta_r.pdf}
+            \label{fig:delta_r}
+            % \caption{Rotational error $\Delta R$ (degrees) vs. noise level.}
+        }
+        \hfill
+        \subfigure[$\Delta \mathbf{t}$ vs. noise level.]{
+            \includegraphics[width=0.28\linewidth]{images/compares/delta_t.pdf}
+            \label{fig:delta_t}
+            % \caption{Translation error $\Delta t$ vs. noise level.}
+        }
+        \hfill
+        \subfigure[$\%$ of successful trials.]{
+            \includegraphics[width=0.28\linewidth]{images/compares/success_rate.pdf}
+            \label{fig:success_rate}
+            % \caption{Percentage of trials in which the method successfully found a solution.}
+        }
+    \caption{Results of our method on the two tasks of camera calibration (top row) and pose estimation (bottom row). In (f) we also report the success rate.}
+    \end{figure}
+    
+
+\subsection{Results on Real Data}
+
+We further evaluated the proposed methods on a real-world scene composed of three cylindrical markers arranged on a desk(Figure~\ref{fig:homotopy}). Ground truth camera poses were estimated using \textsc{COLMAP}~\cite{schoenberger2016sfm, schoenberger2016mvs}.
+The 3D position of the cylinders are known.
+
+We assume the skew set to zero and use two view of the scene.  %confirming that the proposed calibration method is currently not suitable for real-time applications.
+The estimated intrinsic parameters ($f_x = 1334.72$, $f_y = 1234.91$, $c_x = 848.93$, $c_y = 960$) differ from the \textsc{COLMAP} results ($f_x = 1632.60$, $f_y = 1605.51$, $c_x = 540$, $c_y = 960$) by a mean relative error of $22\%$, which is still lower than the one achieved by  Ding et al.~\cite{CalibrationFreePlacedRightCylinder} on synthetic data. %Notably, our method uses only two images for calibration compared to the 475 used by \textsc{COLMAP}, and achieves it in a fraction of the time.
+For localization, $\Delta \RR$ is computed on the relative pose of the two cameras and differs from ground truth by $2\%$. $\Delta \mathbf{t}$  differs by $9\%$, prior to accounting for symmetries. %It is worth to note that one of the estimated cameras is nearly $90^\circ$ rotated around its perpendicular axis  correcting for the rotational symmetry reduces the rotation error to $2\%$, demonstrating strong performance with minimal image input.
+
+For estimating the full camera parameters ($\KK, \RR,\mathbf{t}$), tracking all $59,\!049$ homotopy paths required 1 minute and 39 seconds.
+Interestingly, once $\KK$ is estimated,  localization for additional frames requires tracking fewer parameters, resulting in improved speed and accuracy. Execution time drops below one second (single-threaded), with a relative rotation error of $2\%$ and translation error of $0.9\%$.% Furthermore, since subsequent frames can be processed independently, the method becomes suitable for real-time scenarios.
+
+%-------------------------------------------------------------------------

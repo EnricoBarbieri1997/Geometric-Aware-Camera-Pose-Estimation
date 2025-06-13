@@ -1,0 +1,40 @@
+\section{Introduction}
+\label{sec:intro}
+
+Camera calibration and localization are fundamental problems in Computer Vision, underpinning a wide range of applications such as 3D reconstruction, robotics, and extended reality. A variety of calibration and localization methods have been proposed, from traditional approaches based on point-wise 3D-2D correspondences~\cite{Zhang2000, Sturm2004}, to more recent techniques that exploit correspondences between higher-level geometric entities such as lines~\cite{guo23vanishing}, conics~\cite{teramoto2002calibration}, planes and quadrics~\cite{Bartoli2005, Vidal2013}.
+While point-based methods offer unparalleled accuracy in controlled settings, higher-order geometric primitives are more robust to noise and occlusions, and encode rich geometric constraints that can be leveraged during camera estimation.
+
+In this work, we focus on camera calibration \emph{and} localization from \emph{cylinders}, that are common and easily detectable structures in many man-made environments, ranging from architectural elements (\emph{e.g.}, pipes, handrails) to household objects (\emph{e.g.}, bottles, cans, furniture legs) and infrastructure components (\emph{e.g.}, street lamps, utility poles, tube lights).
+While calibration and pose estimation are traditionally treated as separate problems, we build upon the geometric constraints introduced in~\cite{gummeson2019relative} to develop a novel formulation that  estimates both the camera pose and the intrinsic calibration matrix. Under the assumption of constant intrinsics, this enables full camera resection directly from images of known 3D cylinders.
+
+\begin{figure}[ht]
+    \centering
+    \includegraphics[width=0.85\linewidth]{images/header_image/teaser.pdf}
+    \caption{
+    Our method for $N=1$  camera  and $M=3$ cylindrical objects (3 markers). The input is a known 3D scenes and images with estimated silhouette lines. The output is the calibration and the pose of the cameras that acquired the images. Rather than tackling the problem on the input data, we move to a simpler random problem with a known solution  $\mathbf{x}(0)$. Our silhouette-based parametric homotopy allows  to track $\mathbf{x}(0)$ to  the solution $\mathbf{x}(1)$  of the original problem. Our formulation support multiple cylinders and multiple images.\label{fig:homotopy}}
+    
+\end{figure}
+
+The core idea, illustrated in Figure~\ref{fig:homotopy}, is to leverage the known 3D geometry to simplify the estimation process. The geometric constraints between the known cylinders and the unknown camera parameters form a system of nonlinear equations $\mathcal{S}_1(\mathbf{x}, \mathcal{L}_1)$. Instead of directly solving this complex system $\mathcal{S}_1$ with traditional algebraic methods like Gröbner basis or resultants, which are prone to numerical instability and scalability issues, we take a different approach. We generate a, \emph{virtual system} $\mathcal{S}_0(\mathbf{x}, \mathcal{L}_0)$ designed around the very same 3D scene and a configuration of synthetic cameras  with random but known parameters. By design, we know the solution $\mathbf{x}(0)$ for $\mathcal{S}_0$, since it corresponds to the parameters we used to generate the synthetic cameras. Then, we continuously track the known solution $\mathbf{x}(0)$ as we transform the problem towards the original, system $\mathcal{S}_1$, using a tailored homotopy continuation parametrized in terms of silhouette lines.  At the end, we obtain the desired calibration and pose $\mathbf{x}(1)$.
+By using this approach, we influence the trajectory of the solutions, guiding the solver toward more plausible configurations.
+We couple our solver with a dedicated post-processing step designed to discard spurious solutions that do not correspond to physically valid camera configurations.
+Compared to existing methods, our approach is not only more general -- being capable of  estimating both camera calibration and pose, unlike alternatives that address only one of the two task -- but also achieves superior accuracy and improved robustness to noise, as demonstrated by our experiments.
+
+All in all, our contributions can be summarized as follows:
+\begin{itemize}[noitemsep]
+    \item  We present a \emph{unified solution} for calibration and pose estimation, unlike existing approaches that typically address these two problems separately.
+    \item   We conceive a \emph{novel solver},  that, exploiting a silhouette-based parametrization,   simplifies the original problem into a one with a known solution, which is then lifted via homotopic continuation to the original one.
+    \item We propose a geometric \emph{correction step} to deal with unavoidable spurious solutions.
+    \item  Our method is  \emph{more accurate} and \emph{robust} to noise compared to alternative solutions.
+\end{itemize}
+
+%Since homotopy solvers could not directly enforce inequality constraints, it may happen that during the tracking of the solutions some retrieved parameters violates physical constraints. Thus we  Our post-processing step identifies and corrects spurious solutions, improving the physical validity of the final camera parameters. 
+
+%While the computational time of the solution is not suited to be used as a validation method for a RANSAC approach, the method is well suited to find models to then validate through RANSAC.
+%\lm{Qui diciamo velocemente come è la struttura del paper}\eb{Com'è?}
+%The paper is structred as follow: after laiding down the problem formulation (Section \todo{XX}) and reviewing s the multi-view-geometry of cylinders (Section \todo{XX}), we present our homotopy based solver  (Section \todo{XX})  coupled with our post-processing step (Section \todo{XX}). The benefits of our apporach are then evaluated in Section \todo{XX}.
+%In this paper, we extend this line of research by addressing the more challenging scenario where the camera is not assumed to be calibrated. We introduce a novel approach for jointly estimating camera intrinsics and pose from multiple views of known cylindrical objects. Our method is enabled by a new solver based on homotopy continuation, which handles the non-linear constraints arising from the projection of cylindrical silhouettes.
+
+%A key challenge in this formulation lies in the presence of spurious solutions—combinations of intrinsic parameters and rotations that satisfy the projection equations but do not correspond to physically valid configurations. Because standard homotopy continuation methods cannot enforce inequality constraints (such as positive focal lengths), we propose a novel post-processing step that filters out ambiguous solutions algebraically, ensuring geometric validity without artificial regularization.
+
+%This results in a complete and practical framework for camera calibration and localization using a minimal, easy-to-setup set of cylindrical objects. We validate our approach on both synthetic and real-world datasets, demonstrating accurate and robust performance even in challenging conditions.

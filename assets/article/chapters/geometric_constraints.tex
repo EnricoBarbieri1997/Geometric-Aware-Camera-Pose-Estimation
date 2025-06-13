@@ -1,0 +1,26 @@
+\section{Geometric constraints on cones and  silhouette lines}
+\label{sec:constraints}
+
+Following~\cite{gummeson22pose, gummeson24relative}, we briefly recall some geometric properties of cylinders and their image projections, which form the basis for the constraints in our systems. A cylinder $\mathcal{C}$ can be interpreted as a cone with its vertex $\mathbf{v}$ lying on the plane at infinity. Algebraically, both cones and cylinders are represented by a singular quadric matrix $\mathsf{Q}$ such that a point $\mathbf{x}$ belongs to $\mathcal{C}$ if and only if $\mathbf{x}^\top \mathsf{Q} \mathbf{x} = 0$. The vertex $\mathbf{v}$ lies in the null-space of $\mathsf{Q}$, that is, $\mathsf{Q} \mathbf{v} = 0$. For cylinders, this vertex takes the form $\mathbf{v} = (\mathbf{w}, 0)^\top$ in homogeneous coordinates, where $\mathbf{w}$ defines the direction of the cylinder’s axis.
+Rather than working directly with $\mathsf{Q}$, it is convenient to use the dual quadric $\mathsf{Q}^*$, which encodes the set of all planes tangent to $\mathcal{C}$. A plane $\Pi$ is tangent to the cylinder if and only if it satisfies:
+\begin{equation}
+\begin{cases}
+\Pi^\top \mathsf{Q}^* \Pi = 0, \\
+\Pi^\top \mathbf{v} = 0.
+\end{cases}
+\end{equation}
+
+These two conditions can be formulated in terms of silhouette lines $l^h$. The backprojection of each silhouette line, given by $\mathsf{P}^\top l^h$, defines a 3D plane that is tangent to the cylinder $\mathcal{C}$ and passes through the camera center. Moreover, since this tangent plane is  aligned with the axis of the cylinder, $\mathsf{P}^\top l^h$ must contain the point at infinity $\mathbf{v}$ corresponding to the direction of the cylinder's axis. 
+As a result, each visible silhouette line $l^h$ induces two constraints on the camera parameters of the form:
+%\begin{equation}
+%\label{eq:geo_constraint}
+%\begin{cases}
+%l^{h \top} \mathsf{P} \mathsf{Q}^* %\mathsf{P}^\top l^h = 0, \\
+%l^{h \top} \mathsf{P} \mathbf{v} = 0.
+%\end{cases}
+%\end{equation}
+
+\begin{align}
+l^{h \top} \mathsf{P} \mathsf{Q}^* \mathsf{P}^\top l^h &= 0 \label{eq:dual_quadric_constraint} \\
+l^{h \top} \mathsf{P} \mathbf{v} &= 0.\label{eq:vertex_constraint}
+\end{align}

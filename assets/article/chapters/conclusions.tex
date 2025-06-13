@@ -1,0 +1,10 @@
+\section{Conclusions}
+
+We presented the first method for both camera calibration and pose estimation from multiple images of known 3D cylinders.
+By revisiting the geometric constraints of \cite{gummeson24relative}, we were able to  formulate these two tasks within a unified framework that exploit a novel and custom silouette-based homotopy continuation solver. 
+Experimental results demonstrate superior performance of our  approach with respect  to existing solutions, both in terms of i) \emph{generality},  ii) \emph{accuracy} and iii) \emph{robustness}.
+In this work, we focused on the estimation problem under the assumption that the silhouette lines and their associations with 3D cylinders are known. As future work, we plan to address the automatic detection of silhouette lines and their matching to the corresponding cylinders, while also incorporating mechanisms to handle outliers and mismatches in a robust fashion. Currently, the computational complexity of homotopy continuation limits real-time applications. However, future work will explore GPU parallelization to accelerate solution tracking and enable real-time performance.
+
+%\subsection*{Acknowledgments}
+%\texttt{removed for blind review}
+\bibliography{bibliography}
