@@ -47,7 +47,7 @@ To this end, we apply to each silhouette line a transformation $T_t$, as illustr
 
 \begin{figure}
 \centering
-  \begin{tikzpicture}[scale=1]
+  \begin{tikzpicture}[scale=2.0]
             % Define origin
             \coordinate (O) at (0,0);
             
@@ -107,20 +107,20 @@ A correction is valid if it does not change the absolute values of the intrinsic
 \end{equation}
 Note that we allow $\det(\CC)=-1$ because  a reflection might actually be needed to make the solution geometrically consistent. Using this property, we derive three corrections $\mathsf{C}_{f_x},\mathsf{C}_{f_y},\mathsf{C}_{sf_y}  $
 \begin{equation}
-  \CC_{f_x} = \begin{psmallmatrix}
+  \CC_{f_x} = \begin{pmatrix}
                 -1 & 0 & 0 \\
                 0 & 1 & 0 \\
                 0 & 0 & 1
-            \end{psmallmatrix}, \quad 
-                   \CC_{f_y} = \begin{psmallmatrix}
+            \end{pmatrix}, \quad 
+                   \CC_{f_y} = \begin{pmatrix}
                 1 & \frac{2\alpha}{f_x} & 0 \\
                 0 & -1 & 0 \\
                 0 & 0 & 1
-            \end{psmallmatrix}, \quad 
-                     \CC_{s f_y} = \begin{psmallmatrix}
+            \end{pmatrix}, \quad 
+                     \CC_{s f_y} = \begin{pmatrix}
                 1 & 0 & 0 \\
                 0 & -1 & 0 \\
                 0 & 0 & 1
-            \end{psmallmatrix},
+            \end{pmatrix},
 \end{equation}
 to correct $f_x, f_y$ and, the skew $s$ and $f_y$ jointly respectively. Note that  multiple corrections can  be applied to the same solution $(\KK,\RR)$ if needed. Unfortunately, we can not find a rotation $C_s$ to correct the skew alone.

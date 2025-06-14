@@ -139,9 +139,7 @@
 \newcommand{\ID}{Student ID}
 % -> academic year
 \newcommand{\YEAR}{20XX-20XX}
-% -> abstract (only in English)
-\renewcommand{\abstract}{We address simultaneous camera calibration and pose estimation from multiple images of known 3D cylindrical objects taken by the same camera.  Our approach introduces a tailored homotopy-based technique to handle  non-linear constraints  arising from the geometry of  cylinder silhouettes. A novel correction step is introduced to recover improper solutions introduced by the homotopy. In contrast to existing methods, that address either calibration or pose estimation via algebraic approaches, our numerical solution addresses both tasks simultaneously achieving superior accuracy and robustness, as demonstrated through extensive experiments. Code is available at (\href{https://github.com/EnricoBarbieri1997/cylinder-based-homotopy-camera-calibration}{Github}).
-}
+\input{abstract.tex}
 
 % -> key-words (only in English)
 \newcommand{\keywords}{here, the keywords, of your thesis}
@@ -174,6 +172,8 @@
 
 \input{chapters/geometric_constraints}
 
+\input{chapters/homotopy}
+
 \input{chapters/method}
 
 \input{chapters/experiments}
@@ -202,8 +202,7 @@ It may be necessary to include another appendix to better organize the presentat
 %-----------------------------------------------------------------------------
 % SOMMARIO
 %-----------------------------------------------------------------------------
-\section*{Abstract in lingua italiana}
-Qui va l'Abstract in lingua italiana della tesi seguito dalla lista di parole chiave.
+\input{abstract_it.tex}
 \vspace{15pt}
 \begin{tcolorbox}[arc=0pt, boxrule=0pt, colback=bluePoli!60, width=\textwidth, colupper=white]
     \textbf{Parole chiave:} qui, le parole chiave, della tesi, in italiano 

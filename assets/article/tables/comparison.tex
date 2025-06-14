@@ -1,14 +1,12 @@
 \begin{table}[tb]
 \begin{center}
-\resizebox{0.6\textwidth}{!}{%
 \begin{tabular}{@{}lllll@{}}
 \toprule
                 & Guo\cite{guo23vanishing}      & Ding \cite{CalibrationFreePlacedRightCylinder}        & Gummerson   \cite{gummeson22pose,gummeson24relative}           & Ours                    \\ \midrule
 Calibration     & $f$ \mehmark & $\mathsf{K}$ \cmark&  $f$  \mehmark             & $\mathsf{K} $     \cmark       \\
 Pose estimation &  $\mathsf{R}$ \mehmark & \xmark     & $\mathsf{R},\mathbf{t}$ \cmark & $\mathsf{R},\mathbf{t}$ \cmark\\
 \bottomrule
-\end{tabular}%
-}
+\end{tabular}
 \end{center}
 \caption{Comparison of camera estimation methods and their outputs for calibration and pose estimation. (\xmark: not addressed, \mehmark: partial output, \cmark: fully solved). Our method uniquely solves both tasks and provides all parameters.}
 \label{tab:soa}

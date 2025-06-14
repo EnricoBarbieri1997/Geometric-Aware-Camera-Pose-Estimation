@@ -1,0 +1,41 @@
+\section{Homotopy Continuation}
+
+Homotopy continuation is a powerful numerical–symbolic method for solving systems of nonlinear (especially polynomial) equations by deforming a solvable start system into the target system and tracking solution paths continuously.
+
+More formally, given \(F(x)=0\) to solve where \(x\in\mathbb{C}^n\), we construct a homotopy
+\begin{align}
+H(x,t) = (1-t)\,G(x) + t\,F(x), \\ H(x,0)=G(x),\, \; H(x,1)=F(x),
+\end{align}
+where \(G\) has known regular solutions.
+
+Starting from a known solution \(x(0)\), we numerically follow the curve \(x(t)\) satisfying \(H(x(t), t)=0\). Writing
+\[
+\frac{\partial H}{\partial x} \dot x + \frac{\partial H}{\partial t} = 0 \quad\Rightarrow\quad \dot x = -\left(\frac{\partial H}{\partial x}\right)^{-1} \frac{\partial H}{\partial t},
+\]
+we use predictor steps (e.g. Euler, secant, Hermite) and corrector steps (Newton refinement). See Algorithm~\ref{alg:homotopy_path_tracking}, Figure~\ref{fig:homotopy_predictor_corrector}
+
+% Algorithm: Homotopy Path Tracking (Predictor-Corrector Loop)
+\begin{algorithm}[H]
+\caption{Homotopy Path Tracking via Predictor-Corrector}
+\label{alg:homotopy_path_tracking}
+\begin{algorithmic}[1]
+\REQUIRE Initial solution $x_0$, initial time $t_0 = 0$, step size $\Delta t$
+\STATE $k \leftarrow 0$
+\STATE $x_k \leftarrow x_0$, $t_k \leftarrow t_0$
+\WHILE{$t_k < 1$}
+    \STATE Compute $\dot x_k = -\left(\frac{\partial H}{\partial x}(x_k, t_k)\right)^{-1} \frac{\partial H}{\partial t}(x_k, t_k)$
+    \STATE $\tilde x \leftarrow x_k + \Delta t\,\dot x_k$ \; (Predictor: Euler or higher order)
+    \STATE $t_{k+1} \leftarrow t_k + \Delta t$
+    \STATE $x_{k+1} \leftarrow$ Newton's method to solve $H(x, t_{k+1})=0$ starting from $\tilde x$
+    \STATE $k \leftarrow k+1$
+\ENDWHILE
+\RETURN $x_k$ (approximate solution to $F(x)=0$)
+\end{algorithmic}
+\end{algorithm}
+
+\begin{figure}[ht]
+	\centering
+	\includegraphics[width=0.85\linewidth]{images/homotopy_predictor_corrector}
+	\caption{A sketch of the predictor-corrector method. We compute a prediction $\tilde x = x_k + \Delta t\,\dot x_k$ using any ODE method and then correct using Newton's method.}
+	\label{fig:homotopy_predictor_corrector}
+\end{figure}
