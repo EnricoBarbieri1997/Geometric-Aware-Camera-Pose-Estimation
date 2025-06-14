@@ -7,18 +7,4 @@ We consider methods based on degenerate quadrics such as cylinders, whose surfac
 A further relevant contribution is the work by Larsson et al.~\cite{larsson20parallelcylinders}, which investigates the multi-view geometry of mutually parallel cylinders. Their formulation allows a structure-from-motion pipeline based on silhouette lines, under the strong assumption that all cylinders share a common axis direction $\mathbf{w}_j=\mathbf{w}_k$ for all $j,k=1,\ldots, M$. The emphasis  is on recovering $\mathsf{R}_i,\mathbf{t}_i$ and the  parameters of the cylinders $\mathcal{C}_j$ up to scale, assuming known intrinsics. In contrast, our method handles arbitrary cylinder orientations, assume the cylinders to be known and jointly estimates both intrinsic and extrinsic parameters, enabling complete camera resection.
 Cylinder sections are exploited by Ding et al. in~\cite{CalibrationFreePlacedRightCylinder}. This method leverages the known geometry of the target—specifically, the circular end-faces of the cylinder—and formulates constraints based on their elliptical projections. Table~\ref{tab:soa} summarizes the most relevant methods in terms of their output. Only our approach estimates both the full camera calibration $\mathsf{K}$ and the camera poses $\mathsf{R}_i,\mathbf{t}_i.$
 
-\begin{table}[tb]
-\begin{center}
-\resizebox{0.6\textwidth}{!}{%
-\begin{tabular}{@{}lllll@{}}
-\toprule
-                & Guo\cite{guo23vanishing}      & Ding \cite{CalibrationFreePlacedRightCylinder}        & Gummerson   \cite{gummeson22pose,gummeson24relative}           & Ours                    \\ \midrule
-Calibration     & $f$ \mehmark & $\mathsf{K}$ \cmark&  $f$  \mehmark             & $\mathsf{K} $     \cmark       \\
-Pose estimation &  $\mathsf{R}$ \mehmark & \xmark     & $\mathsf{R},\mathbf{t}$ \cmark & $\mathsf{R},\mathbf{t}$ \cmark\\
-\bottomrule
-\end{tabular}%
-}
-\end{center}
-\caption{ Comparison of camera estimation methods and their outputs for calibration and pose estimation. (\xmark: not addressed, \mehmark: partial output, \cmark: fully solved). Our method uniquely solves both tasks and provides all parameters.}
-\label{tab:soa}
-\end{table}
+\input{tables/comparison.tex}

@@ -1,19 +1,15 @@
-\newcommand{\cmark}{\ding{51}} % check mark
-\newcommand{\xmark}{\ding{55}} % cross mark
-\newcommand{\phantomsupscript}[1]{\textsuperscript{\rlap{#1}}}
-
-\begin{table}[H]
-    \centering
-    \rowcolors{2}{gray!20}{white}
-    \begin{tabularx}{\textwidth}{l X X X X}
-        \toprule
-        \textbf{}           & \textbf{Ours} & \textbf{Ding} & \textbf{Gummeson} & \textbf{Guo} \\
-        \midrule
-        Calibration         & \cmark\phantomsupscript{1} & \cmark & \xmark\phantomsupscript{2} & \cmark \\
-        Localization        & \cmark & \xmark & \cmark & \cmark\phantomsupscript{3} \\
-        \bottomrule
-    \end{tabularx}
-    \caption{Comparison of methods for camera calibration and localization.\\
-    Note: (1) Our method also finds the skew parameter; (2) Gummeson illustrates a variation to extract the focal length, if square, but with loss of performance. (3) Guo requires the camera position to be known}
-    \label{tab:MethodsFeatureComparison}
+\begin{table}[tb]
+\begin{center}
+\resizebox{0.6\textwidth}{!}{%
+\begin{tabular}{@{}lllll@{}}
+\toprule
+                & Guo\cite{guo23vanishing}      & Ding \cite{CalibrationFreePlacedRightCylinder}        & Gummerson   \cite{gummeson22pose,gummeson24relative}           & Ours                    \\ \midrule
+Calibration     & $f$ \mehmark & $\mathsf{K}$ \cmark&  $f$  \mehmark             & $\mathsf{K} $     \cmark       \\
+Pose estimation &  $\mathsf{R}$ \mehmark & \xmark     & $\mathsf{R},\mathbf{t}$ \cmark & $\mathsf{R},\mathbf{t}$ \cmark\\
+\bottomrule
+\end{tabular}%
+}
+\end{center}
+\caption{Comparison of camera estimation methods and their outputs for calibration and pose estimation. (\xmark: not addressed, \mehmark: partial output, \cmark: fully solved). Our method uniquely solves both tasks and provides all parameters.}
+\label{tab:soa}
 \end{table}

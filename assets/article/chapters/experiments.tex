@@ -26,43 +26,43 @@ We also evaluate separately the estimation of the skew parameter, shown in Figur
 
 Results on pose estimation are shown in Figures~\ref{fig:delta_r} and~\ref{fig:delta_t}. Gummeson~\cite{gummeson22pose} represents our closest competitor, as our method can be seen as a generalization of theirs to the case of unknown intrinsics. Our approach consistently outperforms the baseline across all noise levels, demonstrating the advantages of using silhouette-based homotopy continuation over Gröbner basis methods.
 Finally, Figure~\ref{fig:success_rate} reports the success rate of the method. While other approaches that rely on matrix factorizations often fail when the matrices involved become nearly singular, our method consistently finds a physically feasible solution. This highlights the numerical stability of our approach .
-Note that, as highlighted in Table~\ref{tab:MethodsFeatureComparison}, our method is the only one capable of  solving both camera pose and calibration.
+Note that, as highlighted in Table~\ref{tab:soa}, our method is the only one capable of  solving both camera pose and calibration.
 
     \begin{figure}[htbp]
         \centering
     
-        \subfigure[$\Delta f$ vs. noise.]{
+        \subfloat[$\Delta f$ vs. noise.]{
             \includegraphics[width=0.28\linewidth]{images/compares/delta_f.pdf}
             \label{fig:delta_f}
             % \caption{Relative focal length error $\Delta f$ vs. noise level.}
         }
         \hfill
-        \subfigure[$\Delta c$ vs. noise.]{
+        \subfloat[$\Delta c$ vs. noise.]{
             \includegraphics[width=0.28\linewidth]{images/compares/delta_uv.pdf}
             \label{fig:delta_uv}
             % \caption{Center offset error $\Delta c$ vs. noise level.}
         }
         \hfill
-        \subfigure[$\Delta s$ vs. noise.]{
+        \subfloat[$\Delta s$ vs. noise.]{
             \includegraphics[width=0.28\linewidth]{images/compares/delta_skew.pdf}
             \label{fig:delta_skew}
             % \caption{Skew error $\Delta \alpha$ vs. noise level. A significant relative value error is present but the method shows resiliance w.r.t noise. }
         }
     
 
-        \subfigure[$\Delta \RR$ (degrees) vs. noise.]{
+        \subfloat[$\Delta \RR$ (degrees) vs. noise.]{
             \includegraphics[width=0.28\linewidth]{images/compares/delta_r.pdf}
             \label{fig:delta_r}
             % \caption{Rotational error $\Delta R$ (degrees) vs. noise level.}
         }
         \hfill
-        \subfigure[$\Delta \mathbf{t}$ vs. noise level.]{
+        \subfloat[$\Delta \mathbf{t}$ vs. noise level.]{
             \includegraphics[width=0.28\linewidth]{images/compares/delta_t.pdf}
             \label{fig:delta_t}
             % \caption{Translation error $\Delta t$ vs. noise level.}
         }
         \hfill
-        \subfigure[$\%$ of successful trials.]{
+        \subfloat[$\%$ of successful trials.]{
             \includegraphics[width=0.28\linewidth]{images/compares/success_rate.pdf}
             \label{fig:success_rate}
             % \caption{Percentage of trials in which the method successfully found a solution.}

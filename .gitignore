@@ -46,3 +46,4 @@ assets/**/colmap/**/*.blend1
 assets/**/frames/*
 assets/**/*.obj
 assets/**/*.mtl
+assets/article/build

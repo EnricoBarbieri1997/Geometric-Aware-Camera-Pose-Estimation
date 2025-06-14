@@ -1,0 +1,102 @@
+\begin{thebibliography}{10}
+
+\bibitem{Bartoli2005}
+Adrien Bartoli and Peter Sturm.
+\newblock Structure-from-motion using lines: Representation, triangulation, and
+  bundle adjustment.
+\newblock {\em Computer Vision and Image Understanding}, 100(3):416--441, 2005.
+
+\bibitem{HomotopyContinuationJL}
+Paul Breiding and Sascha Timme.
+\newblock Homotopycontinuation.jl: A package for homotopy continuation in
+  julia.
+\newblock In James~H. Davenport, Manuel Kauers, George Labahn, and Josef Urban,
+  editors, {\em Mathematical Software -- ICMS 2018}, pages 458--465, Cham,
+  2018. Springer International Publishing.
+
+\bibitem{CalibrationFreePlacedRightCylinder}
+Dongliang Ding, Junhua Sun, and Yanjun Zhang.
+\newblock Camera calibration based on free-placed single right cylindrical
+  target.
+\newblock {\em IEEE Sensors Journal}, 24(2):1803--1811, 2024.
+
+\bibitem{gummeson22pose}
+A.~Gummeson and M.~Oskarsson.
+\newblock Camera pose estimation using cylindrical silhouettes.
+\newblock In {\em ICPR}, 2022.
+
+\bibitem{gummeson24relative}
+A.~Gummeson and M.~Oskarsson.
+\newblock Relative pose from cylinder silhouettes.
+\newblock In {\em ACCV}, 2024.
+
+\bibitem{gummeson2019relative}
+Jacob Gummeson, Viktor Larsson, Zuzana Kukelova, and Fredrik Kahl.
+\newblock Relative pose estimation from two views of a cylinder.
+\newblock In {\em Proceedings of the IEEE/CVF Conference on Computer Vision and
+  Pattern Recognition}, pages 11634--11643, 2019.
+
+\bibitem{guo23vanishing}
+Kai Guo and et~al.
+\newblock Pose and focal length estimation using two vanishing points with
+  known camera center.
+\newblock {\em MDPI Sensors}, 2023.
+
+\bibitem{hartley93lines}
+Richard Hartley.
+\newblock Camera calibration using line correspondences.
+\newblock In {\em CVPR}, 1993.
+
+\bibitem{larsson20parallelcylinders}
+Viktor Larsson, Zuzana Kukelova, and Carl Olsson.
+\newblock The multi-view geometry of parallel cylinders.
+\newblock {\em International Journal of Computer Vision}, 128(6):1670--1687,
+  2020.
+
+\bibitem{may2004parametrizedhomotopytheory}
+J.~P. May and J.~Sigurdsson.
+\newblock Parametrized homotopy theory, 2004.
+
+\bibitem{schoenberger2016sfm}
+Johannes~Lutz Sch\"{o}nberger and Jan-Michael Frahm.
+\newblock Structure-from-motion revisited.
+\newblock In {\em Conference on Computer Vision and Pattern Recognition
+  (CVPR)}, 2016.
+
+\bibitem{schoenberger2016mvs}
+Johannes~Lutz Sch\"{o}nberger, Enliang Zheng, Marc Pollefeys, and Jan-Michael
+  Frahm.
+\newblock Pixelwise view selection for unstructured multi-view stereo.
+\newblock In {\em European Conference on Computer Vision (ECCV)}, 2016.
+
+\bibitem{chsong24}
+Chaehyeon Song, Jaeho Shin, Myung-Hwan Jeon, Jongwoo Lim, and Ayoung Kim.
+\newblock Unbiased estimator for distorted conics in camera calibration.
+\newblock In {\em IEEE/CVF Conference on Computer Vision and Pattern
+  Recognition (CVPR)}, pages 373--381, June 2024.
+
+\bibitem{Sturm2004}
+Peter Sturm and Stephen~J. Maybank.
+\newblock On plane-based camera calibration: A general algorithm,
+  singularities, applications.
+\newblock In {\em CVPR}, pages 432--437, 2004.
+
+\bibitem{teramoto2002calibration}
+Hirohisa Teramoto and Gang Xu.
+\newblock Camera calibration by a single image of balls: From conics to the
+  absolute conic.
+\newblock In {\em Proceedings of the 5th Asian Conference on Computer Vision
+  (ACCV)}, pages 1--8, Melbourne, Australia, 2002.
+
+\bibitem{Vidal2013}
+Ren{\'e} Vidal, Stefano Soatto, Yi~Ma, and Shankar Sastry.
+\newblock Generalized principal component analysis (gpca).
+\newblock In {\em CVPR}, pages 136--143, 2003.
+
+\bibitem{Zhang2000}
+Zhengyou Zhang.
+\newblock A flexible new technique for camera calibration.
+\newblock {\em IEEE Transactions on Pattern Analysis and Machine Intelligence},
+  22(11):1330--1334, 2000.
+
+\end{thebibliography}
