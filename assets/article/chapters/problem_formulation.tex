@@ -1,9 +1,8 @@
 \section{Problem formulation}
 \label{sec:pf}
 
-
-We consider a 3D scene containing $M$ cylinders $\mathcal{C}_j$ in general position, each with known radius, position, and axis direction $\mathbf{w}_j$. A camera with unknown but fixed intrinsic matrix $\mathsf{K}$ captures $N$ images $\{I_1, \ldots, I_N\}$ of the scene. Each image $I_i$ is associated with an unknown camera matrix $\mathsf{P}_i = \mathsf{K}[\mathsf{R}_i \,|\, \mathbf{t}_i]$, where $\mathsf{R}_i$ and $\mathbf{t}_i$ denote the rotation and translation of the camera in view $i$.
-In each view $I_i$, each cylinder $\mathcal{C}_j$ projects onto a pair of \emph{contour lines}, denoted $l^h_{ij}$ with $h = 1, 2$ (see Figure~\ref{fig:problem_formulation} that displays one of the two silhouette lines of $\mathcal{C}_j$). These lines correspond to the visible contours of the cylindrical surface. Geometrically, each $l^h_{ij}$ arises from the intersection between the image plane and the planes $\Pi^h_{ij}$ that pass through the optical center of the camera $\mathsf{P}_i$ and are tangent to the surface of $\mathcal{C}_j$.
+We consider a 3D scene containing $M$ cylinders $\mathcal{C}_j$ in general position, each with known radius, position, and axis direction $\mathbf{w}_j$. A camera with unknown but fixed intrinsic matrix $\KK$ captures $N$ images $\{I_1, \ldots, I_N\}$ of the scene. Each image $I_i$ is associated with an unknown camera matrix $\PP_i = \KK[\RR_i \,|\, \mathbf{t}_i]$, where $\RR_i$ and $\mathbf{t}_i$ denote the rotation and translation of the camera in view $i$.
+In each view $I_i$, each cylinder $\mathcal{C}_j$ projects onto a pair of \emph{contour lines}, denoted $l^h_{ij}$ with $h = 1, 2$ (see Figure~\ref{fig:problem_formulation} that displays one of the two silhouette lines of $\mathcal{C}_j$). These lines correspond to the visible contours of the cylindrical surface. Geometrically, each $l^h_{ij}$ arises from the intersection between the image plane and the planes $\Pi^h_{ij}$ that pass through the optical center of the camera $\PP_i$ and are tangent to the surface of $\mathcal{C}_j$.
 
 \begin{figure}[htb]
     \centering
@@ -41,4 +40,4 @@ Given in input the parameters of the 3D cylinders $\{\mathcal{C}_j\}_{j=1}^M$ an
 \end{equation}
 that correspond to  the focal lengths $f_x, f_y$, the skew $s$, and the coordinates of the principal point $(c_x, c_y)$.
 Depending on the assumptions made on the intrinsic parameters, different variants of the problem can be considered. By introducing suitable linear constraints -- such as zero skew ($s = 0$), known aspect ratio ($f_x = \alpha f_y$), or a centered principal point -- the original set of five unknowns can be reduced.\\
-\textbf{2. Pose estimation:} estimate the extrinsic parameters, namely rotations $\mathsf{R}_i$ and translations $\mathbf{t}_i$, for each image $I_i$.
+\textbf{2. Pose estimation:} estimate the extrinsic parameters, namely rotations $\RR_i$ and translations $\mathbf{t}_i$, for each image $I_i$.

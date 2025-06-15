@@ -16,7 +16,7 @@ module CylindersBasedCameraResectioning
     using HomotopyContinuation, Observables, Random, Serialization
 
     function main()
-        intrinsic_configuration = IntrinsicParametersConfigurations.fₓ_fᵧ_cₓ_cᵧ
+        intrinsic_configuration = IntrinsicParametersConfigurations.fₓ_fᵧ_skew_cₓ_cᵧ
         scene, problems = create_scene_instances_and_problems(;
             number_of_instances=2,
             number_of_cylinders=3,
@@ -30,6 +30,8 @@ module CylindersBasedCameraResectioning
         rotation_intrinsic_system, parameters = intrinsic_rotation_system_setup(
             problems
         )
+        display(rotation_intrinsic_system)
+        display(parameters)
 
         start_solutions = nothing
         start_parameters = nothing

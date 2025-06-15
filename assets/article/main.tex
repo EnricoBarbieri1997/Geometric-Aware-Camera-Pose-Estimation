@@ -95,6 +95,10 @@
 \newcommand{\RR}{\mathsf{R}}
 \newcommand{\CC}{\mathsf{C}}
 \newcommand{\II}{\mathsf{I}}
+\newcommand{\QQ}{\mathsf{Q}}
+\newcommand{\PP}{\mathsf{P}}
+
+\newcommand{\var}[1]{\mathsf{#1}}
 
 \newcommand{\rem}[3]{%
     {\colorbox{#2}{\sffamily\scriptsize\bfseries\textcolor{white}{#1}}}
@@ -136,13 +140,10 @@
 \newcommand{\firstcoadvisor}{Giacomo Boracchi} % insert if any otherwise comment
 % \newcommand{\secondcoadvisor}{Name Surname} % insert if any otherwise comment
 % -> author ID
-\newcommand{\ID}{Student ID}
+\newcommand{\ID}{10800447}
 % -> academic year
-\newcommand{\YEAR}{20XX-20XX}
+\newcommand{\YEAR}{2020-2025}
 \input{abstract.tex}
-
-% -> key-words (only in English)
-\newcommand{\keywords}{here, the keywords, of your thesis}
 
 %-------------------------------------------------------------------------
 %	BEGIN OF YOUR DOCUMENT
@@ -186,13 +187,8 @@
 \bibliography{bibliography.bib}
 
 \appendix
-\section{Appendix A}
-If you need to include an appendix to support the research in your thesis, you can place it at the end of the manuscript.
-An appendix contains supplementary material (figures, tables, data, codes, mathematical proofs, surveys, \dots)
-which supplement the main results contained in the previous sections.
 
-\section{Appendix B}
-It may be necessary to include another appendix to better organize the presentation of supplementary material.
+\input{chapters/appendix_a}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%     ABSTRACT IN ITALIAN LANGUAGE AND ACKNOWLEDGMENTS     %%
