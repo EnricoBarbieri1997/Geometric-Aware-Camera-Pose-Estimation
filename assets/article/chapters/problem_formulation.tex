@@ -1,36 +1,50 @@
 \section{Problem formulation}
-\label{sec:pf}
+\label{sec:problem_formulation}
 
 We consider a 3D scene containing $M$ cylinders $\mathcal{C}_j$ in general position, each with known radius, position, and axis direction $\mathbf{w}_j$. A camera with unknown but fixed intrinsic matrix $\KK$ captures $N$ images $\{I_1, \ldots, I_N\}$ of the scene. Each image $I_i$ is associated with an unknown camera matrix $\PP_i = \KK[\RR_i \,|\, \mathbf{t}_i]$, where $\RR_i$ and $\mathbf{t}_i$ denote the rotation and translation of the camera in view $i$.
 In each view $I_i$, each cylinder $\mathcal{C}_j$ projects onto a pair of \emph{contour lines}, denoted $l^h_{ij}$ with $h = 1, 2$ (see Figure~\ref{fig:problem_formulation} that displays one of the two silhouette lines of $\mathcal{C}_j$). These lines correspond to the visible contours of the cylindrical surface. Geometrically, each $l^h_{ij}$ arises from the intersection between the image plane and the planes $\Pi^h_{ij}$ that pass through the optical center of the camera $\PP_i$ and are tangent to the surface of $\mathcal{C}_j$.
 
 \begin{figure}[htb]
     \centering
-        \begin{tikzpicture}[scale=0.8, every node/.style={font=\large, transform shape}]
-          % Include the image
-          \node[anchor=south west,inner sep=0] (img) at (0,0) {\includegraphics[width=0.5\textwidth]{images/backprojection.png}};
-          \begin{scope}[x={(img.south east)},y={(img.north west)}]
-        
-            % Camera center (left)
-            \node[align=center, below] at (0.05,0.2) {{Camera}\\center};
-        
-            % Image plane
-            \node[align=center, below] at (0.55,0.1) {$I_i$};
-        
-            % Intersection line
-            \node[align=center, below] at (0.36,0.47) {$l^h_{ij}$};
-        
-            % Plane
-            \node[align=center, below] at (0.68,0.6) {$\Pi^h_{ij}$};
-        
-            % Cylinder
-            \node[align=center, below] at (1.02,0.8) {$\mathcal{C}_j$};
-        
-          \end{scope}
-        \end{tikzpicture}
-        \caption{The geometric constraints between a cylinder $\mathcal{C}_j$ and one of its  silhouette lines $l^h_{ij}$. The backprojection of $l^h_{ij}$ is a plane $\Pi^h_{ij}$ tangent to  $C_{ij}$ \eqref{eq:dual_quadric_constraint} and passing to the point at infinity of the cylinder\eqref{eq:expanded_vertex_constraint}, \emph{i.e.}, parallel to its axis.}
-        \label{fig:problem_formulation}
-    
+    \subfloat[The geometric constraints between a cylinder $\mathcal{C}_j$ and one of its  silhouette lines $l^h_{ij}$. The backprojection of $l^h_{ij}$ is a plane $\Pi^h_{ij}$ tangent to  $C_{ij}$ \eqref{eq:dual_quadric_constraint} and passing to the point at infinity of the cylinder\eqref{eq:expanded_vertex_constraint}, \emph{i.e.}, parallel to its axis.]{
+      \begin{tikzpicture}[scale=0.9, every node/.style={font=\large, transform shape}]
+        % Include the image
+        \node[anchor=south west,inner sep=0] (img) at (0,0) {\includegraphics[width=0.5\textwidth]{images/backprojection.png}};
+        \begin{scope}[x={(img.south east)},y={(img.north west)}]
+          % Camera center (left)
+          \node[align=center, below] at (0.05,0.2) {{Camera}\\center};
+      
+          % Image plane
+          \node[align=center, below] at (0.55,0.1) {$I_i$};
+      
+          % Intersection line
+          \node[align=center, below] at (0.36,0.47) {$l^h_{ij}$};
+      
+          % Plane
+          \node[align=center, below] at (0.68,0.6) {$\Pi^h_{ij}$};
+      
+          % Cylinder
+          \node[align=center, below] at (1.02,0.8) {$\mathcal{C}_j$};
+
+        \end{scope}
+      \end{tikzpicture}
+      \label{fig:problem_formulation}
+    }
+    \hspace{1cm}
+    \subfloat[
+      An example of a plane $\Pi$ tangent to a cone $\mathcal{C}$, which does not define the quadric surface $\QQ^*$
+    ]{
+      \begin{tikzpicture}[scale=0.9, every node/.style={font=\large, transform shape}]
+        % Include the image
+        \node[anchor=south west,inner sep=0] (img) at (0,0) {\includegraphics[width=0.44\textwidth]{images/cone_planes}};
+        \begin{scope}[x={(img.south east)},y={(img.north west)}]
+          \node at (0.20,0.47) {$\Pi$};
+          \node at (0.78,0.28) {$\QQ^*$};
+          \node at (0.58,0.55) {$\mathbf{V}$};
+        \end{scope}
+        \label{fig:cone_plane_singlepoint}
+      \end{tikzpicture}
+    }
 \end{figure}
 
 Given in input the parameters of the 3D cylinders $\{\mathcal{C}_j\}_{j=1}^M$ and a collection of silhouette lines $\{l^h_{ij}\}$ observed in the images, our aim is  twofold:\\

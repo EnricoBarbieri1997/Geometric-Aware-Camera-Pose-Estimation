@@ -1,3 +1,15 @@
 {
-	"maven.view": "flat"
+	"latex-workshop.latex.toolchain": [
+		{
+			"command": "latexmk",
+			"args": [
+				"-pdf",
+				"-interaction=nonstopmode",
+				"-synctex=1",
+				"%DOC%"
+			]
+		}
+	],
+	"latex-workshop.latex.autoBuild.run": "onSave",
+	"latex-workshop.view.pdf.viewer": "tab"
 }

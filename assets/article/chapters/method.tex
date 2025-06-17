@@ -1,4 +1,5 @@
 \section{Method}
+\label{sec:method}
     % \begin{figure*}[htb]
     %     \centering
     %     \includegraphics[width=0.8\linewidth]{images/homotopy.png}
@@ -91,6 +92,7 @@ Each solution is substituted in~\eqref{eq:dual_quadric_constraint}. Since the re
 Convergence to the real solution, while not violating the system constraints, is not always garaunteed. For this reason if the process for a starting \emph{synthetic} system $\mathcal{S}_0$ is halted prematurely by the homotopy package the process is repeated for a new system $\mathcal{S}_0$ by drawing a new set of \emph{synthetic} cameras.
 
 \subsection{Generating starting systems}
+\label{sec:iterating_procedure}
 Given equations degree $d$ in $n$ unknowns, Homotopy continuation is garaunteed to find a solution if the number of paths explored $p$ satysfies $p > n^d$.
 The actual number of minimum paths can be lower depending on the problem at hand, and is equal to the number of possible imaginary solutions of the system.
 Empirically a sufficiently large number of starting solutions can be found by running a \emph{total degree homotopy} on the system and take note of the number of path explored. 
@@ -126,6 +128,7 @@ To enrich the solution pool and increase the success rate of our homotopy we run
 Each time the homotopy is halted by the framework we initialize $\mathbf{t}_0^{(0)} = \mathbf{t}_0^{(1)}$ and repeat the procedure. This garauntees that new iterations will be evenly spaced with respect to most of the previous ones.
 
 \subsection{Handling spurious solutions}
+\label{sec:postprocessing}
 Homotopy continuation methods do not allow to force inequality constraints, and as a result, the solver may converge to solutions that are not physically valid, namely a negative focal length or negative skew. To address this issue, we introduce a novel correction step that exploits the fact that the calibration matrix $\KK$ and the rotation matrix $\RR$ appear as a product in~\eqref{eq:expanded_vertex_constraint}. Specifically, if $(\KK, \RR)$ is a solution to~\eqref{eq:expanded_vertex_constraint}, then for any invertible matrix $\CC$, the pair $(\KK\CC, \CC^{-1}\RR)$ is also a valid solution, since:
 \begin{equation}
     l^{h\top}_{ij} \KK \CC \CC^{-1}\RR \mathbf{w}_j = l^{h\top}_{ij} \KK \RR \mathbf{w}_j=0.

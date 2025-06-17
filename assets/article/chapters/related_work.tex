@@ -1,4 +1,5 @@
 \section{Related work}
+\label{sec:related}
 
 Several methods have addressed the estimation of camera intrinsics and pose from geometric primitives such as lines and conics. \emph{Line-based approaches} include early works as~\cite{hartley93lines}, which jointly estimate $\KK$ and 3D structure from multi-view line correspondences. Interestingly, Guo et al.~\cite{guo23vanishing} simplify the problem by assuming a known camera center and using two vanishing points to estimate the rotation $\RR$ and focal length $f$. While the input of their method is similar to our, as the two  3D vanishing points can be identified with the two cylinder axis direction, their approach does not recover the translation, $\mathbf{t}$ nor the full set of intrinsic parameters. \emph{Conic-based methods} exploit the relation between conic sections -- typically circles -- on  planar calibration targets, and their projections on image planes  to improve the accuracy and robustness of corner-based calibration procedure (\emph{e.g.},\cite{chsong24}).
 

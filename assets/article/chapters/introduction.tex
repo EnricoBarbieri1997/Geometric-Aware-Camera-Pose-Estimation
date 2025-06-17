@@ -16,15 +16,30 @@ While calibration and pose estimation are traditionally treated as separate prob
 
 The core idea, illustrated in Figure~\ref{fig:homotopy}, is to leverage the known 3D geometry to simplify the estimation process. The geometric constraints between the known cylinders and the unknown camera parameters form a system of nonlinear equations $\mathcal{S}_1(\mathbf{x}, \mathcal{L}_1)$. Instead of directly solving this complex system $\mathcal{S}_1$ with traditional algebraic methods like Gröbner basis or resultants, which are prone to numerical instability and scalability issues, we take a different approach. We generate a, \emph{virtual system} $\mathcal{S}_0(\mathbf{x}, \mathcal{L}_0)$ designed around the very same 3D scene and a configuration of synthetic cameras  with random but known parameters. By design, we know the solution $\mathbf{x}(0)$ for $\mathcal{S}_0$, since it corresponds to the parameters we used to generate the synthetic cameras. Then, we continuously track the known solution $\mathbf{x}(0)$ as we transform the problem towards the original, system $\mathcal{S}_1$, using a tailored homotopy continuation parametrized in terms of silhouette lines.  At the end, we obtain the desired calibration and pose $\mathbf{x}(1)$.
 By using this approach, we influence the trajectory of the solutions, guiding the solver toward more plausible configurations.
-We couple our solver with a dedicated post-processing step designed to discard spurious solutions that do not correspond to physically valid camera configurations.
+We couple our solver with dedicated initialization, and post-processing steps.
 Compared to existing methods, our approach is not only more general -- being capable of  estimating both camera calibration and pose, unlike alternatives that address only one of the two task -- but also achieves superior accuracy and improved robustness to noise, as demonstrated by our experiments.
 
-All in all, our contributions can be summarized as follows:
+% All in all, our contributions can be summarized as follows:
+% \begin{itemize}[noitemsep]
+%     \item We present a \emph{unified solution} for calibration and pose estimation, unlike existing approaches that typically address these two problems separately.
+%     \item We conceive a \emph{novel solver},  that, exploiting a silhouette-based parametrization,   simplifies the original problem into a one with a known solution, which is then lifted via homotopic continuation to the original one.
+%     \item We introduce a \emph{dedicated initialization} step that leverages the known 3D geometry of cylinders to improve convergence and robustness.
+%     \item We propose a geometric \emph{correction step} to deal with unavoidable spurious solutions.
+%     \item Our method is  \emph{more accurate} and \emph{robust} to noise compared to alternative solutions.
+% \end{itemize}
+
+In this paper we will go through:
 \begin{itemize}[noitemsep]
-    \item We present a \emph{unified solution} for calibration and pose estimation, unlike existing approaches that typically address these two problems separately.
-    \item We conceive a \emph{novel solver},  that, exploiting a silhouette-based parametrization,   simplifies the original problem into a one with a known solution, which is then lifted via homotopic continuation to the original one.
-    \item We propose a geometric \emph{correction step} to deal with unavoidable spurious solutions.
-    \item Our method is  \emph{more accurate} and \emph{robust} to noise compared to alternative solutions.
+    \item Section~\ref{sec:related} reviews related work on camera calibration and pose estimation from advanced geometric primitives, in particular cylindrical objects.
+    \item Section~\ref{sec:problem_formulation} gives a high detail formulation of the problem: input, outputs, and constraints.
+    \item Section~\ref{sec:constraints} summarize relevant quadrics theory: dual quadrics, null space, tangency.
+    \item Section~\ref{sec:homotopy} summarize relevant homotopy continuation theory.
+    \item Section~\ref{sec:method} presents our homotopy-based solver for the problem.
+    \item Section~\ref{sec:iterating_procedure} describe best practices on how to initialize and iterate the solver.
+    \item Section~\ref{sec:postprocessing} describes our post-processing step to correct spurious solutions.
+    \item Section~\ref{sec:experiments} evaluates our method on synthetic and real-world datasets, demonstrating its effectiveness and robustness.
+    \item Section~\ref{sec:conclusions} concludes the paper and discusses future work.
+    \item Appendix~\ref{sec:appendix} provides additional details on the implementation of the different algorithms.
 \end{itemize}
 
 %Since homotopy solvers could not directly enforce inequality constraints, it may happen that during the tracking of the solutions some retrieved parameters violates physical constraints. Thus we  Our post-processing step identifies and corrects spurious solutions, improving the physical validity of the final camera parameters. 

@@ -1,0 +1,13 @@
+{
+    "name": "LaTeX Dev Container",
+    "build": {
+        "dockerfile": "Dockerfile"
+    },
+    "settings": {
+        "terminal.integrated.shell.linux": "/bin/bash"
+    },
+    "extensions": [
+        "James-Yu.latex-workshop"
+    ],
+    "postCreateCommand": "latexmk -v"
+}
