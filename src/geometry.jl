@@ -1,5 +1,5 @@
 module Geometry
-	export Plane, Line, Point, Circle, TangentLineNotFound, homogeneous_line_from_points, issame_line, rotation_between_lines, cylinder_rotation_from_axis, homogeneous_to_line, line_to_homogenous, homogeneous_line_intercept, homogeneous_anglebetween, project_point_into_line, plane_basis, project_point_into_plane, get_tangentpoints_circle_point, get_cylinder_contours
+	export Plane, Line, Point, Circle, TangentLineNotFound, homogeneous_line_from_points, issame_line, rotation_between_lines, cylinder_rotation_from_axis, homogeneous_to_line, line_to_homogenous, homogeneous_line_intercept, homogeneous_anglebetween, project_point_into_line, plane_basis, project_point_into_plane, get_tangentpoints_circle_point, get_cylinder_contours, get_cylinder_contours_raw
 
 	using ..Utils
 	using ..Space: position_rotation
@@ -224,5 +224,102 @@ module Geometry
 		contour₂ = cross(projected_tangentpoint₂, projected_tangentpoint₂ + projected_cylinderaxis)
 
 		return (contour₁, contour₂)
+	end
+
+	function linesfromconic(cc, vp)
+    # Convert 3x3 conic matrix to 6-vector form if needed
+    if length(cc) == 9
+        cc = cc[[1, 2, 3, 5, 6, 9]]
+    end
+
+    nc = size(vp, 2)
+    if size(vp, 1) == 2
+        vp = vcat(vp, ones(eltype(vp), 1, nc))
+    end
+
+    # Unpack conic coefficients
+    c1, c2, c3, c4, c5, c6 = eachrow(reshape(cc, :, nc))
+
+    # Unpack vanishing point coordinates
+    vpx = vp[1, :]
+    vpy = vp[2, :]
+    vpz = vp[3, :]
+
+    # Compute discriminant and line directions
+    C2 = c4 .* vpx.^2 .- 2 .* c2 .* vpx .* vpy .+ c1 .* vpy.^2
+    C1 = 2 .* c3 .* vpy.^2 .- 2 .* c5 .* vpx .* vpy .+ 2 .* c4 .* vpx .* vpz .- 2 .* c2 .* vpy .* vpz
+    C0 = c6 .* vpy.^2 .- 2 .* c5 .* vpy .* vpz .+ c4 .* vpz.^2
+
+    discrim = sqrt.(C1.^2 .- 4 .* C0 .* C2)
+
+    lx1 = .-(C1 .- discrim) ./ (2 .* C2)
+    lx2 = .-(C1 .+ discrim) ./ (2 .* C2)
+
+    ly1 = .-(vpz .+ lx1 .* vpx) ./ vpy
+    ly2 = .-(vpz .+ lx2 .* vpx) ./ vpy
+
+    ll1 = vcat(lx1', ly1', ones(eltype(lx1), 1, nc))
+    ll2 = vcat(lx2', ly2', ones(eltype(lx2), 1, nc))
+
+    return ll1, ll2
+	end
+
+
+	function get_cylinder_contours_raw(CC, VP, P)
+    # If CC is a 4x4 matrix, convert it to vectorized form
+    if length(CC) == 16
+        CC = CC[[1, 2, 3, 4, 6, 7, 8, 11, 12, 16]]
+    end
+
+    nc = size(VP, 2)
+    if size(VP, 1) == 3
+        VP = vcat(VP, zeros(1, nc))
+    end
+
+    vp = P * VP
+
+    # Unpack the 10 elements of the quadric matrix
+    C1, C2, C3, C4, C5, C6, C7, C8, C9, C10 = eachrow(reshape(CC, :, nc))
+
+    # Unpack projection matrix elements
+    p = vec(P)
+    p1, p2, p3, p4, p5, p6, p7, p8, p9, p10, p11, p12 = p
+
+    cc = zeros(eltype(CC), 6, nc)
+
+    for i in 1:nc
+        cc[1, i] = p1*(C1[i]*p1 + C2[i]*p4 + C3[i]*p7 + C4[i]*p10) +
+                   p4*(C2[i]*p1 + C5[i]*p4 + C6[i]*p7 + C7[i]*p10) +
+                   p7*(C3[i]*p1 + C6[i]*p4 + C8[i]*p7 + C9[i]*p10) +
+                   p10*(C4[i]*p1 + C7[i]*p4 + C9[i]*p7 + C10[i]*p10)
+
+        cc[2, i] = p1*(C1[i]*p2 + C2[i]*p5 + C3[i]*p8 + C4[i]*p11) +
+                   p4*(C2[i]*p2 + C5[i]*p5 + C6[i]*p8 + C7[i]*p11) +
+                   p7*(C3[i]*p2 + C6[i]*p5 + C8[i]*p8 + C9[i]*p11) +
+                   p10*(C4[i]*p2 + C7[i]*p5 + C9[i]*p8 + C10[i]*p11)
+
+        cc[3, i] = p1*(C1[i]*p3 + C2[i]*p6 + C3[i]*p9 + C4[i]*p12) +
+                   p4*(C2[i]*p3 + C5[i]*p6 + C6[i]*p9 + C7[i]*p12) +
+                   p7*(C3[i]*p3 + C6[i]*p6 + C8[i]*p9 + C9[i]*p12) +
+                   p10*(C4[i]*p3 + C7[i]*p6 + C9[i]*p9 + C10[i]*p12)
+
+        cc[4, i] = p2*(C1[i]*p2 + C2[i]*p5 + C3[i]*p8 + C4[i]*p11) +
+                   p5*(C2[i]*p2 + C5[i]*p5 + C6[i]*p8 + C7[i]*p11) +
+                   p8*(C3[i]*p2 + C6[i]*p5 + C8[i]*p8 + C9[i]*p11) +
+                   p11*(C4[i]*p2 + C7[i]*p5 + C9[i]*p8 + C10[i]*p11)
+
+        cc[5, i] = p2*(C1[i]*p3 + C2[i]*p6 + C3[i]*p9 + C4[i]*p12) +
+                   p5*(C2[i]*p3 + C5[i]*p6 + C6[i]*p9 + C7[i]*p12) +
+                   p8*(C3[i]*p3 + C6[i]*p6 + C8[i]*p9 + C9[i]*p12) +
+                   p11*(C4[i]*p3 + C7[i]*p6 + C9[i]*p9 + C10[i]*p12)
+
+        cc[6, i] = p3*(C1[i]*p3 + C2[i]*p6 + C3[i]*p9 + C4[i]*p12) +
+                   p6*(C2[i]*p3 + C5[i]*p6 + C6[i]*p9 + C7[i]*p12) +
+                   p9*(C3[i]*p3 + C6[i]*p6 + C8[i]*p9 + C9[i]*p12) +
+                   p12*(C4[i]*p3 + C7[i]*p6 + C9[i]*p9 + C10[i]*p12)
+    end
+
+    ll1, ll2 = linesfromconic(cc, vp)
+    return ll1, ll2
 	end
 end

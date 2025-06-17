@@ -101,7 +101,7 @@ We will now go through the different steps we took to optimize the number of tri
 The algorithm is summarized in Algorithm~\ref{alg:solutions_generation} and can be visualized in Figure~\ref{fig:homotopy}.
 
 \paragraph{Intrinsics initialization}
-If avaible a priory knowledge about the scene can be leveraged, \eg{we know the model of the camera and it's specifications but want to account for manufacturing flactuations}. If no prior about focal length is known, assuming a square focal length of value $2000$ is around the true value for a smartphone camera. Principal point is initialized at $c_x = IMAGE_WIDTH / 2, \; cy = IMAGE_HEIGHT / 2$. The skew parameter is set to a small value different from $0$.
+If avaible a priory knowledge about the scene can be leveraged, \eg{we know the model of the camera and it's specifications but want to account for manufacturing flactuations}. If no prior about focal length is known, assuming a square focal length of value $2000$ is around the true value for a smartphone camera. Principal point is initialized at $c_x = IMAGE\_WIDTH / 2, \; cy = IMAGE\_HEIGHT / 2$. The skew parameter is set to a small value different from $0$.
 
 \paragraph{Poses initialization}
 The first camera position $\mathbf{t}_0^{(1)}$ is randomly drawn. For each subsequent camera a random offset unit vector $\mathbf{f}_i$, and a distance $d_i = N(|\mathbf{t}_0^{(0)}|, \frac{|\mathbf{t}_0^{(0)}|}{v})$ where $v$ can be tweaked depending on the apparent camera movement between shots. Closer shots higher values of $v$.

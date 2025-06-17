@@ -1,4 +1,4 @@
-\section{Appendix A:\@Algorithms}
+\section{Appendix A: Algorithms}
 
 % Algorithm: Homotopy Path Tracking (Predictor-Corrector Loop)
 \begin{algorithm}[H]
@@ -60,7 +60,7 @@
   \label{alg:get_cylinder_contours}
 \begin{algorithmic}[1]
 \REQUIRE Camera center $\mathbf{t}$, camera matrix $\PP$, cylinder center $\mathbf{c}$, axis $axis$, radius $r$. 
-\STATE $\var{circlecenter} = \var{project\_point\_into\_line}(\mathbf{t}, \var{Line}(\mathbf{c}, \mathsf{axis}))$
+\STATE $\var{circlecenter} = \var{project\_point\_into\_line}(\mathbf{t}, \var{Line}(\mathbf{c}, \var{axis}))$
 \STATE $\var{tangentpoint_1}, \var{tangentpoint_2} = \var{get\_tangentpoints\_circle\_point}(
 	\var{Circle}(\var{circlecenter}, r, \var{axis}),
 	\mathbf{t}
@@ -80,20 +80,20 @@
 \label{alg:solutions_generation}
 \begin{algorithmic}[1]
 \REQUIRE Scene geometry (cylinders), observed silhouette lines $\mathcal{L}_1$, number of cameras $N$
-\STATE Initialize intrinsics $\KK_0$ (using prior knowledge or default values)
-\STATE best_solution = \null
-\STATE best_solution_error = $\infty$
-\STATE previous_initialization = \null
+\STATE Initialize intrinsics $\mathbf{K}_0$ (using prior knowledge or default values)
+\STATE $\var{best\_solution} \gets \var{null}$
+\STATE $\var{best\_solution\_error} \gets \infty$
+\STATE $\var{previous\_initialization} \gets \var{null}$
 \FOR{$z = 1$ to $Z$} \COMMENT{Repeat for a maximum of $Z$ iterations}
-  \IF {previous_initialization is \null}
+  \IF{$\var{previous\_initialization}$ is $\var{null}$}
       \STATE Initialize first camera position $\mathbf{t}_0^{(1)}$ randomly
   \ELSE
-      \STATE $\mathbf{t}_0^{(1)} = \var{previous_initialization}$
+      \STATE $\mathbf{t}_0^{(1)} = \var{previous\_initialization}$
   \ENDIF
   \FOR{$i = 2$ to $N$}
       \STATE Draw random direction $\mathbf{f}_i$ and distance $d_i$
       \STATE $\mathbf{t}_0^{(i)} = \mathbf{t}_0^{(i-1)} + d_i \mathbf{f}_i$
-      \STATE Set rotation $\RR_0^{(i)}$ to look at random point $\mathbf{o}$ arouund world center
+      \STATE Set rotation $\mathbf{R}_0^{(i)}$ to look at random point $\mathbf{o}$ around world center
   \ENDFOR
   \FOR{each camera $i$}
       \FOR{each cylinder $C_j$}
@@ -105,20 +105,20 @@
   \FOR{each solution $\mathbf{x}_0^{(w)}$ of $\mathcal{S}_0$}
       \STATE Track $\mathbf{x}_0^{(w)}$ through the homotopy $\mathcal{S}_t(\mathbf{x}(t), T_t\mathcal{L}_0)$ from $t=0$ to $t=1$
       \IF{homotopy converges to valid solution $\mathbf{x}_1$}
-          \STATE Extract $\KK_1$ from $\mathbf{x}_1$
+          \STATE Extract $\mathbf{K}_1$ from $\mathbf{x}_1$
           \FOR{each camera $i$}
-              \STATE Extract $\RR_1^{(i)}$ from $\mathbf{x}_1$
+              \STATE Extract $\mathbf{R}_1^{(i)}$ from $\mathbf{x}_1$
               \STATE Compute camera position $\mathbf{t}_1^{(i)}$ through a \emph{total degree homotopy} using $\mathcal{L}_1$
           \ENDFOR
-          \IF {reprojection error of $\mathbf{x}_1$ is lower than best_solution_error}
-              \STATE best_solution = $\mathbf{x}_1$
-              \STATE best_solution_error = reprojection error of $\mathbf{x}_1$
+          \IF{reprojection error of $\mathbf{x}_1$ is lower than $\var{best\_solution\_error}$}
+              \STATE $\var{best\_solution} \gets \mathbf{x}_1$
+              \STATE $\var{best\_solution\_error} \gets$ reprojection error of $\mathbf{x}_1$
           \ENDIF
       \ENDIF
   \ENDFOR
-  \IF best_solution_error < threshold
-      \RETURN best_solution
+  \IF{$\var{best\_solution\_error} < \var{threshold}$}
+      \RETURN $\var{best\_solution}$
   \ENDIF
-\ENDWHILE
+\ENDFOR
 \end{algorithmic}
 \end{algorithm}

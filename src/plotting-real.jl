@@ -2,7 +2,7 @@ using ..CylindersBasedCameraResectioning: IMAGE_WIDTH, IMAGE_HEIGHT
 
 using ..Space: RotRad, position_rotation, transformation as create_transform_matrix
 using ..Cylinder: CylinderProperties
-using ..Geometry: Line, Plane, plane_basis, get_cylinder_contours
+using ..Geometry: Line, Plane, plane_basis, get_cylinder_contours, get_cylinder_contours_raw
 using ..Camera: CameraProperties
 
 using Reexport
@@ -300,7 +300,7 @@ function plot_cylinders_contours(contours::Vector{Vector{Line}}; linestyle = :so
     end
 end
 
-function plot_2dcylinders(conic_contours; linestyle = :solid, alpha = 1, axindex = 1)
+function plot_2dcylinders(conic_contours; linestyle = :solid, alpha = 1, axindex = 1, fake = false)
     y = function (x, l) return (-(l[1] * x + l[3]) / l[2]) end
     for i in 1:(size(conic_contours)[1])
         for j in 1:(size(conic_contours)[2])
@@ -313,6 +313,9 @@ function plot_2dcylinders(conic_contours; linestyle = :solid, alpha = 1, axindex
                 y1 = function (x) return y(x, line) end
                 xs = 0:IMAGE_WIDTH:IMAGE_WIDTH
                 ys1 = y1.(xs)
+                if fake
+                    xs = xs .- 80
+                end
                 lines!(ax2_array[axindex], xs, -ys1, color = (colors[i], alpha), linestyle=linestyle, linewidth=4)
             end
         end
@@ -326,12 +329,12 @@ function plot_image_background(img; axindex = 1)
     )
 end
 
-function save_2d_figures(path, scene, problems; scene_file_path)
+function save_2d_figures(path, scene, problems; scene_file_path, raw_3d = false)
     number_of_cylinders = size(scene.cylinders)[1]
     scene_file = open(scene_file_path, "r") do io
         JSON.parse(io)
     end
-    for i in 1:2
+    for i in 1:length(scene.instances)
         instance = scene.instances[i]
         problem = problems[i]
 
@@ -365,13 +368,22 @@ function save_2d_figures(path, scene, problems; scene_file_path)
 
         reconstructued_contours = Array{Float64}(undef, number_of_cylinders, 2, 3)
         for i in 1:number_of_cylinders
-                lines = get_cylinder_contours(
-                        scene.cylinders[i],
-                        problem.camera
+            lines = Matrix{Float64}(undef, 2, 3)
+            if (raw_3d)
+                lines = get_cylinder_contours_raw(
+                    scene.cylinders[i].dual_matrix,
+                    scene.cylinders[i].singular_point,
+                    problem.camera.matrix
                 )
-                for (j, line) in enumerate(lines)
-                        reconstructued_contours[i, j, :] = line
-                end
+            else
+                lines = get_cylinder_contours(
+                    scene.cylinders[i],
+                    problem.camera
+                )
+            end
+            for (j, line) in enumerate(lines)
+                reconstructued_contours[i, j, :] = line
+            end
         end
         plot_2dcylinders(reconstructued_contours, linestyle=:dash; axindex)
 

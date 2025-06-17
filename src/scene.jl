@@ -1,7 +1,7 @@
 module Scene
 
 	using ..CylindersBasedCameraResectioning: ASSERTS_ENABLED, IMAGE_HEIGHT, IMAGE_WIDTH
-	using ..Geometry: Line, cylinder_rotation_from_axis, homogeneous_line_from_points, homogeneous_to_line, line_to_homogenous, homogeneous_line_intercept, get_cylinder_contours
+	using ..Geometry: Line, cylinder_rotation_from_axis, homogeneous_line_from_points, homogeneous_to_line, line_to_homogenous, homogeneous_line_intercept, get_cylinder_contours, get_cylinder_contours_raw
 	using ..Space: RotDeg, transformation, random_transformation, identity_transformation, build_rotation_matrix, position_rotation
 	using ..Camera: CameraProperties, IntrinsicParameters, build_intrinsic_matrix, build_camera_matrix, lookat_rotation, random_camera_lookingat_center, is_in_front_of_camera
 	using ..Printing: print_camera_differences
@@ -291,6 +291,8 @@ module Scene
 		views_file_path,
 		;plot = true,
 		number_of_instances = 2,
+		cylinders_names_in_view_file = cylinders_names_in_view_file,
+		plot_3d = true,
 	)
 			scene_file = nothing
 			view_file = nothing
@@ -312,20 +314,25 @@ module Scene
 			cylinders = []
 			for (i, cylinder_properties) in enumerate(scene_file["cylinders"])
 					cylinder = CylinderProperties()
-					position = Vector{Float64}(cylinder_properties["position"])
-					cylinder.euler_rotation = rad2deg.(cylinder_rotation_from_axis(Vector{Float64}(cylinder_properties["axis"])))
+					if haskey(cylinder_properties, "dual_matrix") && haskey(cylinder_properties, "singular_point")
+						cylinder.dual_matrix = Float64.(hcat(cylinder_properties["dual_matrix"]...)')
+						cylinder.singular_point = Vector{Float64}(cylinder_properties["singular_point"])
+					else
+						position = Vector{Float64}(cylinder_properties["position"])
+						cylinder.euler_rotation = rad2deg.(cylinder_rotation_from_axis(Vector{Float64}(cylinder_properties["axis"])))
 
-					cylinder.transform = transformation(position, cylinder.euler_rotation)
-					radius = Float64(cylinder_properties["radius"])
-					cylinder.radiuses = [radius, radius]
+						cylinder.transform = transformation(position, cylinder.euler_rotation)
+						radius = Float64(cylinder_properties["radius"])
+						cylinder.radiuses = [radius, radius]
 
-					axis = cylinder.transform * [0; 0; 1; 0]
-					axis = axis[1:3]
+						axis = cylinder.transform * [0; 0; 1; 0]
+						axis = axis[1:3]
 
-					standard, dual, singularpoint = standard_and_dual_cylinder(cylinder.transform, cylinder.radiuses)
-					cylinder.matrix = standard
-					cylinder.dual_matrix = dual
-					cylinder.singular_point = singularpoint
+						standard, dual, singularpoint = standard_and_dual_cylinder(cylinder.transform, cylinder.radiuses)
+						cylinder.matrix = standard
+						cylinder.dual_matrix = dual
+						cylinder.singular_point = singularpoint
+					end
 
 					push!(cylinders, cylinder)
 
@@ -353,29 +360,51 @@ module Scene
 			for instance_index in 1:number_of_instances
 					inst = scene_file["cameras"][instance_index]
 					instance = InstanceConfiguration()
-					projection_rotation_matrix = QuatRotation(inst["R"])
-					projection_translation = Vector{Float64}(inst["t"])
-					position = -(projection_rotation_matrix') * projection_translation
-					quaternion_camera_rotation = projection_rotation_matrix'
-					euler_rotation = rad2deg.(eulerangles_from_rotationmatrix(quaternion_camera_rotation))
-					camera = CameraProperties(
-							position = position,
-							euler_rotation = euler_rotation,
-							quaternion_rotation = quaternion_camera_rotation,
-							intrinsic = intrinsic,
-					)
+					if (haskey(inst, "R") || haskey(inst, "t"))
+						projection_rotation_matrix = QuatRotation(inst["R"])
+						projection_translation = Vector{Float64}(inst["t"])
+						position = -(projection_rotation_matrix') * projection_translation
+						quaternion_camera_rotation = projection_rotation_matrix'
+						euler_rotation = rad2deg.(eulerangles_from_rotationmatrix(quaternion_camera_rotation))
+						camera = CameraProperties(
+								position = position,
+								euler_rotation = euler_rotation,
+								quaternion_rotation = quaternion_camera_rotation,
+								intrinsic = intrinsic,
+						)
 
-					instance.camera = camera
+						instance.camera = camera
+					else
+						camera_matrix = Float64.(hcat(inst["matrix"]...)')
+						Rt = inv(intrinsic) * camera_matrix
+						projection_rotation_matrix = QuatRotation(Rt[1:3, 1:3])
+						projection_translation = Rt[1:3, 4]
+						position = -(projection_rotation_matrix') * projection_translation
+						quaternion_camera_rotation = projection_rotation_matrix'
+						euler_rotation = rad2deg.(eulerangles_from_rotationmatrix(quaternion_camera_rotation))
+						camera = CameraProperties(
+								position = position,
+								euler_rotation = euler_rotation,
+								quaternion_rotation = quaternion_camera_rotation,
+								intrinsic = intrinsic,
+						)
+						instance.camera = camera
+					end
 					instance.conics = []
 
 					conics_contours = Array{Float64}(undef, number_of_cylinders, 2, 3)
 					for i in 1:number_of_cylinders
 						lines = view_file[instance_index]["lines"][cylinders_names_in_view_file[i]]
 						for (j, line) in enumerate(lines)
-							p1 = [line[1][1], line[1][2]]
-							p2 = [line[2][1], line[2][2]]
-							line_homogenous = homogeneous_line_from_points(p1, p2)
-							display(line_homogenous ./ line_homogenous[3])
+							if (length(line) == 2)
+								p1 = [line[1][1], line[1][2]]
+								p2 = [line[2][1], line[2][2]]
+								line_homogenous = homogeneous_line_from_points(p1, p2)
+							elseif (length(line) == 3)
+								line_homogenous = line
+							else
+								error("Line $(line) has unexpected length $(length(line))")
+							end
 							conics_contours[i, j, :] = line_homogenous
 
 							# if (ASSERTS_ENABLED)
@@ -426,7 +455,7 @@ module Scene
 						Matrix{Float64}(undef, number_of_spare_lines, 3),
 						Matrix{Float64}(undef, number_of_spare_lines, 3),
 						Array{Float64}(undef, number_of_spare_lines, 4, 4),
-						Vector{Float64}(undef, numberoflines_tosolvefor)
+						Vector{Float64}(undef, number_of_spare_lines)
 					)
 					for store_index in (1:number_of_spare_lines)
 						line_index = possible_picks[1]
@@ -472,7 +501,7 @@ module Scene
 			end
 
 			if plot
-				plot_scene(scene, problems)
+				plot_scene(scene, problems; plot_3d)
 				for i in 1:number_of_instances
 					camera = scene_file["cameras"][i]
 					img = load(joinpath("./", camera["image"]))
@@ -484,24 +513,30 @@ module Scene
 			return scene, problems
 	end
 
-	function plot_scene(scene, problems; noise = 0)
+	function plot_scene(scene, problems; noise = 0, plot_3d = true)
 		number_of_cylinders = size(scene.cylinders)[1]
-		plot_3dcylinders(scene.cylinders)
+		if (plot_3d)
+			plot_3dcylinders(scene.cylinders)
+		end
 
 		for (i, instance) in enumerate(scene.instances)
 			camera = instance.camera
 			conics = instance.conics
 			conics_contours = instance.conics_contours
-			plot_3dcamera(camera)
+			if (plot_3d)
+				plot_3dcamera(camera)
+			end
 			get_or_add_2d_axis!(i)
 			plot_2dpoints([(conic.singular_point) for conic in conics]; axindex = i)
 			plot_2dcylinders(conics_contours, alpha=0.5; axindex = i)
-			centers = [camera.matrix * [position_rotation(cylinder.transform)[1]; 1] for cylinder in scene.cylinders]
-			top_bound = [camera.matrix * [(position_rotation(cylinder.transform)[1] + [0.0, 0.0, -cylinder.radiuses[1]]); 1] for cylinder in scene.cylinders]
-			bottom_bound = [camera.matrix * [(position_rotation(cylinder.transform)[1] + [0.0, 0.0, cylinder.radiuses[1]]); 1] for cylinder in scene.cylinders]
-			plot_2dpoints(centers; axindex = i)
-			plot_2dpoints(top_bound; axindex = i)
-			plot_2dpoints(bottom_bound; axindex = i)
+			if (plot_3d)
+				centers = [camera.matrix * [position_rotation(cylinder.transform)[1]; 1] for cylinder in scene.cylinders]
+				top_bound = [camera.matrix * [(position_rotation(cylinder.transform)[1] + [0.0, 0.0, -cylinder.radiuses[1]]); 1] for cylinder in scene.cylinders]
+				bottom_bound = [camera.matrix * [(position_rotation(cylinder.transform)[1] + [0.0, 0.0, cylinder.radiuses[1]]); 1] for cylinder in scene.cylinders]
+				plot_2dpoints(centers; axindex = i)
+				plot_2dpoints(top_bound; axindex = i)
+				plot_2dpoints(bottom_bound; axindex = i)
+			end
 		end
 		if (noise > 0)
 			for (i, problem) in enumerate(problems)
@@ -1259,19 +1294,30 @@ module Scene
 		return solution_error, all_possible_solutions
 	end
 
-	function plot_reconstructed_scene(scene, problems)
+	function plot_reconstructed_scene(scene, problems; plot_3d = true, raw_3d = false)
 			number_of_cylinders = size(scene.cylinders)[1]
 			for (i, problem) in enumerate(problems)
-					plot_3dcamera(problem.camera, :green)
+					if (plot_3d)
+							plot_3dcamera(problem.camera, :green)
+					end
 					reconstructued_contours = Array{Float64}(undef, number_of_cylinders, 2, 3)
 					for i in 1:number_of_cylinders
+						lines = Matrix{Float64}(undef, 2, 3)
+						if (raw_3d)
+							lines = get_cylinder_contours_raw(
+									scene.cylinders[i].dual_matrix,
+									scene.cylinders[i].singular_point,
+									problem.camera.matrix
+							)
+						else
 							lines = get_cylinder_contours(
 									scene.cylinders[i],
 									problem.camera
 							)
-							for (j, line) in enumerate(lines)
-									reconstructued_contours[i, j, :] = line
-							end
+						end
+						for (j, line) in enumerate(lines)
+								reconstructued_contours[i, j, :] = line
+						end
 					end
 
 					plot_2dcylinders(reconstructued_contours, linestyle=:dash; axindex = i)

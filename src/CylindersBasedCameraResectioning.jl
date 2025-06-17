@@ -1,8 +1,8 @@
 module CylindersBasedCameraResectioning
     const GUI_ENABLED = get(ENV, "GUI_ENABLED", "true") == "true"
     const ASSERTS_ENABLED = get(ENV, "ASSERTS_ENABLED", "false") == "true"
-    const IMAGE_HEIGHT = 1920
-    const IMAGE_WIDTH = 1080
+    const IMAGE_HEIGHT = 1080
+    const IMAGE_WIDTH = 1920
     include("includes.jl")
 
 	using ..Scene: ParametersSolutionsPair, averaged_solution!, best_overall_solution!, best_overall_solution_by_steps!, best_intrinsic_rotation_translation_system_solution!, camera_from_solution, create_scene_instances_and_problems, scene_instances_and_problems_from_files, intrinsic_rotation_system_setup, intrinsic_rotation_translation_system_setup, plot_interactive_scene, plot_reconstructed_scene, split_intrinsic_rotation_parameters
@@ -433,6 +433,71 @@ module CylindersBasedCameraResectioning
         plot_reconstructed_scene(scene, problems)
 
         save_2d_figures("assets/test_scenes/lights/figures/", scene, problems; scene_file_path = "./assets/test_scenes/lights/scene.json")
+
+        display(scene.figure)
+    end
+
+    function roller_coaster()
+        scene, problems = scene_instances_and_problems_from_files(
+            "./assets/test_scenes/roller_coaster/scene.json",
+            "./assets/test_scenes/roller_coaster/views.json";
+            number_of_instances=1,
+            cylinders_names_in_view_file=[
+                "cylinder_0",
+                "cylinder_1",
+                "cylinder_2",
+                "cylinder_3",
+                "cylinder_4",
+            ],
+            plot_3d = false,
+        )
+        intrinsic_configuration = problems[1].intrinsic_configuration
+
+        rotation_intrinsic_system, parameters = intrinsic_rotation_system_setup(problems)
+        # display(parameters)
+
+        display(scene.figure)
+        # return
+
+        solver = starts = nothing
+
+        solver, starts = solver_startsolutions(
+            rotation_intrinsic_system;
+            target_parameters = parameters,
+            start_system = :total_degree,
+        )
+
+        chunk_size = 500000
+        numberof_start_solutions = length(starts)
+        display("Number of start solutions: $numberof_start_solutions. Number of iterations needed: $(ceil(Int, numberof_start_solutions / chunk_size))")
+        solution_error = Inf
+        for start in Iterators.partition(starts, chunk_size)
+            result = solve(
+                solver,
+                start;
+            )
+            @info result
+
+            solution_error, _ = best_overall_solution_by_steps!(
+                result,
+                problems;
+                start_error=solution_error,
+                intrinsic_configuration,
+                # scene,
+            )
+        end
+
+        for (i, instance) in enumerate(scene.instances)
+            display("View $i")
+            print_camera_differences(instance.camera, problems[i].camera)
+            display("--------------------")
+        end
+
+        print_relative_motion_errors(scene, problems)
+
+        plot_reconstructed_scene(scene, problems; plot_3d = false, raw_3d = true)
+
+        save_2d_figures("assets/test_scenes/roller_coaster/figures/", scene, problems; scene_file_path = "./assets/test_scenes/roller_coaster/scene.json", raw_3d = true)
 
         display(scene.figure)
     end
