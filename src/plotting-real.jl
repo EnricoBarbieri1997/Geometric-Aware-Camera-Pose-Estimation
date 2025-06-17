@@ -15,10 +15,10 @@ using JSON
 
 function add_2d_axis!()
     index = length(ax2_array) + 1
-    col = ceil(Int, index / 2)
-    row = index % 2
-    if row == 0
-        row = 2
+    row = ceil(Int, index / 2)
+    col = index % 2
+    if col == 0
+        col = 2
     end
     ax = Axis(grid_2d[row, col], aspect = DataAspect(), title="View $index")
     ax.limits[] = ((0, IMAGE_WIDTH), (-IMAGE_HEIGHT, 0))

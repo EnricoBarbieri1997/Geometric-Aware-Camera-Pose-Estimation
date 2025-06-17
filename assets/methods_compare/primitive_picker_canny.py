@@ -15,7 +15,7 @@ img_original = None
 img_display = None
 canny_edges = None
 
-OUTPUT_FILE = "fitted_lines.json"
+OUTPUT_FILE = "../test_scenes/pipes/views_2.json"
 
 
 def on_mouse(event, x, y, flags, param):

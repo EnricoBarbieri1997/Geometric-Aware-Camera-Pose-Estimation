@@ -1279,8 +1279,8 @@ module Scene
 					Base.showerror(stdout, e)
 					Base.show_backtrace(stdout, catch_backtrace())
 
-					# push!(excluded_solutions, best_solution)
-					# valid_solution_found = false
+					push!(excluded_solutions, best_solution)
+					valid_solution_found = false
 				end
 			end
 		end

@@ -1,8 +1,8 @@
 module CylindersBasedCameraResectioning
     const GUI_ENABLED = get(ENV, "GUI_ENABLED", "true") == "true"
     const ASSERTS_ENABLED = get(ENV, "ASSERTS_ENABLED", "false") == "true"
-    const IMAGE_HEIGHT = 1080
-    const IMAGE_WIDTH = 1920
+    const IMAGE_HEIGHT = 1920
+    const IMAGE_WIDTH = 1080
     include("includes.jl")
 
 	using ..Scene: ParametersSolutionsPair, averaged_solution!, best_overall_solution!, best_overall_solution_by_steps!, best_intrinsic_rotation_translation_system_solution!, camera_from_solution, create_scene_instances_and_problems, scene_instances_and_problems_from_files, intrinsic_rotation_system_setup, intrinsic_rotation_translation_system_setup, plot_interactive_scene, plot_reconstructed_scene, split_intrinsic_rotation_parameters
@@ -377,19 +377,17 @@ module CylindersBasedCameraResectioning
         display(scene.figure)
     end
 
-    function lights()
+    function pipes()
         scene, problems = scene_instances_and_problems_from_files(
-            "./assets/test_scenes/lights/scene.json",
-            "./assets/methods_compare/real/lights.json";
+            "./assets/test_scenes/pipes/scene.json",
+            "./assets/test_scenes/pipes/views.json";
             number_of_instances=2,
         )
         intrinsic_configuration = problems[1].intrinsic_configuration
 
         rotation_intrinsic_system, parameters = intrinsic_rotation_system_setup(problems)
-        # display(parameters)
 
         display(scene.figure)
-        # return
 
         solver = starts = nothing
 
@@ -432,7 +430,7 @@ module CylindersBasedCameraResectioning
 
         plot_reconstructed_scene(scene, problems)
 
-        save_2d_figures("assets/test_scenes/lights/figures/", scene, problems; scene_file_path = "./assets/test_scenes/lights/scene.json")
+        save_2d_figures("assets/test_scenes/pipes/figures/", scene, problems; scene_file_path = "./assets/test_scenes/pipes/scene.json")
 
         display(scene.figure)
     end
