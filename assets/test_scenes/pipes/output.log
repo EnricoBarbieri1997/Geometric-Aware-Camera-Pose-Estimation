@@ -1,3 +1,48 @@
+"Number of start solutions: 59049. Number of iterations needed: 1"
+Tracking 59049 paths... 100%|████████████████████████████████████████| Time: 0:01:37
+  # paths tracked:                  59049
+  # non-singular solutions (real):  256 (64)
+  # singular endpoints (real):      8905 (0)
+  # total solutions (real):         9161 (64)
+┌ Info: Result with 8482 solutions
+│ ==========================
+│ • 59049 paths tracked
+│ • 256 non-singular solutions (64 real)
+│ • 8226 singular solutions (0 real)
+│ • random_seed: 0x0dbf5055
+│ • start_system: :total_degree
+│ • multiplicity table of singular solutions:
+│ ╭───────┬───────┬────────┬────────────╮
+│ │ mult. │ total │ # real │ # non-real │
+│ ├───────┼───────┼────────┼────────────┤
+│ │   1   │ 7547  │   0    │    7547    │
+│ │   2   │  679  │   0    │    679     │
+└ ╰───────┴───────┴────────┴────────────╯
+"Solution: 1"
+"Problem 1"
+Tracking 8 paths... 100%|████████████████████████████████████████| Time: 0:00:00
+  # paths tracked:                  8
+  # non-singular solutions (real):  8 (8)
+  # singular endpoints (real):      0 (0)
+  # total solutions (real):         8 (8)
+┌ Info: Result with 8 solutions
+│ =======================
+│ • 8 paths tracked
+│ • 8 non-singular solutions (8 real)
+│ • random_seed: 0xee59814d
+└ • start_system: :total_degree
+"Problem 2"
+Tracking 8 paths... 100%|████████████████████████████████████████| Time: 0:00:00
+  # paths tracked:                  8
+  # non-singular solutions (real):  8 (8)
+  # singular endpoints (real):      0 (0)
+  # total solutions (real):         8 (8)
+┌ Info: Result with 8 solutions
+│ =======================
+│ • 8 paths tracked
+│ • 8 non-singular solutions (8 real)
+│ • random_seed: 0x783e7589
+└ • start_system: :total_degree
 "View 1"
 ╭────────────┬─────────┬─────────┬───────┬─────────┬─────────╮
 │  Intrinsic │     f_x │     f_y │  skew │     c_x │     c_y │
@@ -21,12 +66,12 @@
 │ Translation │     x │     y │     z │
 ├─────────────┼───────┼───────┼───────┤
 │    original │  0.06 │ -0.20 │ -2.20 │
-│  calculated │ 34.78 │  9.36 │  4.41 │
+│  calculated │ -7.18 │ -1.93 │ -0.91 │
 ╰─────────────┴───────┴───────┴───────╯
 ╭───────────────────┬─────────╮
 │        Parameters │   Error │
 ├───────────────────┼─────────┤
-│ Projection matrix │   15.25 │
+│ Projection matrix │    2.68 │
 │        Quaternion │    1.05 │
 │         Intrinsic │ 1130.23 │
 │          Rotation │  126.48 │
@@ -59,20 +104,20 @@
 │        original │  -75.47 │ 15.37 │   3.92 │
 │      calculated │ -107.94 │ -0.02 │ 164.27 │
 ╰─────────────────┴─────────┴───────┴────────╯
-╭─────────────┬────────┬────────┬────────╮
-│ Translation │      x │      y │      z │
-├─────────────┼────────┼────────┼────────┤
-│    original │  -0.17 │  -0.11 │  -3.01 │
-│  calculated │ -11.08 │ -49.83 │ -10.17 │
-╰─────────────┴────────┴────────┴────────╯
+╭─────────────┬───────┬───────┬───────╮
+│ Translation │     x │     y │     z │
+├─────────────┼───────┼───────┼───────┤
+│    original │ -0.17 │ -0.11 │ -3.01 │
+│  calculated │  2.29 │ 10.29 │  2.10 │
+╰─────────────┴───────┴───────┴───────╯
 ╭───────────────────┬─────────╮
 │        Parameters │   Error │
 ├───────────────────┼─────────┤
-│ Projection matrix │   14.93 │
+│ Projection matrix │    6.24 │
 │        Quaternion │    1.32 │
 │         Intrinsic │ 1130.23 │
 │          Rotation │  165.57 │
-│       Translation │    0.33 │
+│       Translation │    0.36 │
 ╰───────────────────┴─────────╯
 ╭────────┬───────╮
 │ Metric │ Error │

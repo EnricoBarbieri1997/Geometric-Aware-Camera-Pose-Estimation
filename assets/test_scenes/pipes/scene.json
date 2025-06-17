@@ -3,20 +3,20 @@
     "cylinders": [
         {
             "position": [0, 0, 0],
-            "radius": 1.0,
-            "length": 4,
+            "radius": 0.2065,
+            "length": 8.52,
             "axis": [1, 0, 0]
         },
         {
             "position": [0, 0, 0],
-            "radius": 1.0,
-            "length": 4,
+            "radius": 0.2065,
+            "length": 8.52,
             "axis": [0, 1, 0]
         },
         {
             "position": [0, 0, 0],
-            "radius": 1.0,
-            "length": 4,
+            "radius": 0.2065,
+            "length": 8.52,
             "axis": [0, 0, 1]
         }
     ],
