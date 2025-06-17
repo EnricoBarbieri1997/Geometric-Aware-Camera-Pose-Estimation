@@ -1,0 +1,44 @@
+{
+    "configuration": 27,
+    "cylinders": [
+        {
+            "position": [0, 0, 0],
+            "radius": 1.0,
+            "length": 4,
+            "axis": [1, 0, 0]
+        },
+        {
+            "position": [0, 0, 0],
+            "radius": 1.0,
+            "length": 4,
+            "axis": [0, 1, 0]
+        },
+        {
+            "position": [0, 0, 0],
+            "radius": 1.0,
+            "length": 4,
+            "axis": [0, 0, 1]
+        }
+    ],
+    "intrinsics": [
+        [1500.0000,    0.0000, 540.0000],
+        [   0.0000, 2666.6667, 960.0000],
+        [   0.0000,    0.0000,   1.0000]
+    ],
+    "cameras": [
+        {
+            "t": [-2.0888, -0.5339, 0.4745],
+            "R": [0.5991, 0.5281, -0.3980, -0.4514],
+            "width": 1080,
+            "height": 1920,
+            "image": "assets/test_scenes/pipes/pipes_1.png"
+        },
+        {
+            "t": [-0.6302, -2.8345, 0.8334],
+            "R": [0.7805, 0.6098, -0.0849, -0.1086],
+            "width": 1080,
+            "height": 1920,
+            "image": "assets/test_scenes/pipes/pipes_2.png"
+        }
+    ]
+}
