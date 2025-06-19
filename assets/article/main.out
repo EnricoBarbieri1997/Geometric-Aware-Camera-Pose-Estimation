@@ -1,0 +1,17 @@
+\BOOKMARK [1][-]{section.1}{Introduction}{}% 1
+\BOOKMARK [1][-]{section.2}{Problem formulation}{}% 2
+\BOOKMARK [1][-]{section.3}{Related work}{}% 3
+\BOOKMARK [1][-]{section.4}{Geometric constraints on cones and silhouette lines}{}% 4
+\BOOKMARK [1][-]{section.5}{Homotopy Continuation}{}% 5
+\BOOKMARK [1][-]{section.6}{Method}{}% 6
+\BOOKMARK [2][-]{subsection.6.1}{The original target system S1}{section.6}% 7
+\BOOKMARK [2][-]{subsection.6.2}{The synthetic starting system S0}{section.6}% 8
+\BOOKMARK [2][-]{subsection.6.3}{Custom silhouette-based homotopy}{section.6}% 9
+\BOOKMARK [2][-]{subsection.6.4}{Generating starting systems}{section.6}% 10
+\BOOKMARK [2][-]{subsection.6.5}{Handling spurious solutions}{section.6}% 11
+\BOOKMARK [1][-]{section.7}{Experiments}{}% 12
+\BOOKMARK [2][-]{subsection.7.1}{Synthetic experiments}{section.7}% 13
+\BOOKMARK [2][-]{subsection.7.2}{Results on rendered scene}{section.7}% 14
+\BOOKMARK [2][-]{subsection.7.3}{Results on photographs}{section.7}% 15
+\BOOKMARK [1][-]{section.8}{Conclusions}{}% 16
+\BOOKMARK [1][-]{appendix.A}{Appendix A: Algorithms}{}% 17

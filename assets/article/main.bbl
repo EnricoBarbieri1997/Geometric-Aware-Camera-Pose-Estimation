@@ -20,6 +20,13 @@ Dongliang Ding, Junhua Sun, and Yanjun Zhang.
   target.
 \newblock {\em IEEE Sensors Journal}, 24(2):1803--1811, 2024.
 
+\bibitem{gaudilliere2017perspective}
+Vincent Gaudilliere, Daniel Barath, Zuzana Kukelova, and Tomas Pajdla.
+\newblock Perspective-1-ellipsoid: Minimal solvers for ellipsoid-based single
+  perspective views.
+\newblock In {\em Proceedings of the IEEE Conference on Computer Vision and
+  Pattern Recognition}, pages 4835--4843, 2017.
+
 \bibitem{gummeson22pose}
 A.~Gummeson and M.~Oskarsson.
 \newblock Camera pose estimation using cylindrical silhouettes.
@@ -29,12 +36,6 @@ A.~Gummeson and M.~Oskarsson.
 A.~Gummeson and M.~Oskarsson.
 \newblock Relative pose from cylinder silhouettes.
 \newblock In {\em ACCV}, 2024.
-
-\bibitem{gummeson2019relative}
-Jacob Gummeson, Viktor Larsson, Zuzana Kukelova, and Fredrik Kahl.
-\newblock Relative pose estimation from two views of a cylinder.
-\newblock In {\em Proceedings of the IEEE/CVF Conference on Computer Vision and
-  Pattern Recognition}, pages 11634--11643, 2019.
 
 \bibitem{guo23vanishing}
 Kai Guo and et~al.
@@ -52,6 +53,12 @@ Viktor Larsson, Zuzana Kukelova, and Carl Olsson.
 \newblock The multi-view geometry of parallel cylinders.
 \newblock {\em International Journal of Computer Vision}, 128(6):1670--1687,
   2020.
+
+\bibitem{HomotophyContinuationMethods}
+Tien-Yien Li.
+\newblock Homotopy continuation methods for solving polynomial systems.
+\newblock {\em Notices of the International Congress of Chinese
+  Mathematicians}, 4(2):53--62, 2016.
 
 \bibitem{may2004parametrizedhomotopytheory}
 J.~P. May and J.~Sigurdsson.
@@ -92,6 +99,12 @@ Hirohisa Teramoto and Gang Xu.
 Ren{\'e} Vidal, Stefano Soatto, Yi~Ma, and Shankar Sastry.
 \newblock Generalized principal component analysis (gpca).
 \newblock In {\em CVPR}, pages 136--143, 2003.
+
+\bibitem{zhang1999flexible}
+Zhengyou Zhang.
+\newblock A flexible new technique for camera calibration.
+\newblock In {\em IEEE Transactions on Pattern Analysis and Machine
+  Intelligence}, volume~22, pages 1330--1334. IEEE, 2000.
 
 \bibitem{Zhang2000}
 Zhengyou Zhang.
