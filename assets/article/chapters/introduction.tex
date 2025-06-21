@@ -1,23 +1,76 @@
 \section{Introduction}
 \label{sec:intro}
 
-Camera calibration and camera localization are fundamental problems in Computer Vision, underpinning most, if not all, Computer Visions tasks. Camera calibration consists in estimating the intrinsic parameters of a camera, such as focal length, principal point, and lens distortion coefficients, which are essential for accurate image formation. Camera localization, on the other hand, involves determining the camera's position and orientation in a 3D scene, which is crucial for understanding the spatial relationships between objects in the environment.
-Camera calibration can be performed using a variety of techniques, including checkerboard patterns~\cite{Zhang2000}, AprilTags, and other fiducial markers. These methods typically rely on point correspondences between the 3D world and the 2D image plane to estimate the camera's intrinsic parameters. We can talk about autocalibration when the camera is not equipped with a calibration target, and the intrinsic parameters are estimated from the images themselves, often using techniques such as self-calibration or structure-from-motion (SfM).
+\begin{figure}[ht]
+    \centering
+    \includegraphics[width=\linewidth]{images/header_image/teaser.pdf}
+    \caption{
+    Our method for $N=1$  camera  and $M=3$ cylindrical objects (3 markers). The input is a known 3D scenes and images with estimated silhouette lines. The output is the calibration and the pose of the cameras that acquired the images. Rather than tackling the problem on the input data, we move to a simpler random problem with a known solution  $\mathbf{x}(0)$. Our silhouette-based parametric homotopy allows  to track $\mathbf{x}(0)$ to  the solution $\mathbf{x}(1)$  of the original problem. Our formulation support multiple cylinders and multiple images.\label{fig:homotopy}}
+\end{figure}
 
-Camera localization, on the other hand, is often performed using techniques such as pose estimation, which involves estimating the camera's position and orientation relative to a known 3D scene. This can be done using point correspondences, as well as higher-level geometric entities such as lines, planes, and quadrics. The latter are particularly useful in scenarios where point correspondences are sparse or unreliable, as they provide additional geometric constraints that can improve the accuracy of the localization process.
+%region Punch line
+Camera calibration and camera localization are fundamental problems in Computer Vision, underpinning most, if not all, Computer Visions tasks.
+%endregion
 
-A wide range of applications such as SfM, 3D reconstruction, robotics, and extended reality works on top of those two building blocks. A variety of calibration and localization methods have been proposed, from traditional approaches based on point-wise 3D-2D correspondences~\cite{Zhang2000, Sturm2004}, to more recent techniques that exploit correspondences between higher-level geometric entities such as lines~\cite{guo23vanishing}, conics~\cite{teramoto2002calibration}, planes and quadrics~\cite{Bartoli2005, gaudilliere2017perspective}.
+%region What is the problem
+\paragraph{Camera calibration} consists in estimating the intrinsic parameters of a camera, such as focal length, principal point, and lens distortion coefficients, which are essential for accurate image formation.
+Camera calibration can be split into classic camera calibration and automatic camera calibration.
+
+Classic camera calibration typically rely on correspondences between the 3D world and the 2D image plane to estimate the camera's intrinsic parameters.
+Depending on the real world object a variety of techniques can be used. Common world object choices include points, lines, planar surfaces, approximated proper quadrics.
+
+Point based techniques often make use of fiducial markers like checkerboard patterns~\cite{Zhang2000}\ref{fig:checkerboard}, and AprilTags~\cite{\apriltag}\ref{fig:apriltags}.
+
+Line based techniques, such as vanishing points~\cite{guo23vanishing}, can be used to estimate the camera's intrinsic parameters from the vanishing points of parallel lines in the scene.
+
+Planar surfaces techniques, such as the one proposed by Sturm~\cite{Sturm2004}, use planar surfaces to estimate the camera's intrinsic parameters from homography between a plane and the image plane, geometric constraints like tangency, pallelism and more generally angles between planar surfaces.
+
+Self-calibration techniques estimate the camera's intrinsic parameters directly from image data, without requiring known correspondences with the 3D world. These methods rely on geometric constraints embedded in multiple views of the scene. Classical approaches such as the Kruppa equations~\cite{Maybank1992} use correspondences between images to estimate the fundamental matrix, which constrains the image of the absolute conic (IAC), allowing recovery of the intrinsics. Extensions such as the dual absolute quadric (DAQ) approach~\cite{Triggs1997} formulate the problem in terms of projective-to-metric reconstruction, leveraging multiple uncalibrated views. Planar self-calibration methods~\cite{Pollefeys1999, Li2024} estimate homographies between images of planar surfaces to derive constraints on the camera intrinsics, with recent work addressing challenging capture geometries such as circular oblique flights. Techniques based on vanishing points~\cite{guo23vanishing} exploit structural regularities in man-made environments to constrain focal length and principal point. Special camera motions, like pure rotation~\cite{Hartley1994}, can simplify the problem by directly relating image correspondences to intrinsic parameters. Finally, bundle adjustment with self-calibration~\cite{Fitzgibbon2001} jointly refines the intrinsic parameters, camera poses, and 3D structure by minimizing reprojection errors.
+
+Finally in recent years, machine learning techniques have been increasingly integrated into the self-calibration pipeline to address limitations of purely geometric methods, especially under challenging conditions such as low texture or ambiguous correspondences. In these hybrid approaches, deep neural networks are primarily employed for robust feature detection, correspondence estimation, depth prediction, or motion estimation, while the actual estimation of camera intrinsics remains grounded in geometric constraints. For instance, Hagemann et al.~\cite{Hagemann2023} combine learned feature extraction with a differentiable bundle adjustment framework to jointly estimate motion, structure, and intrinsics from video sequences. Similarly, Hogan et al.~\cite{Hogan2023} propose a self-supervised online system for real-time camera calibration in automotive applications, where deep learning aids pose estimation, but intrinsic parameter updates are still based on geometric models. Although fully end-to-end intrinsic estimation methods exist~\cite{Satouri2023}, most practical systems continue to leverage geometry as the core of self-calibration, with learning components improving robustness and generalization.
+
+Exampless of aformentioned techniques can be seen in Figure~\ref{fig:calibration_examples}
+
+\begin{figure}[b]
+    \centering
+    \subfloat[Checkerboard pattern]{
+        \includegraphics[width=0.23\linewidth]{images/calibration/zhang.jpg}
+        \label{fig:checkerboard}
+    }
+    \subfloat[April tags]{
+        \includegraphics[width=0.23\linewidth]{images/calibration/apriltags.png}
+        \label{fig:apriltags}
+    }
+    \subfloat[Structure from Motion]{
+        \includegraphics[width=0.23\linewidth]{images/calibration/sfm.png}
+        \label{fig:sfm}
+    }
+    \subfloat[Surface of revolutions]{
+        \includegraphics[width=0.23\linewidth]{images/calibration/surface_of_revolution.png}
+        \label{fig:surface_of_revolutions}
+    }
+    \hspace{0.1\linewidth}
+    \caption{Examples of various calibrations and autocalibration techniques}
+    \label{fig:calibration_examples}
+\end{figure}
+
+\paragraph{Camera localization} refers to estimating the six degrees of freedom (6DoF) camera pose with respect to a pre-built 3D model or scene representation. Accurate camera localization is crucial for numerous applications such as autonomous navigation, augmented and mixed reality, or loop closure in SLAM systems. Structure-based localization methods rely on matching 2D features extracted from a query image to 3D points in the scene model, typically built using Structure-from-Motion (SfM) or SLAM pipelines. A large body of work has focused on improving the scalability~\cite{Sattler2015, Li2020}, efficiency~\cite{Sarlin2019SuperGlue, Gojcic2020}, and robustness~\cite{Sattler2018Benchmarking, Revaud2019R2D2, Dusmanu2019SuperPoint} of this matching process, particularly under challenging conditions such as viewpoint changes, lighting variations, or seasonal differences. Establishing reliable 2D-3D correspondences remains the primary bottleneck, with a well-known trade-off between descriptor invariance and discriminative power~\cite{Schonberger2016}. Recent methods combine learned local descriptors~\cite{DeTone2018SuperPoint, Sarlin2020SuperGlue} with global scene priors~\cite{Taira2018, Chen2021ACNe} or hybrid retrieval pipelines~\cite{Sattler2019Hierarchical} to reduce the dependency on exhaustive feature matching.
+
+Multiple works explore alternative training and evaluation paradigms, including simulation-based data augmentation~\cite{Wang2022, Chen2022TransLo}, synthetic-to-real transfer~\cite{Tang2023}, or end-to-end learning of localization pipelines~\cite{Luo2020}. While purely learning-based methods show promise in generalization, geometry-based approaches remain the state-of-the-art for high-accuracy pose estimation in large-scale environments.
+
+%end region
+
+%region Why is it important/interesting?
+
+A wide range of applications such 3D reconstruction, robotics, and extended reality works on top of those two building blocks.
+
+%endregion
+
+
 While point-based methods are widely used and effective, they often struggle in challenging scenarios, such as those with limited texture, occlusions, or noise. In contrast, higher-order geometric primitives, such as cylinders, offer a more robust alternative. Cylinders are prevalent in many environments and can be easily detected in images, making them suitable for calibration and localization tasks.
 
 In this work, we focus on camera calibration \emph{and} localization from \emph{cylinders}, that are common and easily detectable structures in many man-made environments, ranging from architectural elements (\emph{e.g.}, pipes, handrails) to household objects (\emph{e.g.}, bottles, cans, furniture legs) and infrastructure components (\emph{e.g.}, street lamps, utility poles, tube lights).
 While calibration and pose estimation are traditionally treated as separate problems, we build upon the geometric constraints introduced in~\cite{gummeson22pose} to develop a novel formulation that  estimates both the camera pose and the intrinsic calibration matrix. Under the assumption of constant intrinsics, this enables full camera resection directly from images of known 3D cylinders.
-
-\begin{figure}[ht]
-    \centering
-    \includegraphics[width=0.85\linewidth]{images/header_image/teaser.pdf}
-    \caption{
-    Our method for $N=1$  camera  and $M=3$ cylindrical objects (3 markers). The input is a known 3D scenes and images with estimated silhouette lines. The output is the calibration and the pose of the cameras that acquired the images. Rather than tackling the problem on the input data, we move to a simpler random problem with a known solution  $\mathbf{x}(0)$. Our silhouette-based parametric homotopy allows  to track $\mathbf{x}(0)$ to  the solution $\mathbf{x}(1)$  of the original problem. Our formulation support multiple cylinders and multiple images.\label{fig:homotopy}}
-\end{figure}
 
 The core idea, illustrated in Figure~\ref{fig:homotopy}, is to leverage the known 3D geometry to simplify the estimation process. The geometric constraints between the known cylinders and the unknown camera parameters form a system of nonlinear equations $\mathcal{S}_1(\mathbf{x}, \mathcal{L}_1)$. Instead of directly solving this complex system $\mathcal{S}_1$ with traditional algebraic methods like Gröbner basis or resultants, which are prone to numerical instability and scalability issues, we take a different approach. We generate a, \emph{virtual system} $\mathcal{S}_0(\mathbf{x}, \mathcal{L}_0)$ designed around the very same 3D scene and a configuration of synthetic cameras  with random but known parameters. By design, we know the solution $\mathbf{x}(0)$ for $\mathcal{S}_0$, since it corresponds to the parameters we used to generate the synthetic cameras. Then, we continuously track the known solution $\mathbf{x}(0)$ as we transform the problem towards the original, system $\mathcal{S}_1$, using a tailored homotopy continuation parametrized in terms of silhouette lines.  At the end, we obtain the desired calibration and pose $\mathbf{x}(1)$.
 By using this approach, we influence the trajectory of the solutions, guiding the solver toward more plausible configurations.

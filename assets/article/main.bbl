@@ -1,11 +1,5 @@
 \begin{thebibliography}{10}
 
-\bibitem{Bartoli2005}
-Adrien Bartoli and Peter Sturm.
-\newblock Structure-from-motion using lines: Representation, triangulation, and
-  bundle adjustment.
-\newblock {\em Computer Vision and Image Understanding}, 100(3):416--441, 2005.
-
 \bibitem{HomotopyContinuationJL}
 Paul Breiding and Sascha Timme.
 \newblock Homotopycontinuation.jl: A package for homotopy continuation in
@@ -20,12 +14,12 @@ Dongliang Ding, Junhua Sun, and Yanjun Zhang.
   target.
 \newblock {\em IEEE Sensors Journal}, 24(2):1803--1811, 2024.
 
-\bibitem{gaudilliere2017perspective}
-Vincent Gaudilliere, Daniel Barath, Zuzana Kukelova, and Tomas Pajdla.
-\newblock Perspective-1-ellipsoid: Minimal solvers for ellipsoid-based single
-  perspective views.
+\bibitem{Fitzgibbon2001}
+Andrew~W. Fitzgibbon.
+\newblock Simultaneous linear estimation of multiple view geometry and lens
+  distortion.
 \newblock In {\em Proceedings of the IEEE Conference on Computer Vision and
-  Pattern Recognition}, pages 4835--4843, 2017.
+  Pattern Recognition (CVPR)}, volume~1, pages I--I. IEEE, 2001.
 
 \bibitem{gummeson22pose}
 A.~Gummeson and M.~Oskarsson.
@@ -48,6 +42,18 @@ Richard Hartley.
 \newblock Camera calibration using line correspondences.
 \newblock In {\em CVPR}, 1993.
 
+\bibitem{Hartley1994}
+Richard~I. Hartley.
+\newblock Self-calibration from multiple views with a rotating camera.
+\newblock In {\em European Conference on Computer Vision (ECCV)}, pages
+  471--478. Springer, 1994.
+
+\bibitem{krogius2019iros}
+Maximilian Krogius, Acshi Haggenmiller, and Edwin Olson.
+\newblock Flexible layouts for fiducial tags.
+\newblock In {\em Proceedings of the {IEEE/RSJ} International Conference on
+  Intelligent Robots and Systems {(IROS)}}, October 2019.
+
 \bibitem{larsson20parallelcylinders}
 Viktor Larsson, Zuzana Kukelova, and Carl Olsson.
 \newblock The multi-view geometry of parallel cylinders.
@@ -60,9 +66,40 @@ Tien-Yien Li.
 \newblock {\em Notices of the International Congress of Chinese
   Mathematicians}, 4(2):53--62, 2016.
 
+\bibitem{Li2024}
+Zhiying Li, Sitong Li, Wei Qin, and Pengjie Tao.
+\newblock A robust camera self‑calibration method based on circular oblique
+  images.
+\newblock {\em ISPRS Annals of the Photogrammetry, Remote Sensing and Spatial
+  Information Sciences}, X-1:131--135, 2024.
+
 \bibitem{may2004parametrizedhomotopytheory}
 J.~P. May and J.~Sigurdsson.
 \newblock Parametrized homotopy theory, 2004.
+
+\bibitem{Maybank1992}
+S.J. Maybank and O.D. Faugeras.
+\newblock A theory of self-calibration of a moving camera.
+\newblock {\em International Journal of Computer Vision}, 8(2):123--151, 1992.
+
+\bibitem{olson2011tags}
+Edwin Olson.
+\newblock {AprilTag}: A robust and flexible visual fiducial system.
+\newblock In {\em Proceedings of the {IEEE} International Conference on
+  Robotics and Automation ({ICRA})}, pages 3400--3407. IEEE, May 2011.
+
+\bibitem{Pollefeys1999}
+Marc Pollefeys, Luc Van~Gool, Maarten Vergauwen, Frank Verbiest, Kurt Cornelis,
+  Jan Tops, and Reinhard Koch.
+\newblock Self-calibration and metric reconstruction in spite of varying and
+  unknown internal camera parameters.
+\newblock {\em International Journal of Computer Vision}, 32(1):7--25, 1999.
+
+\bibitem{richardson2013iros}
+Andrew Richardson, Johannes Strom, and Edwin Olson.
+\newblock {AprilCal}: Assisted and repeatable camera calibration.
+\newblock In {\em Proceedings of the {IEEE/RSJ} International Conference on
+  Intelligent Robots and Systems {(IROS)}}, November 2013.
 
 \bibitem{schoenberger2016sfm}
 Johannes~Lutz Sch\"{o}nberger and Jan-Michael Frahm.
@@ -88,23 +125,17 @@ Peter Sturm and Stephen~J. Maybank.
   singularities, applications.
 \newblock In {\em CVPR}, pages 432--437, 2004.
 
-\bibitem{teramoto2002calibration}
-Hirohisa Teramoto and Gang Xu.
-\newblock Camera calibration by a single image of balls: From conics to the
-  absolute conic.
-\newblock In {\em Proceedings of the 5th Asian Conference on Computer Vision
-  (ACCV)}, pages 1--8, Melbourne, Australia, 2002.
+\bibitem{Triggs1997}
+Bill Triggs.
+\newblock Autocalibration and the absolute quadric.
+\newblock In {\em Proceedings of the IEEE Conference on Computer Vision and
+  Pattern Recognition (CVPR)}, pages 609--614, 1997.
 
-\bibitem{Vidal2013}
-Ren{\'e} Vidal, Stefano Soatto, Yi~Ma, and Shankar Sastry.
-\newblock Generalized principal component analysis (gpca).
-\newblock In {\em CVPR}, pages 136--143, 2003.
-
-\bibitem{zhang1999flexible}
-Zhengyou Zhang.
-\newblock A flexible new technique for camera calibration.
-\newblock In {\em IEEE Transactions on Pattern Analysis and Machine
-  Intelligence}, volume~22, pages 1330--1334. IEEE, 2000.
+\bibitem{wang2016iros}
+John Wang and Edwin Olson.
+\newblock {AprilTag} 2: Efficient and robust fiducial detection.
+\newblock In {\em Proceedings of the {IEEE/RSJ} International Conference on
+  Intelligent Robots and Systems {(IROS)}}, October 2016.
 
 \bibitem{Zhang2000}
 Zhengyou Zhang.

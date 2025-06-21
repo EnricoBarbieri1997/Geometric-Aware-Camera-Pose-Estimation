@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.14159265-2.6-1.40.21 (TeX Live 2020/Debian) (preloaded format=pdflatex 2025.6.19)  19 JUN 2025 21:56
+This is pdfTeX, Version 3.14159265-2.6-1.40.21 (TeX Live 2020/Debian) (preloaded format=pdflatex 2025.6.19)  21 JUN 2025 19:57
 entering extended mode
  restricted \write18 enabled.
  file:line:error style messages enabled.
@@ -935,8 +935,32 @@ LaTeX Font Info:    Trying to load font information for U+msb on input line 36.
  (/usr/share/texlive/texmf-dist/tex/latex/amsfonts/umsb.fd
 File: umsb.fd 2013/01/14 v3.01 AMS symbols B
 )) (/workspaces/Geometric-Aware-Camera-Pose-Estimation/assets/article/chapters/introduction.tex
+<images/header_image/teaser.pdf, id=9, 2213.26875pt x 700.6175pt>
+File: images/header_image/teaser.pdf Graphic file (type pdf)
+<use images/header_image/teaser.pdf>
+Package pdftex.def Info: images/header_image/teaser.pdf  used on input line 6.
+(pdftex.def)             Requested size: 483.69687pt x 153.11003pt.
 
-Package natbib Warning: Citation `Zhang2000' on page 1 undefined on input line 5.
+
+Package natbib Warning: Citation `Zhang2000' on page 1 undefined on input line 22.
+
+
+LaTeX Warning: Reference `fig:checkerboard' on page 1 undefined on input line 22.
+
+
+Package natbib Warning: Citation `olson2011tags' on page 1 undefined on input line 22.
+
+
+Package natbib Warning: Citation `wang2016iros' on page 1 undefined on input line 22.
+
+
+Package natbib Warning: Citation `krogius2019iros' on page 1 undefined on input line 22.
+
+
+Package natbib Warning: Citation `richardson2013iros' on page 1 undefined on input line 22.
+
+
+LaTeX Warning: Reference `fig:apriltags' on page 1 undefined on input line 22.
 
 Package epstopdf Info: Source file: <images//raggiera_polimi.eps>
 (epstopdf)                    date: 2025-06-17 12:24:05
@@ -945,113 +969,206 @@ Package epstopdf Info: Source file: <images//raggiera_polimi.eps>
 (epstopdf)                    date: 2025-06-17 12:24:05
 (epstopdf)                    size: 40408 bytes
 (epstopdf)             Command: <repstopdf --outfile=images//raggiera_polimi-eps-converted-to.pdf images//raggiera_polimi.eps>
-(epstopdf)             \includegraphics on input line 7.
+(epstopdf)             \includegraphics on input line 23.
 Package epstopdf Info: Output file is already uptodate.
-<images//raggiera_polimi-eps-converted-to.pdf, id=9, 502.87875pt x 502.87875pt>
+<images//raggiera_polimi-eps-converted-to.pdf, id=10, 502.87875pt x 502.87875pt>
 File: images//raggiera_polimi-eps-converted-to.pdf Graphic file (type pdf)
 <use images//raggiera_polimi-eps-converted-to.pdf>
-Package pdftex.def Info: images//raggiera_polimi-eps-converted-to.pdf  used on input line 7.
+Package pdftex.def Info: images//raggiera_polimi-eps-converted-to.pdf  used on input line 23.
 (pdftex.def)             Requested size: 262.90492pt x 262.90266pt.
 [1
 
 {/var/lib/texmf/fonts/map/pdftex/updmap/pdftex.map} </workspaces/Geometric-Aware-Camera-Pose-Estimation/assets/article/images//raggiera_polimi-eps-converted-to.pdf> </workspaces/Geometric-Aware-Camera-Pose-Estimation/assets/article/images//logo_polimi_ing_indinf-eps-converted-to.pdf>]
 
-Package natbib Warning: Citation `Zhang2000' on page 2 undefined on input line 9.
+Package natbib Warning: Citation `guo23vanishing' on page 2 undefined on input line 24.
 
 
-Package natbib Warning: Citation `Sturm2004' on page 2 undefined on input line 9.
+Package natbib Warning: Citation `Sturm2004' on page 2 undefined on input line 26.
 
 
-Package natbib Warning: Citation `guo23vanishing' on page 2 undefined on input line 9.
+Package natbib Warning: Citation `Maybank1992' on page 2 undefined on input line 28.
 
 
-Package natbib Warning: Citation `teramoto2002calibration' on page 2 undefined on input line 9.
+Package natbib Warning: Citation `Triggs1997' on page 2 undefined on input line 28.
 
 
-Package natbib Warning: Citation `Bartoli2005' on page 2 undefined on input line 9.
+Package natbib Warning: Citation `Pollefeys1999' on page 2 undefined on input line 28.
 
 
-Package natbib Warning: Citation `gaudilliere2017perspective' on page 2 undefined on input line 9.
+Package natbib Warning: Citation `Li2024' on page 2 undefined on input line 28.
 
 
-Package natbib Warning: Citation `gummeson22pose' on page 2 undefined on input line 13.
-
-<images/header_image/teaser.pdf, id=38, 2213.26875pt x 700.6175pt>
-File: images/header_image/teaser.pdf Graphic file (type pdf)
-<use images/header_image/teaser.pdf>
-Package pdftex.def Info: images/header_image/teaser.pdf  used on input line 17.
-(pdftex.def)             Requested size: 411.14528pt x 130.14673pt.
-
-LaTeX Warning: Reference `fig:homotopy' on page 2 undefined on input line 22.
+Package natbib Warning: Citation `guo23vanishing' on page 2 undefined on input line 28.
 
 
-LaTeX Warning: Reference `sec:related' on page 2 undefined on input line 38.
+Package natbib Warning: Citation `Hartley1994' on page 2 undefined on input line 28.
 
 
-LaTeX Warning: Reference `sec:problem_formulation' on page 2 undefined on input line 39.
+Package natbib Warning: Citation `Fitzgibbon2001' on page 2 undefined on input line 28.
 
 
-LaTeX Warning: Reference `sec:constraints' on page 2 undefined on input line 40.
+Package natbib Warning: Citation `Hagemann2023' on page 2 undefined on input line 30.
 
 
-LaTeX Warning: Reference `sec:homotopy' on page 2 undefined on input line 41.
+Package natbib Warning: Citation `Hogan2023' on page 2 undefined on input line 30.
 
 
-LaTeX Warning: Reference `sec:method' on page 2 undefined on input line 42.
+Package natbib Warning: Citation `Satouri2023' on page 2 undefined on input line 30.
 
 
-LaTeX Warning: Reference `sec:iterating_procedure' on page 2 undefined on input line 43.
+LaTeX Warning: Reference `fig:calibration_examples' on page 2 undefined on input line 32.
+
+<images/calibration/zhang.jpg, id=41, 853.1875pt x 506.89375pt>
+File: images/calibration/zhang.jpg Graphic file (type jpg)
+<use images/calibration/zhang.jpg>
+Package pdftex.def Info: images/calibration/zhang.jpg  used on input line 39.
+(pdftex.def)             Requested size: 111.2482pt x 66.09186pt.
+<images/calibration/apriltags.png, id=42, 720.6925pt x 435.6275pt>
+File: images/calibration/apriltags.png Graphic file (type png)
+<use images/calibration/apriltags.png>
+Package pdftex.def Info: images/calibration/apriltags.png  used on input line 43.
+(pdftex.def)             Requested size: 111.2482pt x 67.24239pt.
+<images/calibration/sfm.png, id=43, 1126.2075pt x 597.23125pt>
+File: images/calibration/sfm.png Graphic file (type png)
+<use images/calibration/sfm.png>
+Package pdftex.def Info: images/calibration/sfm.png  used on input line 47.
+(pdftex.def)             Requested size: 111.2482pt x 58.98846pt.
+<images/calibration/surface_of_revolution.png, id=45, 710.655pt x 376.40625pt>
+File: images/calibration/surface_of_revolution.png Graphic file (type png)
+<use images/calibration/surface_of_revolution.png>
+Package pdftex.def Info: images/calibration/surface_of_revolution.png  used on input line 51.
+(pdftex.def)             Requested size: 111.2482pt x 58.92245pt.
+
+Overfull \hbox (4.8624pt too wide) in paragraph at lines 39--53
+ [][][][][][][][] 
+ []
+
+
+Package natbib Warning: Citation `Sattler2015' on page 2 undefined on input line 57.
+
+
+Package natbib Warning: Citation `Li2020' on page 2 undefined on input line 57.
+
+
+Package natbib Warning: Citation `Sarlin2019SuperGlue' on page 2 undefined on input line 57.
+
+
+Package natbib Warning: Citation `Gojcic2020' on page 2 undefined on input line 57.
+
+
+Package natbib Warning: Citation `Sattler2018Benchmarking' on page 2 undefined on input line 57.
+
+
+Package natbib Warning: Citation `Revaud2019R2D2' on page 2 undefined on input line 57.
+
+
+Package natbib Warning: Citation `Dusmanu2019SuperPoint' on page 2 undefined on input line 57.
+
+
+Package natbib Warning: Citation `Schonberger2016' on page 2 undefined on input line 57.
+
+
+Package natbib Warning: Citation `DeTone2018SuperPoint' on page 2 undefined on input line 57.
+
+
+Package natbib Warning: Citation `Sarlin2020SuperGlue' on page 2 undefined on input line 57.
+
+
+Package natbib Warning: Citation `Taira2018' on page 2 undefined on input line 57.
+
+
+Package natbib Warning: Citation `Chen2021ACNe' on page 2 undefined on input line 57.
+
+
+Package natbib Warning: Citation `Sattler2019Hierarchical' on page 2 undefined on input line 57.
 
 [2 </workspaces/Geometric-Aware-Camera-Pose-Estimation/assets/article/images/header_image/teaser.pdf>]
 
-LaTeX Warning: Reference `sec:postprocessing' on page 3 undefined on input line 44.
+Package natbib Warning: Citation `Wang2022' on page 3 undefined on input line 59.
 
 
-LaTeX Warning: Reference `sec:experiments' on page 3 undefined on input line 45.
+Package natbib Warning: Citation `Chen2022TransLo' on page 3 undefined on input line 59.
 
 
-LaTeX Warning: Reference `sec:conclusions' on page 3 undefined on input line 46.
+Package natbib Warning: Citation `Tang2023' on page 3 undefined on input line 59.
 
 
-LaTeX Warning: Reference `sec:appendix' on page 3 undefined on input line 47.
+Package natbib Warning: Citation `Luo2020' on page 3 undefined on input line 59.
+
+
+Package natbib Warning: Citation `gummeson22pose' on page 3 undefined on input line 73.
+
+
+LaTeX Warning: Reference `fig:homotopy' on page 3 undefined on input line 75.
+
+
+LaTeX Warning: Reference `sec:related' on page 3 undefined on input line 91.
+
+
+LaTeX Warning: Reference `sec:problem_formulation' on page 3 undefined on input line 92.
+
+
+LaTeX Warning: Reference `sec:constraints' on page 3 undefined on input line 93.
+
+
+LaTeX Warning: Reference `sec:homotopy' on page 3 undefined on input line 94.
+
+
+LaTeX Warning: Reference `sec:method' on page 3 undefined on input line 95.
+
+
+LaTeX Warning: Reference `sec:iterating_procedure' on page 3 undefined on input line 96.
+
+
+LaTeX Warning: Reference `sec:postprocessing' on page 3 undefined on input line 97.
+
+
+LaTeX Warning: Reference `sec:experiments' on page 3 undefined on input line 98.
+
+
+LaTeX Warning: Reference `sec:conclusions' on page 3 undefined on input line 99.
+
+
+LaTeX Warning: Reference `sec:appendix' on page 3 undefined on input line 100.
 
 ) (/workspaces/Geometric-Aware-Camera-Pose-Estimation/assets/article/chapters/problem_formulation.tex
 
 LaTeX Warning: Reference `fig:problem_formulation' on page 3 undefined on input line 5.
 
-<images/backprojection.png, id=132, 1226.5825pt x 1092.08pt>
+[3 </workspaces/Geometric-Aware-Camera-Pose-Estimation/assets/article/images/calibration/zhang.jpg> </workspaces/Geometric-Aware-Camera-Pose-Estimation/assets/article/images/calibration/apriltags.png> </workspaces/Geometric-Aware-Camera-Pose-Estimation/assets/article/images/calibration/sfm.png> </workspaces/Geometric-Aware-Camera-Pose-Estimation/assets/article/images/calibration/surface_of_revolution.png>]
+<images/backprojection.png, id=153, 1226.5825pt x 1092.08pt>
 File: images/backprojection.png Graphic file (type png)
 <use images/backprojection.png>
 Package pdftex.def Info: images/backprojection.png  used on input line 32.
 (pdftex.def)             Requested size: 241.84843pt x 215.31267pt.
 
-LaTeX Warning: Reference `eq:dual_quadric_constraint' on page 3 undefined on input line 32.
+
+LaTeX Warning: Reference `eq:dual_quadric_constraint' on page 4 undefined on input line 32.
 
 
-LaTeX Warning: Reference `eq:expanded_vertex_constraint' on page 3 undefined on input line 32.
+LaTeX Warning: Reference `eq:expanded_vertex_constraint' on page 4 undefined on input line 32.
 
 
-LaTeX Warning: Reference `eq:dual_quadric_constraint' on page 3 undefined on input line 32.
+LaTeX Warning: Reference `eq:dual_quadric_constraint' on page 4 undefined on input line 32.
 
 
-LaTeX Warning: Reference `eq:expanded_vertex_constraint' on page 3 undefined on input line 32.
+LaTeX Warning: Reference `eq:expanded_vertex_constraint' on page 4 undefined on input line 32.
 
-<images/cone_planes.png, id=134, 1204.5pt x 1204.5pt>
+<images/cone_planes.png, id=154, 1204.5pt x 1204.5pt>
 File: images/cone_planes.png Graphic file (type png)
 <use images/cone_planes.png>
 Package pdftex.def Info: images/cone_planes.png  used on input line 47.
 (pdftex.def)             Requested size: 212.82779pt x 212.81236pt.
 ) (/workspaces/Geometric-Aware-Camera-Pose-Estimation/assets/article/chapters/related_work.tex
 
-Package natbib Warning: Citation `hartley93lines' on page 3 undefined on input line 4.
+Package natbib Warning: Citation `hartley93lines' on page 4 undefined on input line 4.
 
 
-Package natbib Warning: Citation `guo23vanishing' on page 3 undefined on input line 4.
+Package natbib Warning: Citation `guo23vanishing' on page 4 undefined on input line 4.
 
 
-Package natbib Warning: Citation `chsong24' on page 3 undefined on input line 4.
+Package natbib Warning: Citation `chsong24' on page 4 undefined on input line 4.
 
-[3 </workspaces/Geometric-Aware-Camera-Pose-Estimation/assets/article/images/backprojection.png> </workspaces/Geometric-Aware-Camera-Pose-Estimation/assets/article/images/cone_planes.png>]
 
 Package natbib Warning: Citation `gummeson22pose' on page 4 undefined on input line 7.
 
@@ -1067,88 +1184,93 @@ Package natbib Warning: Citation `CalibrationFreePlacedRightCylinder' on page 4 
 
 LaTeX Warning: Reference `tab:soa' on page 4 undefined on input line 9.
 
-(/workspaces/Geometric-Aware-Camera-Pose-Estimation/assets/article/tables/comparison.tex
+[4 </workspaces/Geometric-Aware-Camera-Pose-Estimation/assets/article/images/backprojection.png> </workspaces/Geometric-Aware-Camera-Pose-Estimation/assets/article/images/cone_planes.png>] (/workspaces/Geometric-Aware-Camera-Pose-Estimation/assets/article/tables/comparison.tex
 
-Package natbib Warning: Citation `guo23vanishing' on page 4 undefined on input line 5.
-
-
-Package natbib Warning: Citation `CalibrationFreePlacedRightCylinder' on page 4 undefined on input line 5.
+Package natbib Warning: Citation `guo23vanishing' on page 5 undefined on input line 5.
 
 
-Package natbib Warning: Citation `gummeson22pose' on page 4 undefined on input line 5.
+Package natbib Warning: Citation `CalibrationFreePlacedRightCylinder' on page 5 undefined on input line 5.
 
 
-Package natbib Warning: Citation `gummeson24relative' on page 4 undefined on input line 5.
+Package natbib Warning: Citation `gummeson22pose' on page 5 undefined on input line 5.
+
+
+Package natbib Warning: Citation `gummeson24relative' on page 5 undefined on input line 5.
 
 )) (/workspaces/Geometric-Aware-Camera-Pose-Estimation/assets/article/chapters/geometric_constraints.tex
 
-Package natbib Warning: Citation `gummeson22pose' on page 4 undefined on input line 4.
+Package natbib Warning: Citation `gummeson22pose' on page 5 undefined on input line 4.
 
 
-Package natbib Warning: Citation `gummeson24relative' on page 4 undefined on input line 4.
+Package natbib Warning: Citation `gummeson24relative' on page 5 undefined on input line 4.
 
 
-LaTeX Warning: Reference `fig:quadric_surface_dual' on page 4 undefined on input line 9.
+LaTeX Warning: Reference `fig:quadric_surface_dual' on page 5 undefined on input line 9.
 
 
-LaTeX Warning: Reference `fig:cone_plane_singlepoint' on page 4 undefined on input line 11.
+LaTeX Warning: Reference `fig:cone_plane_singlepoint' on page 5 undefined on input line 11.
 
-[4]pdfTeX warning (ext4): destination with the same identifier (name{subfigure.2.1}) has been already used, duplicate ignored
+pdfTeX warning (ext4): destination with the same identifier (name{subfigure.3.1}) has been already used, duplicate ignored
 <to be read again> 
                    \relax 
 l.30 	\subfloat
                {
-<images//surface_planes/1.png, id=176, 1204.5pt x 1204.5pt>
+<images//surface_planes/1.png, id=183, 1204.5pt x 1204.5pt>
 File: images//surface_planes/1.png Graphic file (type png)
 <use images//surface_planes/1.png>
 Package pdftex.def Info: images//surface_planes/1.png  used on input line 32.
 (pdftex.def)             Requested size: 111.2482pt x 111.23071pt.
-pdfTeX warning (ext4): destination with the same identifier (name{subfigure.2.2}) has been already used, duplicate ignored
+pdfTeX warning (ext4): destination with the same identifier (name{subfigure.3.2}) has been already used, duplicate ignored
 <to be read again> 
                    \relax 
 l.33 	\subfloat
                {
-<images//surface_planes/2.png, id=177, 1204.5pt x 1204.5pt>
+<images//surface_planes/2.png, id=184, 1204.5pt x 1204.5pt>
 File: images//surface_planes/2.png Graphic file (type png)
 <use images//surface_planes/2.png>
 Package pdftex.def Info: images//surface_planes/2.png  used on input line 35.
 (pdftex.def)             Requested size: 111.2482pt x 111.23071pt.
-<images//surface_planes/3.png, id=178, 1204.5pt x 1204.5pt>
+<images//surface_planes/3.png, id=185, 1204.5pt x 1204.5pt>
 File: images//surface_planes/3.png Graphic file (type png)
 <use images//surface_planes/3.png>
 Package pdftex.def Info: images//surface_planes/3.png  used on input line 38.
 (pdftex.def)             Requested size: 111.2482pt x 111.23071pt.
-<images//surface_planes/4.png, id=179, 1204.5pt x 1204.5pt>
+<images//surface_planes/4.png, id=186, 1204.5pt x 1204.5pt>
 File: images//surface_planes/4.png Graphic file (type png)
 <use images//surface_planes/4.png>
 Package pdftex.def Info: images//surface_planes/4.png  used on input line 41.
 (pdftex.def)             Requested size: 111.2482pt x 111.23071pt.
+
+
+LaTeX Warning: `h' float specifier changed to `ht'.
+
 ) (/workspaces/Geometric-Aware-Camera-Pose-Estimation/assets/article/chapters/homotopy.tex
 
 Package natbib Warning: Citation `HomotophyContinuationMethods' on page 5 undefined on input line 4.
 
+[5]
 
-LaTeX Warning: Reference `alg:homotopy_path_tracking' on page 5 undefined on input line 16.
+LaTeX Warning: Reference `alg:homotopy_path_tracking' on page 6 undefined on input line 16.
 
 
-LaTeX Warning: Reference `fig:homotopy_predictor_corrector' on page 5 undefined on input line 16.
+LaTeX Warning: Reference `fig:homotopy_predictor_corrector' on page 6 undefined on input line 16.
 
-<images/homotopy_predictor_corrector.png, id=180, 1836.8625pt x 1000.73875pt>
+<images/homotopy_predictor_corrector.png, id=203, 1836.8625pt x 1000.73875pt>
 File: images/homotopy_predictor_corrector.png Graphic file (type png)
 <use images/homotopy_predictor_corrector.png>
 Package pdftex.def Info: images/homotopy_predictor_corrector.png  used on input line 20.
 (pdftex.def)             Requested size: 411.14528pt x 223.99599pt.
 ) (/workspaces/Geometric-Aware-Camera-Pose-Estimation/assets/article/chapters/method.tex
 
-LaTeX Warning: Reference `eq:dual_quadric_constraint' on page 5 undefined on input line 9.
+LaTeX Warning: Reference `eq:dual_quadric_constraint' on page 6 undefined on input line 9.
 
 
-LaTeX Warning: Reference `eq:vertex_constraint' on page 5 undefined on input line 9.
+LaTeX Warning: Reference `eq:vertex_constraint' on page 6 undefined on input line 9.
 
 
-LaTeX Warning: Reference `fig:homotopy' on page 5 undefined on input line 11.
+LaTeX Warning: Reference `fig:homotopy' on page 6 undefined on input line 11.
 
-[5 </workspaces/Geometric-Aware-Camera-Pose-Estimation/assets/article/images//surface_planes/1.png> </workspaces/Geometric-Aware-Camera-Pose-Estimation/assets/article/images//surface_planes/2.png> </workspaces/Geometric-Aware-Camera-Pose-Estimation/assets/article/images//surface_planes/3.png> </workspaces/Geometric-Aware-Camera-Pose-Estimation/assets/article/images//surface_planes/4.png> </workspaces/Geometric-Aware-Camera-Pose-Estimation/assets/article/images/homotopy_predictor_corrector.png>]
+[6 </workspaces/Geometric-Aware-Camera-Pose-Estimation/assets/article/images//surface_planes/1.png> </workspaces/Geometric-Aware-Camera-Pose-Estimation/assets/article/images//surface_planes/2.png> </workspaces/Geometric-Aware-Camera-Pose-Estimation/assets/article/images//surface_planes/3.png> </workspaces/Geometric-Aware-Camera-Pose-Estimation/assets/article/images//surface_planes/4.png> </workspaces/Geometric-Aware-Camera-Pose-Estimation/assets/article/images/homotopy_predictor_corrector.png>]
 
 Package hyperref Warning: Token not allowed in a PDF string (PDFDocEncoding):
 (hyperref)                removing `math shift' on input line 13.
@@ -1162,142 +1284,141 @@ Package hyperref Warning: Token not allowed in a PDF string (PDFDocEncoding):
 (hyperref)                removing `math shift' on input line 13.
 
 
-LaTeX Warning: Reference `eq:dual_quadric_constraint' on page 6 undefined on input line 14.
+LaTeX Warning: Reference `eq:dual_quadric_constraint' on page 7 undefined on input line 14.
 
 
-LaTeX Warning: Reference `eq:vertex_constraint' on page 6 undefined on input line 14.
+LaTeX Warning: Reference `eq:vertex_constraint' on page 7 undefined on input line 14.
 
 
-Package natbib Warning: Citation `gummeson24relative' on page 6 undefined on input line 15.
+Package natbib Warning: Citation `gummeson24relative' on page 7 undefined on input line 15.
 
 
-LaTeX Warning: Reference `eq:vertex_constraint' on page 6 undefined on input line 15.
+LaTeX Warning: Reference `eq:vertex_constraint' on page 7 undefined on input line 15.
 
 
-LaTeX Warning: Reference `eq:vertex_constraint' on page 6 undefined on input line 24.
+LaTeX Warning: Reference `eq:vertex_constraint' on page 7 undefined on input line 24.
 
 
-LaTeX Warning: Reference `eq:dual_quadric_constraint' on page 6 undefined on input line 24.
+LaTeX Warning: Reference `eq:dual_quadric_constraint' on page 7 undefined on input line 24.
 
 
-LaTeX Warning: Reference `eq:vertex_constraint' on page 6 undefined on input line 26.
+LaTeX Warning: Reference `eq:vertex_constraint' on page 7 undefined on input line 26.
 
 
-LaTeX Warning: Reference `eq:dual_quadric_constraint' on page 6 undefined on input line 30.
+LaTeX Warning: Reference `eq:dual_quadric_constraint' on page 7 undefined on input line 30.
 
 
-LaTeX Warning: Reference `tab:scene_configurations' on page 6 undefined on input line 30.
+LaTeX Warning: Reference `tab:scene_configurations' on page 7 undefined on input line 30.
 
 (/workspaces/Geometric-Aware-Camera-Pose-Estimation/assets/article/tables/scene_configurations.tex)
 
-LaTeX Warning: Reference `eq:dual_quadric_constraint' on page 6 undefined on input line 39.
+LaTeX Warning: Reference `eq:dual_quadric_constraint' on page 7 undefined on input line 39.
 
 
-LaTeX Warning: Reference `eq:vertex_constraint' on page 6 undefined on input line 39.
+LaTeX Warning: Reference `eq:vertex_constraint' on page 7 undefined on input line 39.
 
-[6]
 
 Package natbib Warning: Citation `may2004parametrizedhomotopytheory' on page 7 undefined on input line 44.
 
-
-LaTeX Warning: Reference `fig:transformation' on page 7 undefined on input line 46.
-
-
-Package natbib Warning: Citation `HomotopyContinuationJL' on page 7 undefined on input line 88.
-
-
-LaTeX Warning: Reference `eq:dual_quadric_constraint' on page 7 undefined on input line 90.
-
 [7]
+
+LaTeX Warning: Reference `fig:transformation' on page 8 undefined on input line 46.
+
+
+Package natbib Warning: Citation `HomotopyContinuationJL' on page 8 undefined on input line 88.
+
+
+LaTeX Warning: Reference `eq:dual_quadric_constraint' on page 8 undefined on input line 90.
+
 
 LaTeX Warning: Reference `alg:solutions_generation' on page 8 undefined on input line 103.
 
 
 LaTeX Warning: Reference `fig:homotopy' on page 8 undefined on input line 103.
 
+[8]
 
-LaTeX Warning: Reference `alg:get_cylinder_contours' on page 8 undefined on input line 122.
-
-
-LaTeX Warning: Reference `eq:expanded_vertex_constraint' on page 8 undefined on input line 132.
+LaTeX Warning: Reference `alg:get_cylinder_contours' on page 9 undefined on input line 122.
 
 
-LaTeX Warning: Reference `eq:expanded_vertex_constraint' on page 8 undefined on input line 132.
-
-[8]) (/workspaces/Geometric-Aware-Camera-Pose-Estimation/assets/article/chapters/experiments.tex
-
-Package natbib Warning: Citation `gummeson22pose' on page 9 undefined on input line 21.
+LaTeX Warning: Reference `eq:expanded_vertex_constraint' on page 9 undefined on input line 132.
 
 
-Package natbib Warning: Citation `CalibrationFreePlacedRightCylinder' on page 9 undefined on input line 23.
+LaTeX Warning: Reference `eq:expanded_vertex_constraint' on page 9 undefined on input line 132.
+
+) (/workspaces/Geometric-Aware-Camera-Pose-Estimation/assets/article/chapters/experiments.tex [9]
+
+Package natbib Warning: Citation `gummeson22pose' on page 10 undefined on input line 21.
 
 
-LaTeX Warning: Reference `fig:delta_f' on page 9 undefined on input line 23.
+Package natbib Warning: Citation `CalibrationFreePlacedRightCylinder' on page 10 undefined on input line 23.
 
 
-LaTeX Warning: Reference `fig:delta_uv' on page 9 undefined on input line 23.
+LaTeX Warning: Reference `fig:delta_f' on page 10 undefined on input line 23.
 
 
-LaTeX Warning: Reference `fig:delta_skew' on page 9 undefined on input line 25.
+LaTeX Warning: Reference `fig:delta_uv' on page 10 undefined on input line 23.
 
 
-LaTeX Warning: Reference `fig:delta_r' on page 9 undefined on input line 27.
+LaTeX Warning: Reference `fig:delta_skew' on page 10 undefined on input line 25.
 
 
-LaTeX Warning: Reference `fig:delta_t' on page 9 undefined on input line 27.
+LaTeX Warning: Reference `fig:delta_r' on page 10 undefined on input line 27.
 
 
-Package natbib Warning: Citation `gummeson22pose' on page 9 undefined on input line 27.
+LaTeX Warning: Reference `fig:delta_t' on page 10 undefined on input line 27.
 
 
-LaTeX Warning: Reference `fig:success_rate' on page 9 undefined on input line 28.
+Package natbib Warning: Citation `gummeson22pose' on page 10 undefined on input line 27.
 
 
-LaTeX Warning: Reference `tab:soa' on page 9 undefined on input line 29.
+LaTeX Warning: Reference `fig:success_rate' on page 10 undefined on input line 28.
 
-<images/compares/delta_f.pdf, id=250, 324.2174pt x 271.26959pt>
+
+LaTeX Warning: Reference `tab:soa' on page 10 undefined on input line 29.
+
+<images/compares/delta_f.pdf, id=272, 324.2174pt x 271.26959pt>
 File: images/compares/delta_f.pdf Graphic file (type pdf)
 <use images/compares/delta_f.pdf>
 Package pdftex.def Info: images/compares/delta_f.pdf  used on input line 38.
 (pdftex.def)             Requested size: 135.43452pt x 113.31982pt.
-<images/compares/delta_uv.pdf, id=251, 324.2174pt x 271.26959pt>
+<images/compares/delta_uv.pdf, id=273, 324.2174pt x 271.26959pt>
 File: images/compares/delta_uv.pdf Graphic file (type pdf)
 <use images/compares/delta_uv.pdf>
 Package pdftex.def Info: images/compares/delta_uv.pdf  used on input line 44.
 (pdftex.def)             Requested size: 135.43452pt x 113.31982pt.
-<images/compares/delta_skew.pdf, id=252, 323.84076pt x 271.26959pt>
+<images/compares/delta_skew.pdf, id=274, 323.84076pt x 271.26959pt>
 File: images/compares/delta_skew.pdf Graphic file (type pdf)
 <use images/compares/delta_skew.pdf>
 Package pdftex.def Info: images/compares/delta_skew.pdf  used on input line 50.
 (pdftex.def)             Requested size: 135.43452pt x 113.45229pt.
-<images/compares/delta_r.pdf, id=253, 324.54866pt x 271.26959pt>
+<images/compares/delta_r.pdf, id=275, 324.54866pt x 271.26959pt>
 File: images/compares/delta_r.pdf Graphic file (type pdf)
 <use images/compares/delta_r.pdf>
 Package pdftex.def Info: images/compares/delta_r.pdf  used on input line 57.
 (pdftex.def)             Requested size: 135.43452pt x 113.1998pt.
-<images/compares/delta_t.pdf, id=254, 324.2174pt x 271.26959pt>
+<images/compares/delta_t.pdf, id=276, 324.2174pt x 271.26959pt>
 File: images/compares/delta_t.pdf Graphic file (type pdf)
 <use images/compares/delta_t.pdf>
 Package pdftex.def Info: images/compares/delta_t.pdf  used on input line 63.
 (pdftex.def)             Requested size: 135.43452pt x 113.31982pt.
-<images/compares/success_rate.pdf, id=255, 323.88217pt x 271.26959pt>
+<images/compares/success_rate.pdf, id=277, 323.88217pt x 271.26959pt>
 File: images/compares/success_rate.pdf Graphic file (type pdf)
 <use images/compares/success_rate.pdf>
 Package pdftex.def Info: images/compares/success_rate.pdf  used on input line 69.
 (pdftex.def)             Requested size: 135.43452pt x 113.43573pt.
 
-LaTeX Warning: Reference `fig:pipes' on page 9 undefined on input line 76.
+LaTeX Warning: Reference `fig:pipes' on page 10 undefined on input line 76.
 
-[9]
 
 LaTeX Warning: Reference `fig:pipes' on page 10 undefined on input line 84.
 
-<images/scenes/pipes/camera_1.png, id=270, 2168.1pt x 1218.5525pt>
+<images/scenes/pipes/camera_1.png, id=278, 2168.1pt x 1218.5525pt>
 File: images/scenes/pipes/camera_1.png Graphic file (type png)
 <use images/scenes/pipes/camera_1.png>
 Package pdftex.def Info: images/scenes/pipes/camera_1.png  used on input line 92.
 (pdftex.def)             Requested size: 241.84843pt x 135.91914pt.
-<images/scenes/pipes/camera_2.png, id=271, 2168.1pt x 1218.5525pt>
+<images/scenes/pipes/camera_2.png, id=279, 2168.1pt x 1218.5525pt>
 File: images/scenes/pipes/camera_2.png Graphic file (type png)
 <use images/scenes/pipes/camera_2.png>
 Package pdftex.def Info: images/scenes/pipes/camera_2.png  used on input line 95.
@@ -1313,25 +1434,25 @@ Package natbib Warning: Citation `gummeson22pose' on page 10 undefined on input 
 
 LaTeX Warning: Reference `fig:homotopy' on page 10 undefined on input line 102.
 
-[10 </workspaces/Geometric-Aware-Camera-Pose-Estimation/assets/article/images/compares/delta_f.pdf> </workspaces/Geometric-Aware-Camera-Pose-Estimation/assets/article/images/compares/delta_uv.pdf> </workspaces/Geometric-Aware-Camera-Pose-Estimation/assets/article/images/compares/delta_skew.pdf> </workspaces/Geometric-Aware-Camera-Pose-Estimation/assets/article/images/compares/delta_r.pdf> </workspaces/Geometric-Aware-Camera-Pose-Estimation/assets/article/images/compares/delta_t.pdf> </workspaces/Geometric-Aware-Camera-Pose-Estimation/assets/article/images/compares/success_rate.pdf> </workspaces/Geometric-Aware-Camera-Pose-Estimation/assets/article/images/scenes/pipes/camera_1.png> </workspaces/Geometric-Aware-Camera-Pose-Estimation/assets/article/images/scenes/pipes/camera_2.png>]
+[10] [11 </workspaces/Geometric-Aware-Camera-Pose-Estimation/assets/article/images/compares/delta_f.pdf> </workspaces/Geometric-Aware-Camera-Pose-Estimation/assets/article/images/compares/delta_uv.pdf> </workspaces/Geometric-Aware-Camera-Pose-Estimation/assets/article/images/compares/delta_skew.pdf> </workspaces/Geometric-Aware-Camera-Pose-Estimation/assets/article/images/compares/delta_r.pdf> </workspaces/Geometric-Aware-Camera-Pose-Estimation/assets/article/images/compares/delta_t.pdf> </workspaces/Geometric-Aware-Camera-Pose-Estimation/assets/article/images/compares/success_rate.pdf> </workspaces/Geometric-Aware-Camera-Pose-Estimation/assets/article/images/scenes/pipes/camera_1.png> </workspaces/Geometric-Aware-Camera-Pose-Estimation/assets/article/images/scenes/pipes/camera_2.png>]
 
-LaTeX Warning: Reference `fig:roller_coaster' on page 11 undefined on input line 110.
+LaTeX Warning: Reference `fig:roller_coaster' on page 12 undefined on input line 110.
 
 
-Package natbib Warning: Citation `gummeson22pose' on page 11 undefined on input line 110.
+Package natbib Warning: Citation `gummeson22pose' on page 12 undefined on input line 110.
 
-<images/scenes/roller_coaster/rollercoaster_gummeson.png, id=460, 3854.4pt x 2168.1pt>
+<images/scenes/roller_coaster/rollercoaster_gummeson.png, id=478, 3854.4pt x 2168.1pt>
 File: images/scenes/roller_coaster/rollercoaster_gummeson.png Graphic file (type png)
 <use images/scenes/roller_coaster/rollercoaster_gummeson.png>
 Package pdftex.def Info: images/scenes/roller_coaster/rollercoaster_gummeson.png  used on input line 116.
 (pdftex.def)             Requested size: 241.84843pt x 136.03523pt.
 
-Package natbib Warning: Citation `gummeson22pose' on page 11 undefined on input line 116.
+Package natbib Warning: Citation `gummeson22pose' on page 12 undefined on input line 116.
 
 
-Package natbib Warning: Citation `gummeson22pose' on page 11 undefined on input line 116.
+Package natbib Warning: Citation `gummeson22pose' on page 12 undefined on input line 116.
 
-<images/scenes/roller_coaster/rollercoaster_ours.png, id=461, 3854.4pt x 2168.1pt>
+<images/scenes/roller_coaster/rollercoaster_ours.png, id=479, 3854.4pt x 2168.1pt>
 File: images/scenes/roller_coaster/rollercoaster_ours.png Graphic file (type png)
 <use images/scenes/roller_coaster/rollercoaster_ours.png>
 Package pdftex.def Info: images/scenes/roller_coaster/rollercoaster_ours.png  used on input line 119.
@@ -1342,162 +1463,134 @@ Overfull \hbox (14.52216pt too wide) in paragraph at lines 116--120
  []
 
 
-Package natbib Warning: Citation `gummeson22pose' on page 11 undefined on input line 120.
+Package natbib Warning: Citation `gummeson22pose' on page 12 undefined on input line 120.
 
 
-Package natbib Warning: Citation `gummeson22pose' on page 11 undefined on input line 120.
+Package natbib Warning: Citation `gummeson22pose' on page 12 undefined on input line 120.
 
 
-Package natbib Warning: Citation `schoenberger2016sfm' on page 11 undefined on input line 125.
+Package natbib Warning: Citation `schoenberger2016sfm' on page 12 undefined on input line 125.
 
 
-Package natbib Warning: Citation `schoenberger2016mvs' on page 11 undefined on input line 125.
+Package natbib Warning: Citation `schoenberger2016mvs' on page 12 undefined on input line 125.
 
 
-Package natbib Warning: Citation `CalibrationFreePlacedRightCylinder' on page 11 undefined on input line 128.
+Package natbib Warning: Citation `CalibrationFreePlacedRightCylinder' on page 12 undefined on input line 128.
 
 ) (/workspaces/Geometric-Aware-Camera-Pose-Estimation/assets/article/chapters/conclusions.tex
 
-Package natbib Warning: Citation `gummeson24relative' on page 11 undefined on input line 5.
+Package natbib Warning: Citation `gummeson24relative' on page 12 undefined on input line 5.
 
-(/workspaces/Geometric-Aware-Camera-Pose-Estimation/assets/article/main.bbl [11 </workspaces/Geometric-Aware-Camera-Pose-Estimation/assets/article/images/scenes/roller_coaster/rollercoaster_gummeson.png> </workspaces/Geometric-Aware-Camera-Pose-Estimation/assets/article/images/scenes/roller_coaster/rollercoaster_ours.png>])) (/workspaces/Geometric-Aware-Camera-Pose-Estimation/assets/article/main.bbl [12]pdfTeX warning (ext4): destination with the same identifier (name{cite.CalibrationFreePlacedRightCylinder}) has been already used, duplicate ignored
+(/workspaces/Geometric-Aware-Camera-Pose-Estimation/assets/article/main.bbl [12 </workspaces/Geometric-Aware-Camera-Pose-Estimation/assets/article/images/scenes/roller_coaster/rollercoaster_gummeson.png> </workspaces/Geometric-Aware-Camera-Pose-Estimation/assets/article/images/scenes/roller_coaster/rollercoaster_ours.png>] [13])) (/workspaces/Geometric-Aware-Camera-Pose-Estimation/assets/article/main.bblpdfTeX warning (ext4): destination with the same identifier (name{cite.HomotopyContinuationJL}) has been already used, duplicate ignored
 <to be read again> 
                    \relax 
-l.17 \bibitem{CalibrationFreePlacedRightCylinder}
-                                                 pdfTeX warning (ext4): destination with the same identifier (name{cite.gaudilliere2017perspective}) has been already used, duplicate ignored
+l.3 \bibitem{HomotopyContinuationJL}
+                                    pdfTeX warning (ext4): destination with the same identifier (name{cite.CalibrationFreePlacedRightCylinder}) has been already used, duplicate ignored
 <to be read again> 
                    \relax 
-l.23 \bibitem{gaudilliere2017perspective}
-                                         pdfTeX warning (ext4): destination with the same identifier (name{cite.gummeson22pose}) has been already used, duplicate ignored
+l.11 \bibitem{CalibrationFreePlacedRightCylinder}
+                                                 pdfTeX warning (ext4): destination with the same identifier (name{cite.Fitzgibbon2001}) has been already used, duplicate ignored
 <to be read again> 
                    \relax 
-l.30 \bibitem{gummeson22pose}
+l.17 \bibitem{Fitzgibbon2001}
+                             pdfTeX warning (ext4): destination with the same identifier (name{cite.gummeson22pose}) has been already used, duplicate ignored
+<to be read again> 
+                   \relax 
+l.24 \bibitem{gummeson22pose}
                              pdfTeX warning (ext4): destination with the same identifier (name{cite.gummeson24relative}) has been already used, duplicate ignored
 <to be read again> 
                    \relax 
-l.35 \bibitem{gummeson24relative}
+l.29 \bibitem{gummeson24relative}
                                  pdfTeX warning (ext4): destination with the same identifier (name{cite.guo23vanishing}) has been already used, duplicate ignored
 <to be read again> 
                    \relax 
-l.40 \bibitem{guo23vanishing}
+l.34 \bibitem{guo23vanishing}
                              pdfTeX warning (ext4): destination with the same identifier (name{cite.hartley93lines}) has been already used, duplicate ignored
 <to be read again> 
                    \relax 
-l.46 \bibitem{hartley93lines}
-                             pdfTeX warning (ext4): destination with the same identifier (name{cite.larsson20parallelcylinders}) has been already used, duplicate ignored
+l.40 \bibitem{hartley93lines}
+                             pdfTeX warning (ext4): destination with the same identifier (name{cite.Hartley1994}) has been already used, duplicate ignored
 <to be read again> 
                    \relax 
-l.51 \bibitem{larsson20parallelcylinders}
+l.45 \bibitem{Hartley1994}
+                          pdfTeX warning (ext4): destination with the same identifier (name{cite.krogius2019iros}) has been already used, duplicate ignored
+<to be read again> 
+                   \relax 
+l.51 \bibitem{krogius2019iros}
+                              pdfTeX warning (ext4): destination with the same identifier (name{cite.larsson20parallelcylinders}) has been already used, duplicate ignored
+<to be read again> 
+                   \relax 
+l.57 \bibitem{larsson20parallelcylinders}
                                          pdfTeX warning (ext4): destination with the same identifier (name{cite.HomotophyContinuationMethods}) has been already used, duplicate ignored
 <to be read again> 
                    \relax 
-l.57 \bibitem{HomotophyContinuationMethods}
-                                           pdfTeX warning (ext4): destination with the same identifier (name{cite.may2004parametrizedhomotopytheory}) has been already used, duplicate ignored
+l.63 \bibitem{HomotophyContinuationMethods}
+                                           pdfTeX warning (ext4): destination with the same identifier (name{cite.Li2024}) has been already used, duplicate ignored
 <to be read again> 
                    \relax 
-l.63 \bibitem{may2004parametrizedhomotopytheory}
-                                                pdfTeX warning (ext4): destination with the same identifier (name{cite.schoenberger2016sfm}) has been already used, duplicate ignored
+l.69 \bibitem{Li2024}
+                     pdfTeX warning (ext4): destination with the same identifier (name{cite.may2004parametrizedhomotopytheory}) has been already used, duplicate ignored
 <to be read again> 
                    \relax 
-l.67 \bibitem{schoenberger2016sfm}
-                                  pdfTeX warning (ext4): destination with the same identifier (name{cite.schoenberger2016mvs}) has been already used, duplicate ignored
+l.76 \bibitem{may2004parametrizedhomotopytheory}
+                                                pdfTeX warning (ext4): destination with the same identifier (name{cite.Maybank1992}) has been already used, duplicate ignored
 <to be read again> 
                    \relax 
-l.73 \bibitem{schoenberger2016mvs}
-                                  pdfTeX warning (ext4): destination with the same identifier (name{cite.chsong24}) has been already used, duplicate ignored
+l.80 \bibitem{Maybank1992}
+                          pdfTeX warning (ext4): destination with the same identifier (name{cite.olson2011tags}) has been already used, duplicate ignored
 <to be read again> 
                    \relax 
-l.79 \bibitem{chsong24}
-                       pdfTeX warning (ext4): destination with the same identifier (name{cite.Sturm2004}) has been already used, duplicate ignored
+l.85 \bibitem{olson2011tags}
+                            pdfTeX warning (ext4): destination with the same identifier (name{cite.Pollefeys1999}) has been already used, duplicate ignored
 <to be read again> 
                    \relax 
-l.85 \bibitem{Sturm2004}
-                        pdfTeX warning (ext4): destination with the same identifier (name{cite.teramoto2002calibration}) has been already used, duplicate ignored
+l.91 \bibitem{Pollefeys1999}
+                            pdfTeX warning (ext4): destination with the same identifier (name{cite.richardson2013iros}) has been already used, duplicate ignored
 <to be read again> 
                    \relax 
-l.91 \bibitem{teramoto2002calibration}
-                                      pdfTeX warning (ext4): destination with the same identifier (name{cite.Vidal2013}) has been already used, duplicate ignored
+l.98 \bibitem{richardson2013iros}
+                                 pdfTeX warning (ext4): destination with the same identifier (name{cite.schoenberger2016sfm}) has been already used, duplicate ignored
 <to be read again> 
                    \relax 
-l.98 \bibitem{Vidal2013}
-                        pdfTeX warning (ext4): destination with the same identifier (name{cite.zhang1999flexible}) has been already used, duplicate ignored
+l.104 \bibitem{schoenberger2016sfm}
+                                   pdfTeX warning (ext4): destination with the same identifier (name{cite.schoenberger2016mvs}) has been already used, duplicate ignored
 <to be read again> 
                    \relax 
-l.103 \bibitem{zhang1999flexible}
-                                 pdfTeX warning (ext4): destination with the same identifier (name{cite.Zhang2000}) has been already used, duplicate ignored
+l.110 \bibitem{schoenberger2016mvs}
+                                    [14]pdfTeX warning (ext4): destination with the same identifier (name{cite.chsong24}) has been already used, duplicate ignored
 <to be read again> 
                    \relax 
-l.109 \bibitem{Zhang2000}
+l.116 \bibitem{chsong24}
+                        pdfTeX warning (ext4): destination with the same identifier (name{cite.Sturm2004}) has been already used, duplicate ignored
+<to be read again> 
+                   \relax 
+l.122 \bibitem{Sturm2004}
+                         pdfTeX warning (ext4): destination with the same identifier (name{cite.Triggs1997}) has been already used, duplicate ignored
+<to be read again> 
+                   \relax 
+l.128 \bibitem{Triggs1997}
+                          pdfTeX warning (ext4): destination with the same identifier (name{cite.wang2016iros}) has been already used, duplicate ignored
+<to be read again> 
+                   \relax 
+l.134 \bibitem{wang2016iros}
+                            pdfTeX warning (ext4): destination with the same identifier (name{cite.Zhang2000}) has been already used, duplicate ignored
+<to be read again> 
+                   \relax 
+l.140 \bibitem{Zhang2000}
                          ) (/workspaces/Geometric-Aware-Camera-Pose-Estimation/assets/article/chapters/appendix_a.tex
 Package hyperref Info: bookmark level for unknown algorithm defaults to 0 on input line 5.
- [13pdfTeX warning (ext4): destination with the same identifier (name{cite.Bartoli2005}) has been already used, duplicate ignored
-<argument> ...shipout:D \box_use:N \l_shipout_box 
-                                                  
-l.21 
-     pdfTeX warning (ext4): destination with the same identifier (name{cite.HomotopyContinuationJL}) has been already used, duplicate ignored
-<argument> ...shipout:D \box_use:N \l_shipout_box 
-                                                  
-l.21 
-     ]
+ [15]
 
-/workspaces/Geometric-Aware-Camera-Pose-Estimation/assets/article/chapters/appendix_a.tex:88: LaTeX Error: Something's wrong--perhaps a missing \item.
+LaTeX Warning: Reference `alg:get_cylinder_contours' on page 16 undefined on input line 100.
 
-See the LaTeX manual or LaTeX Companion for explanation.
-Type  H <return>  for immediate help.
- ...                                              
-                                                  
-l.88 ...revious\_initialization}$ is $\var{null}$}
-                                                  
-Try typing  <return>  to proceed.
-If that doesn't work, type  X <return>  to quit.
-
-
-/workspaces/Geometric-Aware-Camera-Pose-Estimation/assets/article/chapters/appendix_a.tex:88: LaTeX Error: Something's wrong--perhaps a missing \item.
-
-See the LaTeX manual or LaTeX Companion for explanation.
-Type  H <return>  for immediate help.
- ...                                              
-                                                  
-l.88 ...revious\_initialization}$ is $\var{null}$}
-                                                  
-Try typing  <return>  to proceed.
-If that doesn't work, type  X <return>  to quit.
-
-
-/workspaces/Geometric-Aware-Camera-Pose-Estimation/assets/article/chapters/appendix_a.tex:88: LaTeX Error: Something's wrong--perhaps a missing \item.
-
-See the LaTeX manual or LaTeX Companion for explanation.
-Type  H <return>  for immediate help.
- ...                                              
-                                                  
-l.88 ...revious\_initialization}$ is $\var{null}$}
-                                                  
-Try typing  <return>  to proceed.
-If that doesn't work, type  X <return>  to quit.
-
-
-/workspaces/Geometric-Aware-Camera-Pose-Estimation/assets/article/chapters/appendix_a.tex:89: LaTeX Error: Something's wrong--perhaps a missing \item.
-
-See the LaTeX manual or LaTeX Companion for explanation.
-Type  H <return>  for immediate help.
- ...                                              
-                                                  
-l.89       \STATE
-                  Initialize first camera position $\mathbf{t}_0^{(1)}$ rand...
-Try typing  <return>  to proceed.
-If that doesn't work, type  X <return>  to quit.
-
-
-LaTeX Warning: Reference `alg:get_cylinder_contours' on page 14 undefined on input line 100.
-
-) [14] [15] (/workspaces/Geometric-Aware-Camera-Pose-Estimation/assets/article/abstract_it.tex)
+) [16] [17] (/workspaces/Geometric-Aware-Camera-Pose-Estimation/assets/article/abstract_it.tex)
 
 Package transparent Warning: Rerun to get transparencies right.
 
 
 Package natbib Warning: There were undefined citations.
 
-[16
+[18
 
 ] (/workspaces/Geometric-Aware-Camera-Pose-Estimation/assets/article/main.aux
 
@@ -1525,18 +1618,18 @@ Package rerunfilecheck Info: Checksums for `main.out':
 (rerunfilecheck)             After:  7DBD3CDD9945D099151B68A8EC42C5A1;1096.
  ) 
 Here is how much of TeX's memory you used:
- 27494 strings out of 479304
- 523393 string characters out of 5869779
- 946249 words of memory out of 5000000
- 43846 multiletter control sequences out of 15000+600000
+ 27563 strings out of 479304
+ 524901 string characters out of 5869779
+ 942511 words of memory out of 5000000
+ 43895 multiletter control sequences out of 15000+600000
  438686 words of font info for 120 fonts, out of 8000000 for 9000
  1141 hyphenation exceptions out of 8191
- 86i,18n,88p,1300b,1050s stack positions out of 5000i,500n,10000p,200000b,80000s
+ 86i,18n,88p,1553b,1046s stack positions out of 5000i,500n,10000p,200000b,80000s
 {/usr/share/texmf/fonts/enc/dvips/cm-super/cm-super-t1.enc}</usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmbx10.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmbx12.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmbx7.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmbx9.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmex10.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi10.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi12.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi5.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi6.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi7.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi8.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi9.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmr10.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmr12.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmr5.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmr6.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmr7.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmr8.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmr9.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmss10.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmss12.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmss8.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmss9.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy10.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy6.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy7.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy8.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy9.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/symbols/msbm10.pfb></usr/share/texmf/fonts/type1/public/cm-super/sfbx0800.pfb></usr/share/texmf/fonts/type1/public/cm-super/sfbx0900.pfb></usr/share/texmf/fonts/type1/public/cm-super/sfbx1000.pfb></usr/share/texmf/fonts/type1/public/cm-super/sfbx1095.pfb></usr/share/texmf/fonts/type1/public/cm-super/sfbx1200.pfb></usr/share/texmf/fonts/type1/public/cm-super/sfbx1440.pfb></usr/share/texmf/fonts/type1/public/cm-super/sfcc1000.pfb></usr/share/texmf/fonts/type1/public/cm-super/sfrm0800.pfb></usr/share/texmf/fonts/type1/public/cm-super/sfrm0900.pfb></usr/share/texmf/fonts/type1/public/cm-super/sfrm1000.pfb></usr/share/texmf/fonts/type1/public/cm-super/sfrm1095.pfb></usr/share/texmf/fonts/type1/public/cm-super/sfrm1200.pfb></usr/share/texmf/fonts/type1/public/cm-super/sfti0900.pfb></usr/share/texmf/fonts/type1/public/cm-super/sfti1000.pfb></usr/share/texmf/fonts/type1/public/cm-super/sfti1095.pfb></usr/share/texmf/fonts/type1/public/cm-super/sfxc0900.pfb></usr/share/texlive/texmf-dist/fonts/type1/urw/zapfding/uzdr.pfb>
-Output written on /workspaces/Geometric-Aware-Camera-Pose-Estimation/assets/article/main.pdf (16 pages, 27368146 bytes).
+Output written on /workspaces/Geometric-Aware-Camera-Pose-Estimation/assets/article/main.pdf (18 pages, 28429243 bytes).
 PDF statistics:
- 773 PDF objects out of 1000 (max. 8388607)
- 544 compressed objects within 6 object streams
- 193 named destinations out of 1000 (max. 500000)
- 113 words of extra memory for PDF output out of 10000 (max. 10000000)
+ 802 PDF objects out of 1000 (max. 8388607)
+ 564 compressed objects within 6 object streams
+ 207 named destinations out of 1000 (max. 500000)
+ 133 words of extra memory for PDF output out of 10000 (max. 10000000)
 
