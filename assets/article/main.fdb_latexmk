@@ -1,12 +1,12 @@
 # Fdb version 3
-["bibtex main"] 0 "main.aux" "main.bbl" "main" 1750554983
+["bibtex main"] 0 "main.aux" "main.bbl" "main" 1750557859
   "/usr/share/texlive/texmf-dist/bibtex/bst/base/plain.bst" 1292289607 20613 bd3fbfa9f64872b81ac57a0dd2ed855f ""
   "bibliography.bib" 1750542895 16841 353ab93474cdac0073a925041fbbcc91 ""
-  "main.aux" 1750554926 27289 0 "pdflatex"
+  "main.aux" 0 -1 0 "pdflatex"
   (generated)
-  "main.blg"
   "main.bbl"
-["pdflatex"] 1750554960 "/workspaces/Geometric-Aware-Camera-Pose-Estimation/assets/article/main.tex" "/workspaces/Geometric-Aware-Camera-Pose-Estimation/assets/article/main.pdf" "main" 1750554983
+  "main.blg"
+["pdflatex"] 1750557835 "/workspaces/Geometric-Aware-Camera-Pose-Estimation/assets/article/main.tex" "/workspaces/Geometric-Aware-Camera-Pose-Estimation/assets/article/main.pdf" "main" 1750557859
   "/etc/texmf/web2c/texmf.cnf" 1750361125 475 c0e671620eb5563b2130f56340a5fde8 ""
   "/usr/share/texlive/texmf-dist/fonts/map/fontname/texfonts.map" 1577235249 3524 cb3e574dea2d1052e39280babc910dc8 ""
   "/usr/share/texlive/texmf-dist/fonts/tfm/adobe/symbol/psyr.tfm" 1136768653 1408 5937f58aa508ea2cea4901c07d10f5fe ""
@@ -303,14 +303,14 @@
   "/usr/share/texmf/web2c/texmf.cnf" 1613593815 38841 799d1dd9682a55ce442e10c99777ecc1 ""
   "/var/lib/texmf/fonts/map/pdftex/updmap/pdftex.map" 1750361143 5160710 ecf427ae8fa19139d8691f526e47bb9b ""
   "/var/lib/texmf/web2c/pdftex/pdflatex.fmt" 1750361167 2571688 faf452423805b0ad86872e04d8df9047 ""
-  "/workspaces/Geometric-Aware-Camera-Pose-Estimation/assets/article/main.aux" 1750554905 8 a94a2480d3289e625eea47cd1b285758 ""
+  "/workspaces/Geometric-Aware-Camera-Pose-Estimation/assets/article/main.aux" 1750557775 8 a94a2480d3289e625eea47cd1b285758 ""
   "/workspaces/Geometric-Aware-Camera-Pose-Estimation/assets/article/main.tex" 1750368498 8195 c22bdcbec152d58922789ad37a1ef498 ""
   "abstract.tex" 1750365106 1750 33d9b41b006a41a5402a15c9e02a849b ""
   "abstract_it.tex" 1750365100 1869 938dbe7ee14588633a6522369d5a32cb ""
   "chapters/appendix_a.tex" 1750533384 5609 00699c9fd0e51116e51af85e61825bfb ""
   "chapters/conclusions.tex" 1750190597 1389 03fd48bb75a20863b253c317fb0c4f76 ""
   "chapters/experiments.tex" 1750190590 11263 46f48d0ee6dc736bbb6c7504915a981c ""
-  "chapters/geometric_constraints.tex" 1750175404 3094 5e4cf652f154f9967569d456987aaee0 ""
+  "chapters/geometric_constraints.tex" 1750557775 3793 50009b0cc35d86be9b7e54f77fb7b855 ""
   "chapters/homotopy.tex" 1750366938 1410 2bc2441327e168fe04928bc6f2f02451 ""
   "chapters/introduction.tex" 1750551790 21076 1df079e921559882816212168d9e348f ""
   "chapters/method.tex" 1750548336 16403 86bcc329417073505b9cadc4073d78cc ""
@@ -340,15 +340,15 @@
   "images/scenes/roller_coaster/rollercoaster_ours.png" 1750188179 5132294 d0dc98318f432b9c1f29857a945005a5 ""
   "main.aux" 0 -1 0 "pdflatex"
   "main.bbl" 1750542721 7457 c5b4c2ecadb7f408d626156d42a1e2f0 "bibtex main"
-  "main.out" 0 -1 0 "pdflatex"
+  "main.out" 1750557797 1747 d13533a8c9d5889f97480f18501e2f29 "pdflatex"
   "main.tex" 1750368498 8195 c22bdcbec152d58922789ad37a1ef498 ""
   "tables/comparison.tex" 1750185775 804 e1004a6235985048c16dd0e1172e2bcf ""
   "tables/configurations.tex" 1750551948 1103 c46b0e49ead64b5378416db5ccaf4a9d ""
   "tables/scene_configurations.tex" 1750548282 2024 94d9bb23cb72a282a109a0944938fe8b ""
   (generated)
-  "/workspaces/Geometric-Aware-Camera-Pose-Estimation/assets/article/main.pdf"
   "main.log"
-  "main.pdf"
-  "main.out"
   "main.aux"
+  "main.out"
+  "/workspaces/Geometric-Aware-Camera-Pose-Estimation/assets/article/main.pdf"
   "/workspaces/Geometric-Aware-Camera-Pose-Estimation/assets/article/main.log"
+  "main.pdf"
