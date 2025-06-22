@@ -1,10 +1,32 @@
 \section{Conclusions}
 \label{sec:conclusions}
 
-We presented the first method for both camera calibration and pose estimation from multiple images of known 3D cylinders.
-By revisiting the geometric constraints of \cite{gummeson24relative}, we were able to  formulate these two tasks within a unified framework that exploit a novel and custom silouette-based homotopy continuation solver.
-Experimental results demonstrate superior performance of our  approach with respect  to existing solutions, both in terms of i) \emph{generality},  ii) \emph{accuracy} and iii) \emph{robustness}.
-In this work, we focused on the estimation problem under the assumption that the silhouette lines and their associations with 3D cylinders are known. As future work, we plan to address the automatic detection of silhouette lines and their matching to the corresponding cylinders, while also incorporating mechanisms to handle outliers and mismatches in a robust fashion. Currently, the generality is limited by the studied intrinsic cases and initialization mechanism introduces and we plan to add more. Computational complexity is limited by homotopy continuation running times. However, future work will explore GPU parallelization to accelerate solution tracking and enable real-time performance.
+We presented the first method for both camera calibration and pose estimation from multiple images of known 3D cylinders using homotopy continuation.
+By revisiting the geometric constraints of \cite{gummeson24relative}, we were able to  formulate these two tasks within a unified framework. By exploiting custom silouette-based homotopy continuation solver, a tailored initialization strategy, and a novel correction step we are able to achieve robust and accurate solutions compared to previous works. 
+
+\paragraph{main contributions} of our work is a general and flexible framwork to integrate homotopy continuation into geometric problems that give rise to high degree polynomial systems.
+All the steps to use the method for camera calibration and pose estimation from multiple images of known 3D cylinders, in different settings and configurations, is given in detail.
+
+The initialization strategy is based on a random walk in the solution space, enforcing different iterations to be different enough, the solution space to be traversed evenly, and a priori knowledge to be incorporated efficiently.
+
+The homotopy function is designed to be scale indipendent by making use of angles.
+The correction step is general enough to be applied to any method performing both camera calibration and pose estimation.
+
+\paragraph{Experimental results} demonstrate superior performance of our approach with respect  to existing solutions, both in terms of i) \emph{generality},  ii) \emph{accuracy} and iii) \emph{robustness}.
+
+That said edge detection and matching still pose a hard challenge, especially in very lit or very dim environments, where the silhouette lines are not well defined.
+Detecting lines using Canny edge detector~\cite{Canny1986}, RANSAC~\cite{USAC} or Hough transform~\cite{Yousefi2018} suffer harsh light conditions. Matching based on parallelism by testing angle between them works well for the studied scenes but does not work in scenarios where the angle between the camera and the observed cylinders is very steep.
+
+Another initially not considered challenge is the effect of small errors on single points for short lines, even a single pixel difference near end points can lead to a large error in the estimated line.
+
+\paragraph{Future work}. We plan to address the automatic detection of silhouette lines and their matching through novel methods.
+Right now the most promising techniques are Holistically-Nested Edge Detection~\cite{Xie2015} and Liu work on surfaces of revolution~\cite{liu2019realtime}. The second one particularly leverages the symmetry of the cylinder under different rotations, and camera poses.
+
+Covering the case of one cylinder per image is also interesting. That would remove the necessity to at least know the relative size and position of the cylinders in the scene, and would allow to use the method without knowledge about the 3D scene.
+Right now each view, even with known intrinsics has 3 unkowns given by the camera rotation, and each cylinder only adds two constraints. At least one new constraint using a different set of geometric properties is needed for camera pose estimation and at least two for camera calibration.
+
+Computationbal complexity is also a limitation factor of our current implementation.
+The amount of parameters highly affects the number of solutions, and thus the time needed to find them. Finding ways to parallelize the solver leveraging GPUs will not only make the method suitable for real-time applications, but also unlock new problem formulations more resiliant to noise.
 
 %\subsection*{Acknowledgments}
 %\texttt{removed for blind review}
