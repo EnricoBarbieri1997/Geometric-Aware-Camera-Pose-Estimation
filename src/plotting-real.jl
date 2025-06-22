@@ -329,7 +329,7 @@ function plot_image_background(img; axindex = 1)
     )
 end
 
-function save_2d_figures(path, scene, problems; scene_file_path, raw_3d = false)
+function save_2d_figures(path, scene, problems; scene_file_path, raw_3d = false, prefix = "camera_", image_offset = 0)
     number_of_cylinders = size(scene.cylinders)[1]
     scene_file = open(scene_file_path, "r") do io
         JSON.parse(io)
@@ -338,10 +338,8 @@ function save_2d_figures(path, scene, problems; scene_file_path, raw_3d = false)
         instance = scene.instances[i]
         problem = problems[i]
 
-        figure_height = floor(IMAGE_WIDTH * 9 / 16)
-
         figure2d = Figure(
-            size = (IMAGE_WIDTH, figure_height),
+            size = (IMAGE_WIDTH, IMAGE_HEIGHT),
             # backgroundcolor=:transparent
         )
         ax2d_figure = Axis(figure2d[1,1]; aspect = DataAspect(),
@@ -354,12 +352,12 @@ function save_2d_figures(path, scene, problems; scene_file_path, raw_3d = false)
         )
         # ax2d_figure.limits[] = ((0, IMAGE_WIDTH), (-IMAGE_HEIGHT, 0))
         image_center = floor(-IMAGE_HEIGHT / 2) + (if (i == 1) 50 else 100 end)
-        half_height = floor(figure_height / 2)
+        half_height = floor(IMAGE_HEIGHT / 2)
         ax2d_figure.limits[] = ((0, IMAGE_WIDTH), (image_center - half_height, image_center + half_height))
         push!(ax2_array, ax2d_figure)
         axindex = length(ax2_array)
 
-        image_path = scene_file["cameras"][i]["image"]
+        image_path = scene_file["cameras"][i+image_offset]["image"]
         img = load(joinpath("./", image_path))
         img = rotr90(img)
         plot_image_background(img; axindex)
@@ -390,6 +388,6 @@ function save_2d_figures(path, scene, problems; scene_file_path, raw_3d = false)
         hidedecorations!(ax2d_figure)
         # ax2d_figure.scene.viewport[] = Rect(0, IMAGE_HEIGHT - floor(figure_height / 2), IMAGE_WIDTH, figure_height)
         # resize_to_layout!(figure2d)
-        save(joinpath(path, "camera_$(i).png"), figure2d)
+        save(joinpath(path, "$(prefix)$(i).png"), figure2d)
     end
 end

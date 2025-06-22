@@ -291,8 +291,10 @@ module Scene
 		views_file_path,
 		;plot = true,
 		number_of_instances = 2,
+		instance_offset = 0,
 		cylinders_names_in_view_file = cylinders_names_in_view_file,
 		plot_3d = true,
+		use_all_lines = false,
 	)
 			scene_file = nothing
 			view_file = nothing
@@ -358,7 +360,7 @@ module Scene
 			number_of_instances = something(number_of_instances, length(instances))
 
 			for instance_index in 1:number_of_instances
-					inst = scene_file["cameras"][instance_index]
+					inst = scene_file["cameras"][instance_index + instance_offset]
 					instance = InstanceConfiguration()
 					if (haskey(inst, "R") || haskey(inst, "t"))
 						projection_rotation_matrix = QuatRotation(inst["R"])
@@ -394,7 +396,7 @@ module Scene
 
 					conics_contours = Array{Float64}(undef, number_of_cylinders, 2, 3)
 					for i in 1:number_of_cylinders
-						lines = view_file[instance_index]["lines"][cylinders_names_in_view_file[i]]
+						lines = view_file[instance_index + instance_offset]["lines"][cylinders_names_in_view_file[i]]
 						for (j, line) in enumerate(lines)
 							if (length(line) == 2)
 								p1 = [line[1][1], line[1][2]]
@@ -429,7 +431,10 @@ module Scene
 					instance = instances[instance_number]
 					conics_contours = instance.conics_contours
 
-					numberoflines_tosolvefor = numberoflines_tosolvefor_perinstance + (instance_number <= number_of_extra_picks ? 1 : 0)
+					numberoflines_tosolvefor = 4 # numberoflines_tosolvefor_perinstance + (instance_number <= number_of_extra_picks ? 1 : 0)
+					if use_all_lines
+						numberoflines_tosolvefor = number_of_cylinders * 2
+					end
 
 					lines = Matrix{Float64}(undef, numberoflines_tosolvefor, 3)
 					points_at_infinity = Matrix{Float64}(undef, numberoflines_tosolvefor, 3)
@@ -439,8 +444,8 @@ module Scene
 					for store_index in (1:numberoflines_tosolvefor)
 						line_index = store_index # rand(possible_picks)
 						possible_picks = filter(x -> x != line_index, possible_picks)
-						i = ceil(Int, line_index / 2)
-						j = (line_index - 1) % 2 + 1
+						i = line_index # ceil(Int, line_index / 2)
+						j = 1 # (line_index - 1) % 2 + 1
 
 						line_indexes[store_index] = line_index
 
@@ -690,11 +695,19 @@ module Scene
 	end
 
 	function intrinsic_rotation_system_setup(
-		problems
+		problems;
+		minimization = false,
 	)
-			rotation_intrinsic_system = build_intrinsic_rotation_conic_system(
-				problems
-			)
+			rotation_intrinsic_system = nothing
+			if (minimization)
+				rotation_intrinsic_system = build_intrinsic_rotation_conic_system_minimization(
+					problems;
+				)
+			else
+				rotation_intrinsic_system = build_intrinsic_rotation_conic_system(
+					problems;
+				)
+			end
 			parameters = []
 			for problem in problems
 				parameters = stack_homotopy_parameters(
@@ -884,6 +897,7 @@ module Scene
 			reference_instance = nothing,
 			use_plain_errors = false,
 	)
+			best_solution = nothing
 			solution_error = Inf
 			solutions_to_try = real_solutions(result)
 			intrinsic = problem.camera.intrinsic ./ problem.camera.intrinsic[2, 2]
@@ -949,6 +963,7 @@ module Scene
 				# display("Current error: $(current_error)")
 
 				if (current_error < solution_error)
+					best_solution = solution
 					solution_error = current_error
 					problem.camera.position = test_problem.camera.position
 				end
@@ -965,7 +980,7 @@ module Scene
 				-1.0 * mean_val)
 			end
 
-			return solution_error
+			return solution_error, best_solution
 	end
 
 	function best_overall_solution!(
@@ -1231,13 +1246,14 @@ module Scene
 		solution_error, all_possible_solutions = nothing, nothing
 		tryied_solutons = 0
 		problems_to_solve = nothing
+		best_solution = nothing
 		while (!valid_solution_found && tryied_solutons < length(real_solutions(result)))
 			valid_solution_found = true
 			tryied_solutons += 1
 			display("Solution: $(tryied_solutons)")
 			# display(excluded_solutions)
 			problems_to_solve = deepcopy(problems)
-			solution_error, all_possible_solutions, best_solution = best_intrinsic_rotation_system_solution!(
+			solution_error, all_possible_solutions, best_rotation_solution = best_intrinsic_rotation_system_solution!(
 				result,
 				problems_to_solve;
 				start_error=start_error,
@@ -1260,7 +1276,7 @@ module Scene
 					)
 					@info translation_result
 
-					best_intrinsic_rotation_translation_system_solution!(
+					_, best_translation_solution = best_intrinsic_rotation_translation_system_solution!(
 						translation_result,
 						problem;
 						scene,
@@ -1275,11 +1291,15 @@ module Scene
 							)
 						end
 					end
+					best_solution = hcat(
+						best_rotation_solution,
+						best_translation_solution
+					)
 				catch e
 					Base.showerror(stdout, e)
 					Base.show_backtrace(stdout, catch_backtrace())
 
-					push!(excluded_solutions, best_solution)
+					push!(excluded_solutions, best_rotation_solution)
 					valid_solution_found = false
 				end
 			end
@@ -1291,7 +1311,7 @@ module Scene
 			end
 		end
 
-		return solution_error, all_possible_solutions
+		return solution_error, all_possible_solutions, best_solution
 	end
 
 	function plot_reconstructed_scene(scene, problems; plot_3d = true, raw_3d = false)

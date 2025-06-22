@@ -29,12 +29,20 @@ def extract_lines_ransac(image, color):
             break
         try:
             model = RANSACRegressor(residual_threshold=2, min_samples=2)
-            model.fit(points[:, 0].reshape(-1, 1), points[:, 1])
+            if color == 'blue':
+                model.fit(points[:, 1].reshape(-1, 1), points[:, 0])
+            else:
+                model.fit(points[:, 0].reshape(-1, 1), points[:, 1])
             
             # Generate two points on the detected line for the segment
-            x_min, x_max = np.min(points[:, 0]), np.max(points[:, 0])
-            y_min = model.predict([[x_min]])[0]
-            y_max = model.predict([[x_max]])[0]
+            if color != 'blue':
+                x_min, x_max = np.min(points[:, 0]), np.max(points[:, 0])
+                y_min = model.predict([[x_min]])[0]
+                y_max = model.predict([[x_max]])[0]
+            else:
+                y_min, y_max = np.min(points[:, 1]), np.max(points[:, 1])
+                x_min = model.predict([[y_min]])[0]
+                x_max = model.predict([[y_max]])[0]
             
             lines.append([[int(x_min), int(y_min)], [int(x_max), int(y_max)]])
             
@@ -62,7 +70,7 @@ def process_all_frames():
             frame_result["lines"][color] = lines
         output.append(frame_result)
     
-    with open('animation_views.json', 'w') as f:
+    with open('./animation/views.json', 'w') as f:
         json.dump(output, f, indent=2)
 
 if __name__ == "__main__":

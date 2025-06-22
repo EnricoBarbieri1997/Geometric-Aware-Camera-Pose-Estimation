@@ -58,7 +58,7 @@ module Plotting
         # Base.showerror(stdout, error("Plotting not available in this environment."))
     end
 
-    function save_2d_figures(path, scene, problems)
+    function save_2d_figures(path, scene, problems; prefix="")
         # Base.showerror(stdout, error("Plotting not available in this environment."))
     end
 

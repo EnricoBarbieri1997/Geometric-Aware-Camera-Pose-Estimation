@@ -12,8 +12,8 @@ services:
       - ./Project.toml:/app/Project.toml
       - ./Manifest.toml:/app/Manifest.toml
       - ./juliacache:/root/.julia
-      - \\wsl.localhost\Ubuntu-18.04\tmp\.X11-unix:/tmp/.X11-unix
-      - \\wsl.localhost\Ubuntu-18.04\mnt\wslg:/mnt/wslg
+      - \\wsl.localhost\NixWork\tmp\.X11-unix:/tmp/.X11-unix
+      - \\wsl.localhost\NixWork\mnt\wslg:/mnt/wslg
     environment:
       DISPLAY: ":0"
       WAYLAND_DISPLAY: "wayland-0"

@@ -435,6 +435,71 @@ module CylindersBasedCameraResectioning
         display(scene.figure)
     end
 
+    function pipes_animation()
+        previous_solutions = nothing
+        previous_parameters = nothing
+        for i in 1:12
+            display("Frame $i")
+            offset = i-1
+
+            scene_file_path = "./assets/test_scenes/pipes/animation/scene.json"
+
+            scene, problems = scene_instances_and_problems_from_files(
+                scene_file_path,
+                "./assets/test_scenes/pipes/animation/views.json";
+                number_of_instances=1,
+                instance_offset = offset,
+            )
+            intrinsic_configuration = problems[1].intrinsic_configuration
+
+            rotation_intrinsic_system, parameters = intrinsic_rotation_system_setup(problems)
+
+            result = nothing
+
+            if isnothing(previous_solutions)
+                result = solve(
+                    rotation_intrinsic_system;
+                    target_parameters=parameters,
+                    start_system = :total_degree,
+                )
+                @info result
+            else
+                result = solve(
+                    rotation_intrinsic_system,
+                    previous_solutions,
+                    start_parameters=previous_parameters,
+                    target_parameters=parameters,
+                )
+                @info result
+            end
+
+            _, _, best_solution = best_overall_solution_by_steps!(
+                result,
+                problems;
+                intrinsic_configuration,
+            )
+
+            # best_rotation_system_solution = best_solution[1:end-3]
+            # display("Monodromy solutions for view $i")
+            # monodromy_solutions = monodromy_solve(
+            #     rotation_intrinsic_system,
+            #     best_rotation_system_solution,
+            #     parameters;
+            # )
+            # display([best_rotation_system_solution; solutions(monodromy_solutions)...])
+            # previous_solutions = [best_rotation_system_solution; solutions(monodromy_solutions)...]
+            previous_solutions = solutions(result)
+            previous_parameters = parameters
+
+            try
+                save_2d_figures("assets/test_scenes/pipes/animation/figures/", scene, problems; scene_file_path, prefix="view_$(i)_", image_offset=offset)
+            catch e
+                Base.showerror(stdout, e)
+				Base.show_backtrace(stdout, catch_backtrace())
+            end
+        end
+    end
+
     function roller_coaster()
         scene, problems = scene_instances_and_problems_from_files(
             "./assets/test_scenes/roller_coaster/scene.json",

@@ -190,7 +190,7 @@ module EquationSystems
 			], lines_count, 3)
 
 			for line_index in 1:lines_count
-				equation = lines[line_index, :]' * intrinsic * R * problem.points_at_infinity[line_index, :]
+				equation = lines[line_index, :]' * intrinsic * R * problem.points_at_infinity[line_index, :] / 1000
 				push!(system_to_solve, equation)
 			end
 
