@@ -431,7 +431,7 @@ module Scene
 					instance = instances[instance_number]
 					conics_contours = instance.conics_contours
 
-					numberoflines_tosolvefor = 4 # numberoflines_tosolvefor_perinstance + (instance_number <= number_of_extra_picks ? 1 : 0)
+					numberoflines_tosolvefor = numberoflines_tosolvefor_perinstance + (instance_number <= number_of_extra_picks ? 1 : 0)
 					if use_all_lines
 						numberoflines_tosolvefor = number_of_cylinders * 2
 					end
@@ -444,8 +444,8 @@ module Scene
 					for store_index in (1:numberoflines_tosolvefor)
 						line_index = store_index # rand(possible_picks)
 						possible_picks = filter(x -> x != line_index, possible_picks)
-						i = line_index # ceil(Int, line_index / 2)
-						j = 1 # (line_index - 1) % 2 + 1
+						i = ceil(Int, line_index / 2)
+						j = (line_index - 1) % 2 + 1
 
 						line_indexes[store_index] = line_index
 
@@ -1291,7 +1291,7 @@ module Scene
 							)
 						end
 					end
-					best_solution = hcat(
+					best_solution = vcat(
 						best_rotation_solution,
 						best_translation_solution
 					)
