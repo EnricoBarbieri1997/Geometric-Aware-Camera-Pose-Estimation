@@ -9,104 +9,106 @@
 \end{figure}
 
 %region Punch line
-Camera calibration and camera localization are fundamental problems in Computer Vision, underpinning most, if not all, Computer Visions tasks.
+Camera calibration and localization are fundamental problems in computer vision and photogrammetry, forming the backbone of many real-world systems where visual information is used to infer spatial relationships. Their relevance spans multiple disciplines, from robotics to augmented reality, from autonomous navigation to cultural heritage preservation. Despite their long history, these topics continue to attract significant research attention due to their intrinsic scientific challenges and their enabling role in emerging applications.
 %endregion
 
 %region What is the problem
-\paragraph{Camera calibration} consists in estimating the intrinsic parameters of a camera, such as focal length, principal point, and lens distortion coefficients, which are essential for accurate image formation.
-Camera calibration can be split into classic camera calibration and automatic camera calibration.
+Accurately estimating the six degrees-of-freedom (6-DoF) pose of a camera from visual observations is a long-standing and foundational problem in computer vision, underpinning numerous downstream tasks such as structure-from-motion (SfM), simultaneous localization and mapping (SLAM), augmented reality (AR), and autonomous navigation~\cite{BoninFont2008,Marchand2016}. Traditionally, camera pose estimation relies heavily on identifying correspondences between two-dimensional (2D) image features and their three-dimensional (3D) counterparts in the scene~\cite{Hartley2004,Lepetit2009}. Among these features, point-based correspondences have dominated the field for decades due to their relative ease of extraction and matching. Yet, point-based approaches often struggle in scenarios where point features are scarce or unstable, particularly in low-textured, repetitive, or dynamically changing environments.
 
-Classic camera calibration typically rely on correspondences between the 3D world and the 2D image plane to estimate the camera's intrinsic parameters.
-Depending on the real world object a variety of techniques can be used. Common world object choices include points, lines, planar surfaces, approximated proper quadrics.
+This limitation has motivated the exploration of higher-level geometric primitives for camera pose estimation, including lines, planes, conics, quadrics, and more recently, object-level abstractions~\cite{Xu2017,Crocco2016}. Among these, cylindrical and ellipsoidal objects are especially appealing due to their prevalence in both man-made and natural environments and their well-defined geometric structures~\cite{Gummeson2022,Gaudilliere2023}. Specifically, cylinders provide a compact yet semantically rich representation of the scene, capturing structural regularities that can be exploited for robust pose estimation even when point-based features fail.
 
-Point based techniques often make use of fiducial markers like checkerboard patterns~\cite{Zhang2000}\ref{fig:checkerboard}, and AprilTags~\cite{\apriltag}\ref{fig:apriltags}.
+In this context, the specific problem addressed in this paper is camera calibration and pose estimation from 3D cylindrical objects and their 2D projections. More precisely, we investigate how to exploit correspondences between known 3D cylinders and their image projections to estimate both the intrinsic camera parameters and its extrinsic pose relative to the scene. While most traditional approaches either assume pre-calibrated cameras or rely on elaborate calibration setups using planar grids or multiple views~\cite{Zhang2000,Maybank1992}, we aim to leverage cylindrical shapes directly visible in the environment to simplify and generalize the calibration and localization process.
 
-Line based techniques, such as vanishing points~\cite{guo23vanishing}, can be used to estimate the camera's intrinsic parameters from the vanishing points of parallel lines in the scene.
+Prior work has shown that quadrics such as ellipsoids and cylinders can be projected onto conics or pairs of lines in the image plane, establishing algebraic relationships that link 3D scene geometry with 2D image measurements. For instance, Teramoto and Xu~\cite{Teramoto2002} demonstrated that multiple spheres (special cases of quadrics) can be used to calibrate camera intrinsic parameters from a single image, while Zhang et al.~\cite{Zhang2007} extended this idea using dual conics. Gaudillière et al.~\cite{Gaudilliere2023} formulated an elegant Perspective-1-Ellipsoid (P1E) model allowing closed-form pose estimation from a single ellipse-ellipsoid correspondence. In parallel, Gummeson et al.~\cite{Gummeson2022} developed minimal solvers to directly compute pose from cylindrical silhouettes, showing that such models can be integrated efficiently into RANSAC-based robust estimators.
 
-Planar surfaces techniques, such as the one proposed by Sturm~\cite{Sturm2004}, use planar surfaces to estimate the camera's intrinsic parameters from homography between a plane and the image plane, geometric constraints like tangency, pallelism and more generally angles between planar surfaces.
-
-Self-calibration techniques estimate the camera's intrinsic parameters directly from image data, without requiring known correspondences with the 3D world. These methods rely on geometric constraints embedded in multiple views of the scene. Classical approaches such as the Kruppa equations~\cite{Maybank1992} use correspondences between images to estimate the fundamental matrix, which constrains the image of the absolute conic (IAC), allowing recovery of the intrinsics. Extensions such as the dual absolute quadric (DAQ) approach~\cite{Triggs1997} formulate the problem in terms of projective-to-metric reconstruction, leveraging multiple uncalibrated views. Planar self-calibration methods~\cite{Pollefeys1999, Li2024} estimate homographies between images of planar surfaces to derive constraints on the camera intrinsics, with recent work addressing challenging capture geometries such as circular oblique flights. Techniques based on vanishing points~\cite{guo23vanishing} exploit structural regularities in man-made environments to constrain focal length and principal point. Special camera motions, like pure rotation~\cite{Hartley1994}, can simplify the problem by directly relating image correspondences to intrinsic parameters. Finally, bundle adjustment with self-calibration~\cite{Fitzgibbon2001} jointly refines the intrinsic parameters, camera poses, and 3D structure by minimizing reprojection errors.
-
-Finally in recent years, machine learning techniques have been increasingly integrated into the self-calibration pipeline to address limitations of purely geometric methods, especially under challenging conditions such as low texture or ambiguous correspondences. In these hybrid approaches, deep neural networks are primarily employed for robust feature detection, correspondence estimation, depth prediction, or motion estimation, while the actual estimation of camera intrinsics remains grounded in geometric constraints. For instance, Hagemann et al.~\cite{Hagemann2023} combine learned feature extraction with a differentiable bundle adjustment framework to jointly estimate motion, structure, and intrinsics from video sequences. Similarly, Hogan et al.~\cite{Hogan2023} propose a self-supervised online system for real-time camera calibration in automotive applications, where deep learning aids pose estimation, but intrinsic parameter updates are still based on geometric models. Although fully end-to-end intrinsic estimation methods exist~\cite{Satouri2023}, most practical systems continue to leverage geometry as the core of self-calibration, with learning components improving robustness and generalization.
-
-Exampless of aformentioned techniques can be seen in Figure~\ref{fig:calibration_examples}
-
-\begin{figure}[b]
-    \centering
-    \subfloat[Checkerboard pattern]{
-        \includegraphics[width=0.23\linewidth]{images/calibration/zhang.jpg}
-        \label{fig:checkerboard}
-    }
-    \subfloat[April tags]{
-        \includegraphics[width=0.23\linewidth]{images/calibration/apriltags.png}
-        \label{fig:apriltags}
-    }
-    \subfloat[Structure from Motion]{
-        \includegraphics[width=0.23\linewidth]{images/calibration/sfm.png}
-        \label{fig:sfm}
-    }
-    \subfloat[Surface of revolutions]{
-        \includegraphics[width=0.23\linewidth]{images/calibration/surface_of_revolution.png}
-        \label{fig:surface_of_revolutions}
-    }
-    \hspace{0.1\linewidth}
-    \caption{Examples of various calibrations and autocalibration techniques}
-    \label{fig:calibration_examples}
-\end{figure}
-
-\paragraph{Camera localization} refers to estimating the six degrees of freedom (6DoF) camera pose with respect to a pre-built 3D model or scene representation. Accurate camera localization is crucial for numerous applications such as autonomous navigation, augmented and mixed reality, or loop closure in SLAM systems. Structure-based localization methods rely on matching 2D features extracted from a query image to 3D points in the scene model, typically built using Structure-from-Motion (SfM) or SLAM pipelines. A large body of work has focused on improving the scalability~\cite{Sattler2015, Li2020}, efficiency~\cite{Sarlin2019SuperGlue, Gojcic2020}, and robustness~\cite{Sattler2018Benchmarking, Revaud2019R2D2, Dusmanu2019SuperPoint} of this matching process, particularly under challenging conditions such as viewpoint changes, lighting variations, or seasonal differences. Establishing reliable 2D-3D correspondences remains the primary bottleneck, with a well-known trade-off between descriptor invariance and discriminative power~\cite{Schonberger2016}. Recent methods combine learned local descriptors~\cite{DeTone2018SuperPoint, Sarlin2020SuperGlue} with global scene priors~\cite{Taira2018, Chen2021ACNe} or hybrid retrieval pipelines~\cite{Sattler2019Hierarchical} to reduce the dependency on exhaustive feature matching.
-
-Multiple works explore alternative training and evaluation paradigms, including simulation-based data augmentation~\cite{Wang2022, Chen2022TransLo}, synthetic-to-real transfer~\cite{Tang2023}, or end-to-end learning of localization pipelines~\cite{Luo2020}. While purely learning-based methods show promise in generalization, geometry-based approaches remain the state-of-the-art for high-accuracy pose estimation in large-scale environments.
+Our problem thus lies at the intersection of several maturing research areas: object-based visual localization, higher-order geometric primitives, and efficient closed-form pose estimation from minimal data.
 
 %end region
 
 %region Why is it important/interesting?
 
-A wide range of applications such 3D reconstruction, robotics, and extended reality works on top of those two building blocks.
+The significance of the problem derives from several converging technological and practical motivations. First, classical feature-based methods struggle when the scene lacks rich textures, exhibits repeated patterns, or undergoes significant appearance variations due to illumination, weather, seasonal, or viewpoint changes~\cite{Gummeson2022,Sattler2019}. Such conditions are frequent in industrial, urban, and indoor environments, where cylindrical shapes (e.g., pipes, poles, columns, silos) naturally occur. These objects remain stable over time and are often invariant to visual appearance changes, making them excellent landmarks for long-term localization.
+
+Second, in contrast to point clouds that require extensive mapping efforts and storage resources, a small number of 3D cylinders can provide compact yet semantically meaningful scene representations~\cite{Gummeson2022,Zins2022}. This compactness translates into improved scalability, memory efficiency, and generalization capabilities for SLAM and AR systems operating in large-scale environments. Cylindrical models also inherently encapsulate higher-level scene semantics that can facilitate tasks such as obstacle avoidance, scene understanding, and interaction planning for autonomous robots.
+
+Third, from a practical standpoint, the use of readily available scene structures as calibration and localization references obviates the need for elaborate and cumbersome calibration rigs. Traditional calibration approaches often require specialized planar patterns observed from multiple viewpoints, which are impractical for in situ calibration of deployed cameras~\cite{Zhang2000,Maybank1992}. In contrast, using naturally occurring cylinders or other quadrics enables on-the-fly, opportunistic calibration directly from operational environments, aligning well with the goals of ubiquitous vision, smart cities, and adaptive robotic platforms.
+
+Furthermore, object-based approaches open new avenues for leveraging recent advances in deep learning object detectors, which can reliably identify and segment object instances under challenging conditions~\cite{Redmon2018,Girshick2015,He2020}. Recent works such as Zins et al.~\cite{Zins2022} have shown that ellipsoidal object representations can be trained to align 2D object detections with their underlying 3D geometric models, improving pose estimation accuracy beyond simple bounding-box approximations. Extending such ideas to cylinders combines semantic recognition with rigorous geometric modeling, offering a promising fusion of learning-based perception and analytic geometry.
+
+Finally, from a theoretical standpoint, the problem is attractive due to its rich mathematical structure. The projection of quadrics leads to well-defined algebraic constraints that can be exploited for both minimal solvers and over-determined optimization frameworks~\cite{Crocco2016,Gaudilliere2023}. The Perspective-1-Ellipsoid formulation, for example, demonstrates that pose estimation can be decomposed into sub-problems with closed-form solutions under certain conditions, potentially reducing computational cost while improving numerical stability.
 
 %endregion
 
+%region Why is it hard?
 
-While point-based methods are widely used and effective, they often struggle in challenging scenarios, such as those with limited texture, occlusions, or noise. In contrast, higher-order geometric primitives, such as cylinders, offer a more robust alternative. Cylinders are prevalent in many environments and can be easily detected in images, making them suitable for calibration and localization tasks.
+Despite its numerous advantages, camera pose estimation from cylinders and other quadrics remains a fundamentally challenging problem for several intertwined reasons.
 
-In this work, we focus on camera calibration \emph{and} localization from \emph{cylinders}, that are common and easily detectable structures in many man-made environments, ranging from architectural elements (\emph{e.g.}, pipes, handrails) to household objects (\emph{e.g.}, bottles, cans, furniture legs) and infrastructure components (\emph{e.g.}, street lamps, utility poles, tube lights).
-While calibration and pose estimation are traditionally treated as separate problems, we build upon the geometric constraints introduced in~\cite{gummeson22pose} to develop a novel formulation that  estimates both the camera pose and the intrinsic calibration matrix. Under the assumption of constant intrinsics, this enables full camera resection directly from images of known 3D cylinders.
+First, geometric ambiguities arise because a single 2D projection of a cylinder does not uniquely determine its 3D configuration and camera pose. The projection of a cylinder typically appears as two silhouette lines, which encode constraints on the camera geometry, but these constraints are inherently weaker than point or line correspondences that directly encode Euclidean distances or angles~\cite{Gummeson2022}. Unlike traditional PnP problems with multiple point correspondences, cylindrical projections often result in under-constrained systems requiring careful modeling to extract meaningful solutions.
 
-The core idea, illustrated in Figure~\ref{fig:homotopy}, is to leverage the known 3D geometry to simplify the estimation process. The geometric constraints between the known cylinders and the unknown camera parameters form a system of nonlinear equations $\mathcal{S}_1(\mathbf{x}, \mathcal{L}_1)$. Instead of directly solving this complex system $\mathcal{S}_1$ with traditional algebraic methods like Gröbner basis or resultants, which are prone to numerical instability and scalability issues, we take a different approach. We generate a, \emph{virtual system} $\mathcal{S}_0(\mathbf{x}, \mathcal{L}_0)$ designed around the very same 3D scene and a configuration of synthetic cameras  with random but known parameters. By design, we know the solution $\mathbf{x}(0)$ for $\mathcal{S}_0$, since it corresponds to the parameters we used to generate the synthetic cameras. Then, we continuously track the known solution $\mathbf{x}(0)$ as we transform the problem towards the original, system $\mathcal{S}_1$, using a tailored homotopy continuation parametrized in terms of silhouette lines.  At the end, we obtain the desired calibration and pose $\mathbf{x}(1)$.
-By using this approach, we influence the trajectory of the solutions, guiding the solver toward more plausible configurations.
-We couple our solver with dedicated initialization, and post-processing steps.
-Compared to existing methods, our approach is not only more general -- being capable of  estimating both camera calibration and pose, unlike alternatives that address only one of the two task -- but also achieves superior accuracy and improved robustness to noise, as demonstrated by our experiments.
+Second, noise and detection errors further exacerbate these ambiguities. Accurately extracting the silhouette lines of cylinders from real images can be sensitive to segmentation errors, occlusions, reflections, and viewpoint-dependent distortions~\cite{Gummeson2022}. While robust object detectors have improved significantly, precise fitting of cylindrical silhouettes remains a delicate task, particularly under challenging lighting or partial visibility.
 
-% All in all, our contributions can be summarized as follows:
-% \begin{itemize}[noitemsep]
-%     \item We present a \emph{unified solution} for calibration and pose estimation, unlike existing approaches that typically address these two problems separately.
-%     \item We conceive a \emph{novel solver},  that, exploiting a silhouette-based parametrization,   simplifies the original problem into a one with a known solution, which is then lifted via homotopic continuation to the original one.
-%     \item We introduce a \emph{dedicated initialization} step that leverages the known 3D geometry of cylinders to improve convergence and robustness.
-%     \item We propose a geometric \emph{correction step} to deal with unavoidable spurious solutions.
-%     \item Our method is  \emph{more accurate} and \emph{robust} to noise compared to alternative solutions.
-% \end{itemize}
+Third, many prior formulations model quadrics and conics in homogeneous projective space, leading to high-dimensional parameterizations that are over-represented relative to the intrinsic problem degrees-of-freedom~\cite{Gaudilliere2023,Rubino2018}. For instance, the traditional conic-quadric projection equation involves quadratic forms of the camera projection matrix, yielding an excess of variables that complicate both minimal solver design and global optimization.
 
-In this paper we will go through:
-\begin{itemize}[noitemsep]
-    \item Section~\ref{sec:related} reviews related work on camera calibration and pose estimation from advanced geometric primitives, in particular cylindrical objects.
-    \item Section~\ref{sec:problem_formulation} gives a high detail formulation of the problem: input, outputs, and constraints.
-    \item Section~\ref{sec:constraints} summarize relevant quadrics theory: dual quadrics, null space, tangency.
-    \item Section~\ref{sec:homotopy} summarize relevant homotopy continuation theory.
-    \item Section~\ref{sec:method} presents our homotopy-based solver for the problem.
-    \item Section~\ref{sec:iterating_procedure} describe best practices on how to initialize and iterate the solver.
-    \item Section~\ref{sec:postprocessing} describes our post-processing step to correct spurious solutions.
-    \item Section~\ref{sec:experiments} evaluates our method on synthetic and real-world datasets, demonstrating its effectiveness and robustness.
-    \item Section~\ref{sec:conclusions} concludes the paper and discusses future work.
-    \item Appendix~\ref{sec:appendix} provides additional details on the implementation of the different algorithms.
-\end{itemize}
+Fourth, practical deployments often face limited data regimes. While some approaches exploit multiple observations of multiple objects~\cite{Rubino2018,Nicholson2019}, real-world scenarios may offer only sparse or incomplete views of a few cylindrical objects. Designing minimal solvers that can reliably estimate pose from very limited data remains an open challenge. Recent contributions such as Gummeson et al.~\cite{Gummeson2022} demonstrate that under specific conditions, minimal solvers can be derived for pose estimation from just one or two cylinders, but their robustness under real-world noise remains an active research question.
 
-%Since homotopy solvers could not directly enforce inequality constraints, it may happen that during the tracking of the solutions some retrieved parameters violates physical constraints. Thus we  Our post-processing step identifies and corrects spurious solutions, improving the physical validity of the final camera parameters. 
+Fifth, many object-based approaches still assume known object dimensions or rigid scene geometry. While some works like NOCS~\cite{Wang2019} attempt category-level generalization across object instances, achieving full generality in pose estimation from arbitrary cylinders or ellipsoids without prior size information is not yet fully solved.
 
-%While the computational time of the solution is not suited to be used as a validation method for a RANSAC approach, the method is well suited to find models to then validate through RANSAC.
-%\lm{Qui diciamo velocemente come è la struttura del paper}\eb{Com'è?}
-%The paper is structred as follow: after laiding down the problem formulation (Section \todo{XX}) and reviewing s the multi-view-geometry of cylinders (Section \todo{XX}), we present our homotopy based solver  (Section \todo{XX})  coupled with our post-processing step (Section \todo{XX}). The benefits of our apporach are then evaluated in Section \todo{XX}.
-%In this paper, we extend this line of research by addressing the more challenging scenario where the camera is not assumed to be calibrated. We introduce a novel approach for jointly estimating camera intrinsics and pose from multiple views of known cylindrical objects. Our method is enabled by a new solver based on homotopy continuation, which handles the non-linear constraints arising from the projection of cylindrical silhouettes.
+Lastly, integrating cylinder-based pose estimation into complete SLAM or AR pipelines requires reconciling multiple sources of uncertainty, including temporal coherence, sensor drift, and multi-object associations across frames. While some works explore incorporating object-based priors into SLAM~\cite{Nicholson2019,Garg2020}, fully exploiting cylinder-based representations in real-time, large-scale SLAM remains a formidable systems-level challenge.
 
-%A key challenge in this formulation lies in the presence of spurious solutions—combinations of intrinsic parameters and rotations that satisfy the projection equations but do not correspond to physically valid configurations. Because standard homotopy continuation methods cannot enforce inequality constraints (such as positive focal lengths), we propose a novel post-processing step that filters out ambiguous solutions algebraically, ensuring geometric validity without artificial regularization.
+In summary, while the projection of cylinders offers an elegant and compact source of geometric information, extracting robust, unique, and accurate camera poses from such data requires overcoming both geometric ambiguities and practical detection limitations. These challenges underscore the importance of developing specialized mathematical formulations, efficient minimal solvers, robust learning-based detection pipelines, and integrated hybrid systems that fuse multiple visual cues for reliable camera localization in complex environments.
 
-%This results in a complete and practical framework for camera calibration and localization using a minimal, easy-to-setup set of cylindrical objects. We validate our approach on both synthetic and real-world datasets, demonstrating accurate and robust performance even in challenging conditions.
+%endregion
+
+%region Why our method differs from others
+
+In contrast to previous approaches, our method introduces several key differences that complement the state of the art in camera pose estimation from cylindrical objects.
+
+First, while some previous works exploit conics from proper quadrics projections~\cite{Teramoto2002,Zins2022}, we build upon the straight silhouette lines arising from improper quadrics like~\cite{Gummeson2022} but include camera intrinsics into our problem formulation the problem. That way the resulting set of geometric constraints directly encode the projective relationships between the cylinder, its image, and the camera parameters. By explicitly modeling these constraints, and having an exact relation between the quadric and it's conic projection, our method avoids the need to rely solely on approximate fitting of differently shaped objects, leading to a more robust and geometrically consistent formulation.
+
+Second, we formulate the resulting camera calibration and pose estimation problem as a system of polynomial equations, which is solved globally using homotopy continuation methods. Unlike minimal solvers that provide solutions for fixed minimal configurations or iterative non-convex optimization approaches~\cite{Rubino2018, Gaudilliere2023}, our approach computes multiple paths that ideally cover all solutions to the full polynomial system, ensuring that the global solution set is explored without local convergence.
+
+Third, compared to methods that require rigid assumptions on the data configuration (e.g., a fixed number of cylinders, views, or specific arrangements), our method offers increased flexibility. While the number of views, usable cylinders and detected silhouette lines naturally impacts the number of constraints available, our system can handle varying configurations and automatically determines whether a given combination yields a well-constrained problem. This adaptive capability allows our method to generalize across a range of practical scenarios that may not strictly satisfy minimal conditions.
+
+Fourth, our geometric formulation remains valid for general camera viewpoints, including configurations where the camera is not aligned with the cylinder axes or observes the cylinder at highly oblique angles. By fully modeling the projective geometry without relying on simplifying assumptions, our method extends applicability to a broader range of practical settings where previous silhouette-based methods may suffer from degeneracies or reduced accuracy.
+
+Overall, the combination of a strictly geometric formulation, global polynomial solution via homotopy continuation, flexible handling of input configurations, and full generality with respect to camera viewpoints constitutes the principal contributions that distinguish our approach from existing methods in the literature.
+
+%endregion
+
+%region What are the key components/results/limitations of our method?
+
+In this work, we introduce a camera calibration \emph{and} localization method from \emph{cylinders}, that are common and easily detectable structures in many man-made environments, ranging from architectural elements (\emph{e.g.}, pipes, handrails) to household objects (\emph{e.g.}, bottles, cans, furniture legs) and infrastructure components (\emph{e.g.}, street lamps, utility poles, tube lights).
+
+The core idea, illustrated in Figure~\ref{fig:homotopy}, is to leverage the known 3D geometry to simplify the estimation process.
+
+The method presented here is designed to be flexible in both the setting and the usage. Multiple settings ranging from as little as one camera and two cylinders to multiple cameras and multiple cylinders can be handled. A summary of possible scene settings for the full camera calibration is summarized in Table~\ref{tab:scene_configurations}.
+
+A priori knowledge about camera intrinsics is not required, as the method is capable of estimating all intrinsic parameters of the camera, such as focal lengths, skew, and principal point coordinates, directly from the observed silhouette lines of the cylinders. This is particularly useful in scenarios where cameras are deployed in the field without prior calibration or when intrinsic parameters are not known a priori. That said the method can also be configured to estimate only a subset of intrinsic parameters, such as focal lengths or principal point, depending on the problem assumptions. A summary of the possible configurations depending on a priori knowledge is provided in Table~\ref{tab:configurations}.
+The method can easily be initialized to also make use of unkown but plausible camera parameters values.
+
+The method is also designed to either perform calibration and pose estimation jointly, or to perform only one pose estimation, depending on problem needs. A priory knowledge
+Transitioning smoothly between these two modes, and between different settings, is possible as the method is based on a unified geometric formulation that naturally incorporates both camera calibration and pose estimation.
+
+\input{tables/configurations.tex}
+
+The geometric constraints between the known cylinders and the unknown camera parameters form a system of nonlinear equations $\mathcal{S}_1(\mathbf{x}, \mathcal{L}_1)$. Instead of directly solving this complex system $\mathcal{S}_1$ with traditional algebraic methods like Gröbner basis or resultants, which are prone to numerical instability and scalability issues, we take a different approach. We generate a, \emph{virtual system} $\mathcal{S}_0(\mathbf{x}, \mathcal{L}_0)$ designed around the very same 3D scene and a configuration of synthetic cameras  with random but known parameters. By design, the solution $\mathbf{x}(0)$ for $\mathcal{S}_0$ is known, since it corresponds to the parameters we used to generate the synthetic cameras.
+
+Through Homotopy Continuation we can continuosly deform the virtual system $\mathcal{S}_0$ into the original system $\mathcal{S}_1$ while smoothly transitioning the known solution $\mathbf{x}(0)$ of the virtual system to the unknown solution $\mathbf{x}(1)$ of the original system. This is achieved through a tailored homotopy continuation parametrized in terms of silhouette lines. At the end, we obtain the desired calibration and pose $\mathbf{x}(1)$. If during the homotopy the tracked solution $\mathbf{x}(t)$ does not satisfy the system $\mathcal{S}_t$ the process is halted and repeated with a different initialization. Homotopy continuation properties garauntees under certain conditions that the solution $\mathbf{x}(1)$ will be found with probability one, provided that the system $\mathcal{S}_1$ is well-posed and the homotopy is designed correctly.
+
+In this paper we will present all the aspects of our flexible \emph{unified solution} for calibration and pose estimation, unlike existing approaches that typically address these two problems separately.
+
+We will study feasibility of the problem under different configurations, and settings. Through a detailed analysis of the most common settings we will guide the user in picking the best configuration for their needs. We will also provide the mathematical foundation to study the feasibility of the problem, and to understand the conditions under which the homotopy continuation will succeed to expand our work to new scenarios.
+
+We will go over the fundamental theory regarding quadrics, dual quadrics, and their projections, which is the basis of our method. We will also present the geometric constraints that arise from the projection of cylinders onto silhouette lines, and how these constraints can be formulated as a system of polynomial equations.
+
+The idea behind the homotopy continuation method will be illustrated, introducing all the parts that will be tweaked to align with our problem.
+
+A \emph{novel solver}, that, exploiting a new silhouette-based homotopy, will be introduced. First the problem will be looked at from a purely algebraic perspective, where the homotopy will be presented as a deformation of the virtual system $\mathcal{S}_0$ into the original system $\mathcal{S}_1$. Then, we will present the geometric interpretation of the homotopy, which will allow us to understand how to initialize the system and how to deal with spurious solutions.
+
+After looking at the problem for one step, best practices for \emph{initialization} and iteration of the initial system $\mathcal{S}_0$ will be presented, which is crucial for the convergence of the homotopy continuation.
+
+To overcome homotopy continuation limitations, we will introduce a \emph{correction step} to handle spurious camera configurations. The validity of the correction step is general and is not tied to the homotopy continuation method. It can be applied to any intrinsic and extrinsic parameters pair, regardless of how they were obtained.
+
+Finally, we will present a comprehensive evaluation of our method on both synthetic and real-world datasets. We will compare our approach with existing methods in terms of accuracy, robustness to noise, and computational efficiency. The results will demonstrate the effectiveness of our method in estimating camera parameters and poses from cylindrical objects, highlighting its advantages over traditional point-based approaches.
+
+%endregion

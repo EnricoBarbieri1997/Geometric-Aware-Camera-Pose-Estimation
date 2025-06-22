@@ -1,5 +1,10 @@
 \begin{thebibliography}{10}
 
+\bibitem{BoninFont2008}
+F.~Bonin-Font, A.~Ortiz, and G.~Oliver.
+\newblock Visual navigation for mobile robots: A survey.
+\newblock {\em Journal of Intelligent and Robotic Systems}, 53:263--296, 2008.
+
 \bibitem{HomotopyContinuationJL}
 Paul Breiding and Sascha Timme.
 \newblock Homotopycontinuation.jl: A package for homotopy continuation in
@@ -8,18 +13,45 @@ Paul Breiding and Sascha Timme.
   editors, {\em Mathematical Software -- ICMS 2018}, pages 458--465, Cham,
   2018. Springer International Publishing.
 
+\bibitem{Crocco2016}
+M.~et~al. Crocco.
+\newblock Structure-from-motion with quadrics: A convex formulation.
+\newblock {\em International Journal of Computer Vision}, 120:46--64, 2016.
+
 \bibitem{CalibrationFreePlacedRightCylinder}
 Dongliang Ding, Junhua Sun, and Yanjun Zhang.
 \newblock Camera calibration based on free-placed single right cylindrical
   target.
 \newblock {\em IEEE Sensors Journal}, 24(2):1803--1811, 2024.
 
-\bibitem{Fitzgibbon2001}
-Andrew~W. Fitzgibbon.
-\newblock Simultaneous linear estimation of multiple view geometry and lens
-  distortion.
-\newblock In {\em Proceedings of the IEEE Conference on Computer Vision and
-  Pattern Recognition (CVPR)}, volume~1, pages I--I. IEEE, 2001.
+\bibitem{Eberly2007}
+D.~Eberly.
+\newblock 3d game engine design: A practical approach to real-time computer
+  graphics.
+\newblock 2007.
+
+\bibitem{Garg2020}
+S.~et~al. Garg.
+\newblock Semantic object and plane slam for dynamic environments.
+\newblock {\em IEEE Robotics and Automation Letters}, 5(2):3215--3222, 2020.
+
+\bibitem{Gaudilliere2023}
+V.~Gaudillière, G.~Simon, and M.-O. Berger.
+\newblock Perspective-1-ellipsoid: Formulation, analysis and solutions of the
+  camera pose estimation problem from one ellipse-ellipsoid correspondence.
+\newblock {\em arXiv preprint}, arXiv:2208.12513, 2023.
+
+\bibitem{Girshick2015}
+R.~Girshick.
+\newblock Fast r-cnn.
+\newblock {\em IEEE International Conference on Computer Vision (ICCV)}, 2015.
+
+\bibitem{Gummeson2022}
+A.~Gummeson, J.~Engman, K.~Åström, and M.~Oskarsson.
+\newblock Fast and efficient minimal solvers for quadric based camera pose
+  estimation.
+\newblock In {\em 26th International Conference on Pattern Recognition (ICPR)},
+  2022.
 
 \bibitem{gummeson22pose}
 A.~Gummeson and M.~Oskarsson.
@@ -37,22 +69,21 @@ Kai Guo and et~al.
   known camera center.
 \newblock {\em MDPI Sensors}, 2023.
 
+\bibitem{Hartley2004}
+R.~Hartley and A.~Zisserman.
+\newblock {\em Multiple View Geometry in Computer Vision}.
+\newblock Cambridge University Press, 2nd edition, 2004.
+
 \bibitem{hartley93lines}
 Richard Hartley.
 \newblock Camera calibration using line correspondences.
 \newblock In {\em CVPR}, 1993.
 
-\bibitem{Hartley1994}
-Richard~I. Hartley.
-\newblock Self-calibration from multiple views with a rotating camera.
-\newblock In {\em European Conference on Computer Vision (ECCV)}, pages
-  471--478. Springer, 1994.
-
-\bibitem{krogius2019iros}
-Maximilian Krogius, Acshi Haggenmiller, and Edwin Olson.
-\newblock Flexible layouts for fiducial tags.
-\newblock In {\em Proceedings of the {IEEE/RSJ} International Conference on
-  Intelligent Robots and Systems {(IROS)}}, October 2019.
+\bibitem{He2020}
+K.~et~al. He.
+\newblock Mask r-cnn.
+\newblock {\em IEEE Transactions on Pattern Analysis and Machine Intelligence},
+  42(2):386--397, 2020.
 
 \bibitem{larsson20parallelcylinders}
 Viktor Larsson, Zuzana Kukelova, and Carl Olsson.
@@ -60,18 +91,22 @@ Viktor Larsson, Zuzana Kukelova, and Carl Olsson.
 \newblock {\em International Journal of Computer Vision}, 128(6):1670--1687,
   2020.
 
+\bibitem{Lepetit2009}
+V.~Lepetit, F.~Moreno-Noguer, and P.~Fua.
+\newblock Epnp: An accurate o(n) solution to the pnp problem.
+\newblock {\em International Journal of Computer Vision}, 81:155--166, 2009.
+
 \bibitem{HomotophyContinuationMethods}
 Tien-Yien Li.
 \newblock Homotopy continuation methods for solving polynomial systems.
 \newblock {\em Notices of the International Congress of Chinese
   Mathematicians}, 4(2):53--62, 2016.
 
-\bibitem{Li2024}
-Zhiying Li, Sitong Li, Wei Qin, and Pengjie Tao.
-\newblock A robust camera self‑calibration method based on circular oblique
-  images.
-\newblock {\em ISPRS Annals of the Photogrammetry, Remote Sensing and Spatial
-  Information Sciences}, X-1:131--135, 2024.
+\bibitem{Marchand2016}
+E.~Marchand, H.~Uchiyama, and F.~Spindler.
+\newblock Pose estimation for augmented reality: A hands-on survey.
+\newblock {\em IEEE Transactions on Visualization and Computer Graphics},
+  22(12):2633--2651, 2016.
 
 \bibitem{may2004parametrizedhomotopytheory}
 J.~P. May and J.~Sigurdsson.
@@ -82,24 +117,35 @@ S.J. Maybank and O.D. Faugeras.
 \newblock A theory of self-calibration of a moving camera.
 \newblock {\em International Journal of Computer Vision}, 8(2):123--151, 1992.
 
-\bibitem{olson2011tags}
-Edwin Olson.
-\newblock {AprilTag}: A robust and flexible visual fiducial system.
-\newblock In {\em Proceedings of the {IEEE} International Conference on
-  Robotics and Automation ({ICRA})}, pages 3400--3407. IEEE, May 2011.
+\bibitem{Nicholson2019}
+L.~et~al. Nicholson.
+\newblock Quadricslam: Dual quadrics from object detections as landmarks in
+  object-oriented slam.
+\newblock {\em IEEE Robotics and Automation Letters}, 4(1):1--8, 2019.
 
-\bibitem{Pollefeys1999}
-Marc Pollefeys, Luc Van~Gool, Maarten Vergauwen, Frank Verbiest, Kurt Cornelis,
-  Jan Tops, and Reinhard Koch.
-\newblock Self-calibration and metric reconstruction in spite of varying and
-  unknown internal camera parameters.
-\newblock {\em International Journal of Computer Vision}, 32(1):7--25, 1999.
+\bibitem{Redmon2018}
+J.~Redmon and A.~Farhadi.
+\newblock Yolov3: An incremental improvement.
+\newblock In {\em arXiv preprint arXiv:1804.02767}, 2018.
 
-\bibitem{richardson2013iros}
-Andrew Richardson, Johannes Strom, and Edwin Olson.
-\newblock {AprilCal}: Assisted and repeatable camera calibration.
-\newblock In {\em Proceedings of the {IEEE/RSJ} International Conference on
-  Intelligent Robots and Systems {(IROS)}}, November 2013.
+\bibitem{Rubino2018}
+C.~et~al. Rubino.
+\newblock Reconstructing quadric surfaces from multiple views.
+\newblock In {\em British Machine Vision Conference (BMVC)}, 2018.
+
+\bibitem{Sattler2012}
+T.~Sattler, B.~Leibe, and L.~Kobbelt.
+\newblock Efficient & effective prioritized matching for large-scale
+  image-based localization.
+\newblock {\em IEEE Transactions on Pattern Analysis and Machine Intelligence},
+  39:1744--1756, 2017.
+
+\bibitem{Sattler2017}
+T.~Sattler, B.~Leibe, and L.~Kobbelt.
+\newblock Large-scale location recognition and the geometric burstiness
+  problem.
+\newblock {\em IEEE Conference on Computer Vision and Pattern Recognition
+  (CVPR)}, 2017.
 
 \bibitem{schoenberger2016sfm}
 Johannes~Lutz Sch\"{o}nberger and Jan-Michael Frahm.
@@ -113,34 +159,54 @@ Johannes~Lutz Sch\"{o}nberger, Enliang Zheng, Marc Pollefeys, and Jan-Michael
 \newblock Pixelwise view selection for unstructured multi-view stereo.
 \newblock In {\em European Conference on Computer Vision (ECCV)}, 2016.
 
+\bibitem{Semple1952}
+J.G. Semple and G.T. Kneebone.
+\newblock {\em Algebraic Projective Geometry}.
+\newblock Oxford University Press, 1952.
+
 \bibitem{chsong24}
 Chaehyeon Song, Jaeho Shin, Myung-Hwan Jeon, Jongwoo Lim, and Ayoung Kim.
 \newblock Unbiased estimator for distorted conics in camera calibration.
 \newblock In {\em IEEE/CVF Conference on Computer Vision and Pattern
   Recognition (CVPR)}, pages 373--381, June 2024.
 
-\bibitem{Sturm2004}
-Peter Sturm and Stephen~J. Maybank.
-\newblock On plane-based camera calibration: A general algorithm,
-  singularities, applications.
-\newblock In {\em CVPR}, pages 432--437, 2004.
+\bibitem{Teramoto2002}
+H.~Teramoto and G.~Xu.
+\newblock Camera calibration by a single image of balls: From conics to the
+  absolute conic.
+\newblock In {\em Asian Conference on Computer Vision (ACCV)}, 2002.
 
-\bibitem{Triggs1997}
-Bill Triggs.
-\newblock Autocalibration and the absolute quadric.
-\newblock In {\em Proceedings of the IEEE Conference on Computer Vision and
-  Pattern Recognition (CVPR)}, pages 609--614, 1997.
+\bibitem{Wang2019}
+Y.~et~al. Wang.
+\newblock Normalized object coordinate space for category-level 6d object pose
+  and size estimation.
+\newblock {\em IEEE Conference on Computer Vision and Pattern Recognition
+  (CVPR)}, 2019.
 
-\bibitem{wang2016iros}
-John Wang and Edwin Olson.
-\newblock {AprilTag} 2: Efficient and robust fiducial detection.
-\newblock In {\em Proceedings of the {IEEE/RSJ} International Conference on
-  Intelligent Robots and Systems {(IROS)}}, October 2016.
+\bibitem{Xu2017}
+J.~et~al. Xu.
+\newblock Pose estimation from line correspondences: A complete analysis and a
+  series of solutions.
+\newblock {\em IEEE Transactions on Pattern Analysis and Machine Intelligence},
+  39:1209--1222, 2017.
+
+\bibitem{Zhang2007}
+H.~Zhang, K.-Y.K. Wong, and G.~Zhang.
+\newblock Camera calibration from images of spheres.
+\newblock {\em IEEE Transactions on Pattern Analysis and Machine Intelligence},
+  29(3):499--502, 2007.
 
 \bibitem{Zhang2000}
 Zhengyou Zhang.
 \newblock A flexible new technique for camera calibration.
 \newblock {\em IEEE Transactions on Pattern Analysis and Machine Intelligence},
   22(11):1330--1334, 2000.
+
+\bibitem{Zins2022}
+M.~Zins, G.~Simon, and M.-O. Berger.
+\newblock Object-based visual camera pose estimation from ellipsoidal model and
+  3d-aware ellipse prediction.
+\newblock In {\em International Journal of Computer Vision}, volume 130, pages
+  1107--1126, 2022.
 
 \end{thebibliography}

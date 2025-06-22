@@ -29,9 +29,6 @@ V \geq 3N + 5.
 \end{equation}
 Once $\KK$ and the rotations $\RR_i$ are estimated, the translations $\mathbf{t}_i$ can be recovered from the remaining $V$ equations of  type~\eqref{eq:dual_quadric_constraint}, which are quadratic in $\mathbf{t}_i$. In practice, given $M$ cylinders, under the assumption of full visibility (\emph{i.e.}, $V = 2MN$ silhouette lines), $\mathcal{S}_1$ can be solved for the pair $(M,N)$ marked with in Table~\ref{tab:scene_configurations}. A single cylinder  $M=1$ does not allow for  solution, while beyond $M=6$ or $N=9$, $\mathcal{S}_1$ is always solvable. 
 
-
-\input{tables/scene_configurations}
-
 \subsection{The synthetic starting system \texorpdfstring{$\mathcal{S}_0$}{S0}}
 
 To construct the synthetic system $\mathcal{S}_0$, we begin by generating a set of $N$ synthetic cameras, denoted $\{\PP_i^{(0)} = \KK^{(0)}[\RR_i^{(0)}\,|\,\mathbf{t}_i^{(0)}]\}$, where both the intrinsic parameters $\KK^{(0)}$ and the extrinsic parameters $(\RR_i^{(0)}, \mathbf{t}_i^{(0)})$ are known. Given the 3D structure of the scene (\emph{i.e.}, the known cylinders), we project them into each synthetic view to compute the corresponding silhouette lines $\mathcal{L}_0 = \{l^{h(0)}_{ij}\}$.
