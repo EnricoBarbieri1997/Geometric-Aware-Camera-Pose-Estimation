@@ -1,0 +1,90 @@
+\subsection{Homotopy Continuation}
+\label{sec:homotopy}
+
+Homotopy continuation~\cite{HomotophyContinuationMethods} is a powerful numerical–symbolic method for solving systems of nonlinear (especially polynomial) equations by deforming a solvable start system into the target system and tracking solution paths continuously.
+
+More formally, given \(F(x)=0\) to solve where \(x\in\mathbb{C}^n\), we construct a homotopy
+\begin{align}
+H(x,t) = (1-t)\,G(x) + t\,F(x), \\ H(x,0)=G(x),\, \; H(x,1)=F(x),
+\end{align}
+where \(G\) has known regular solutions.
+
+Algorithm~\ref{alg:homotopy_path_tracking} summarizes an Homotopy continuation iter.
+Starting from a known solution \(x(0)\) (line 2), we numerically follow the curve \(x(t)\) satisfying \(H(x(t), t)=0\) from $t=0$ to $t=1$ (line 3).
+Using the differential notation we can write
+\[
+\frac{\partial H}{\partial x} \dot x + \frac{\partial H}{\partial t} = 0 \quad\Rightarrow\quad \dot x = -\left(\frac{\partial H}{\partial x}\right)^{-1} \frac{\partial H}{\partial t},
+\]
+to find out the direction of the solution path at each step. That can be solved using any ODE method, such as Euler's method or Runge-Kutta methods (line 4).
+We compute the new value of \(x\) at \(t+\Delta t\) by using a predictor step (line 5).
+Then we correct the prediction using Newton’s method making it consistent with \(H(x, t+\Delta t)=0\) (line 7).
+We then iterate the process until we reach $t=1$.
+
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=0.85\linewidth]{images/homotopy_predictor_corrector}
+	\caption{A sketch of the predictor-corrector method. We compute a prediction $\tilde x = x_k + \Delta t\,\dot x_k$ using any ODE method and then correct using Newton's method.}
+	\label{fig:homotopy_predictor_corrector}
+\end{figure}
+
+% Algorithm: Homotopy Path Tracking (Predictor-Corrector Loop)
+\begin{algorithm}[H]
+\caption{Homotopy Path Tracking via Predictor-Corrector}
+\label{alg:homotopy_path_tracking}
+\begin{algorithmic}[1]
+\REQUIRE Initial solution $x_0$, initial time $t_0 = 0$, step size $\Delta t$
+\STATE $k \leftarrow 0$
+\STATE $x_k \leftarrow x_0$, $t_k \leftarrow t_0$
+\WHILE{$t_k < 1$}
+    \STATE Compute $\dot x_k = -\left(\frac{\partial H}{\partial x}(x_k, t_k)\right)^{-1} \frac{\partial H}{\partial t}(x_k, t_k)$
+    \STATE $\tilde x \leftarrow x_k + \Delta t\,\dot x_k$ \; (Predictor: Euler or higher order)
+    \STATE $t_{k+1} \leftarrow t_k + \Delta t$
+    \STATE $x_{k+1} \leftarrow$ Newton's method to solve $H(x, t_{k+1})=0$ starting from $\tilde x$
+    \STATE $k \leftarrow k+1$
+\ENDWHILE
+\RETURN $x_k$ (approximate solution to $F(x)=0$)
+\end{algorithmic}
+\end{algorithm}
+
+\subsection{Monodromy}
+\label{sec:monodromy}
+
+In the context of polynomial system solving, \emph{monodromy} refers to a technique that exploits the algebraic structure of solution sets by tracking solutions permutations under continuous deformations of the parameters. In particular, when a parameterized polynomial system admits multiple solutions for generic parameter values, monodromy allows us to expand the solution set by performing loops in parameter space. It does so by observing the behaviour of the system when it "runs around" a singularity.
+
+Consider a family of polynomial systems
+\[
+F(x; p) = 0,
+\]
+where \( x \in \mathbb{C}^n \) are the unknowns and \( p \in \mathbb{C}^m \) are parameters. Given at least one solution \( x_0 \) corresponding to a parameter value \( p_0 \) (Figure~\ref{fig:monodromy_original}), we project it into the surface defined by all possible parametrization~\ref{fig:monodromy_parameter_surface}, we construct a path in parameter space that starts and ends at \( p_0 \) (Figure~\ref{fig:monodromy_inconclusive}). By numerically tracking the solution \( x_0 \) along this loop (via homotopy continuation), we obtain a solution \( x_1 \) at \( p_0 \). In general, \( x_1 \) may differ from \( x_0 \), having traversed a different branch of the solution variety. Repeating this process along different loops allows the discovery of new solutions without prior knowledge of the entire solution set (Figure~\ref{fig:monodromy_conclusive}).
+
+This method relies on the fact that the solution set over generic parameters forms a branched covering of parameter space, and monodromy paths induce permutations (forming the so-called \emph{monodromy group}) on the fiber of solutions above a generic parameter value. Under mild assumptions, if the monodromy group is transitive, sufficiently many loops will recover all solutions.
+
+Monodromy methods serve as a valuable complement to classical homotopy continuation, especially when computing all solutions via total-degree or multihomogeneous start systems is computationally prohibitive.
+
+For additional details on practical implementations, we refer to the monodromy functionality in \texttt{HomotopyContinuation.jl}~\cite{JuliaHomotopyContinuation}.
+
+\begin{figure}[hb]
+	\centering
+	\subfloat[Instance of a realization of the polynomial system family $F(x; p) = 0$.]{
+		\includegraphics[width=0.21\linewidth]{monodromy/original.png}
+		\label{fig:monodromy_original}
+	}
+	\hspace{0.01\linewidth}
+	\subfloat[Polynomial system family $F(x; p) = 0$ surface for different values of $p$]{
+		\includegraphics[width=0.21\linewidth]{monodromy/parameter_surface.png}
+		\label{fig:monodromy_parameter_surface}
+	}
+	\hspace{0.01\linewidth}
+	\subfloat[Inconclusive loop in parameter space. The loop took place before the branching point.]{
+		\includegraphics[width=0.21\linewidth]{monodromy/inconclusive_monodromy.png}
+		\label{fig:monodromy_inconclusive}
+	}
+	\hspace{0.01\linewidth}
+	\subfloat[Conclusive loop in parameter space. The loop took place after the branching point, and a new surface area is explored]{
+		\includegraphics[width=0.21\linewidth]{monodromy/successful_monodromy.png}
+		\label{fig:monodromy_conclusive}
+	}
+	\hspace{0.1cm}
+	\caption{Monodromy in polynomial system solving. The first image shows a realization of the polynomial system family, the second shows the parameter surface with the known solution $x_0$ highlighted in red, the third shows an inconclusive loop in parameter space, and the fourth shows a conclusive loop in parameter space.}
+	\label{fig:monodromy}
+\end{figure}

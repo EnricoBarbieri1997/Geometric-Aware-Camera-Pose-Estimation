@@ -37,6 +37,7 @@ These silhouette lines are then used to construct equations that contain constra
 
 
 \subsection{Custom silhouette-based homotopy}
+\label{sec:silhouette-based-homotopy}
 
 To solve $\mathcal{S}_1(\mathbf{x},\mathcal{L}_1)$ we  define a custom parametric homotopy $H$ parametrized by line silhouettes. A parametric homotopy~\cite{may2004parametrizedhomotopytheory} is a specialization of the general homotopy framework in which the structure of the system of equations remains fixed, while the parameters  vary continuously. In our case, since the 3D cylinders are fixed, all the systems   parameters are encoded by the locations in each images of the silhouette lines. The key idea is to continuously transform  over time $t$ the  silhouette lines  to interpolate between those generated synthetically in $\mathcal{S}_0$ and those observed in the real system $\mathcal{S}_1$.
 
@@ -90,39 +91,126 @@ Convergence to the real solution, while not violating the system constraints, is
 
 \subsection{Generating starting systems}
 \label{sec:iterating_procedure}
-Given equations degree $d$ in $n$ unknowns, Homotopy continuation is garaunteed to find a solution if the number of paths explored $p$ satysfies $p > n^d$.
+Given equations of degree $d$ in $n$ unknowns, Homotopy continuation is garaunteed to find a solution if the number of paths explored $p$ satysfies $p > n^d$.
 The actual number of minimum paths can be lower depending on the problem at hand, and is equal to the number of possible imaginary solutions of the system.
 Empirically a sufficiently large number of starting solutions can be found by running a \emph{total degree homotopy} on the system and take note of the number of path explored. 
 For the full camera calibration, using this method, on average $177147$ paths (initial solutions) are tracked and $64$ possible solutions are found, for the most common skew$=0$ case $59049$ paths are tracked and $112$ solutions are found, and finally to localize a calibrated camera $64$ paths and $16$ solutions.
 
 We will now go through the different steps we took to optimize the number of trials, namely: intrinsic initialization, poses initialization, lines generation, monodromy, best practices on iterating the procedure.
 
-The algorithm is summarized in Algorithm~\ref{alg:solutions_generation} and can be visualized in Figure~\ref{fig:homotopy}.
+Algorithm~\ref{alg:solutions_generation} summarizes the procedure and a graphical representation is available in Figure~\ref{fig:homotopy}.
 
 \paragraph{Intrinsics initialization}
-If avaible a priory knowledge about the scene can be leveraged, \eg{we know the model of the camera and it's specifications but want to account for manufacturing flactuations}. If no prior about focal length is known, assuming a square focal length of value $2000$ is around the true value for a smartphone camera. Principal point is initialized at $c_x = IMAGE\_WIDTH / 2, \; cy = IMAGE\_HEIGHT / 2$. The skew parameter is set to a small value different from $0$.
+If avaible a priory knowledge about the scene can be leveraged, \eg{we know the model of the camera and it's specifications but want to account for manufacturing flactuations}. If no prior about focal length is known, assuming a square focal length of value $2000$ is a reasonable guess for a smartphone camera (line 1). Principal point is initialized at $c_x = IMAGE\_WIDTH / 2, \; cy = IMAGE\_HEIGHT / 2$ (line 2). The skew parameter is set to a small value different from $0$ (line 3).
 
 \paragraph{Poses initialization}
-The first camera position $\mathbf{t}_0^{(1)}$ is randomly drawn. For each subsequent camera a random offset unit vector $\mathbf{f}_i$, and a distance $d_i = N(|\mathbf{t}_0^{(0)}|, \frac{|\mathbf{t}_0^{(0)}|}{v})$ where $v$ can be tweaked depending on the apparent camera movement between shots. Closer shots higher values of $v$.
+For the first camera position $\mathbf{t}_0^{(1)}$ randomizing three unitary values for the direction and multiplying such resulting vector by a constant scale factor (line 7) gives the most freedom.
+Guessing the metric scale of the scene and using it as the scale makes testing and validating results easier but if it's not possible any random value will yield the same quality results.
+For every other camera Algorithm~\ref{alg:next_camera_pose} is used. A random offset unit vector $\mathbf{f}_i$ (line 1), and a distance $d_i = N(|\mathbf{t}_0^{(0)}|, \frac{|\mathbf{t}_0^{(0)}|}{v})$ (line 2) are drawn. The parameter $v$ can be tweaked depending on the apparent camera movement between shots. Closer shots higher values of $v$.
 
 \begin{equation}
     \mathbf{t}_0^{(n)} = \mathbf{t}_0^{(n-1)} + d_i\mathbf{f}_i
 \end{equation}
 
-Rotation $\RR_i$ for each camera is picked with a \emph{look at} function pointed at $\mathbf{o} = \left[N(0, \sigma), N(0, \sigma), N(0, \sigma) \right]$ where $\sigma$ can be tweaked depending on the scene scale.
+Rotation $\RR_i$ for each camera is picked with a \emph{look at} function pointed at the world origin $\mathbf{o} = \left[N(0, \sigma), N(0, \sigma), N(0, \sigma) \right]$ (line 4) where $\sigma$ can be tweaked depending on the scene scale.
+
+\begin{algorithm}
+\caption{next\_camera\_pose}
+\label{alg:next_camera_pose}
+    \begin{algorithmic}[1]
+        \REQUIRE $\mathbf{t}_0^{(i-1)}$
+        \STATE $\mathbf{f}_i \gets \var{normalize}(\var{random}(3))$
+        \STATE $d_i \gets N(|\mathbf{t}_0^{(i-1)}|, \frac{|\mathbf{t}_0^{(i-1)}|}{v})$ \; \; (random distance)
+        \STATE $\mathbf{t}_0^{(i)} \gets \mathbf{t}_0^{(i-1)} + d_i \mathbf{f}_i$
+        \STATE $\RR_0^{(i)} \gets \var{look\_at}(\var{world\_origin})$
+        \RETURN $\mathbf{t}_0^{(i)}, \RR_0^{(i)}$
+    \end{algorithmic}
+\end{algorithm}
+
+This is used in Algorithm~\ref{alg:solutions_generation} (lines 8-10) to initialize the camera poses $\mathbf{t}_0^{(i)}$ and $\RR_0^{(i)}$ for each camera $i$.
 
 \paragraph{Lines generation}
-For each camera $i$ we have
+For each camera $i$ the projection matrix $\PP_0^{(i)}$ is constructed as (line 14):
 \begin{equation}
     \PP_0^{(i)} = \KK_0^{(i)} \left[\RR_0^{(i)} \;|\; \mathbf{t}_0^{(i)}\right]
 \end{equation}
-For each cylinder $C_j$ we can project it's silhouette into $l_{ij}^{h}$ through Algorithm~\ref{alg:get_cylinder_contours}.
+Collecting the set of all projection matrices makes up the initial solution $\mathbf{x}_0$ (line 19).
+We can use it to project each cylinder $C_j$ onto it's silhouette lines $l_{ij}^{h}, \; h=1,2$ through Algorithm~\ref{alg:get\_cylinder\_contours} (line 15).
+
+The silhouette lines $l_{ij}^{h(0)}$ are collected and used to construct the parameters $\mathcal{L}_0$ (line 18).
+$\mathbf{x_0}$ together with the set of silhouette lines $\mathcal{L}_0$ make up the synthetic system $\mathcal{S}_0$.
 
 \paragraph{Monodromy}
-To enrich the solution pool and increase the success rate of our homotopy we run our synthetic solution $\mathcal{S}_0$ through a Monodromy. A monodromy starts from a solution and through random walking in the complex space $\mathbb{C}$ generates new imaginary solutions for our problem. This increases the number of paths that we can follow. The number of new solutions found depends on the number of intrinsic parameters to estimate. For the full calibration case it's no less than $32$ and usually it's $64$.
+Right now we only have one solution for the set of lines $\mathcal{L}_0$. To increase the success rate of our homotopy we run our synthetic solution $\mathbf{x}0$ through a Monodromy~\ref{sec:monodromy} (line 20). A monodromy starts from a solution and through random walking in the complex space $\mathbb{C}$ generates new, mostly complex, solutions for our problem. This increases the number of paths that we can follow which improves convergence significantly. The number of new solutions found depends on the number of intrinsic parameters to estimate. For the full calibration case it's no less than $32$ and usually it's $64$.
+
+\paragraph{Applying homotopy continuation}
+For each solution $\mathbf{x}_0^{(w)}$ of the monodromy $\mathcal{X}_0$, we apply homotopy continuation using the silhouette-based homotopy function $H$ defined in~\eqref{sec:silhouette-based-homotopy} (line 22). The homotopy package returns a set of solutions $\var{solutions}$, which are then iterated over (line 23).
+For each solution $\mathbf{x}_1$ of $\var{solutions}$, we extract the intrinsic parameters $\mathbf{K}_1$ (line 24), rotation matrices $\RR_1^{(i)}$ (line 26), and apply a total degree homotopy to estimate each camera translation $\mathbf{t}_1^{(i)}$ (line 27).
+
+Finally, we compute the reprojection error for each solution (line 29) and keep track of the best solution found so far (lines 30-33). The best solution is returned at the end of the procedure (line 37).
 
 \paragraph{Iterating the procedure}
-Each time the homotopy is halted by the framework we initialize $\mathbf{t}_0^{(0)} = \mathbf{t}_0^{(1)}$ and repeat the procedure. This garauntees that new iterations will be evenly spaced with respect to most of the previous ones.
+If the homotopy is halted by the framework and we never reach the end of the current iteration (line 45) we repeat the process discarding the first camera pose and shifting each one to the left (line 39-42). A new camera $N$th camera pose is generated with Algorithm~\ref{alg:next_camera_pose} (line 43). This garauntees that new iterations will be evenly spaced with respect to most of the previous ones.
+
+% Algorithm: Solution Generation and Homotopy Procedure
+\begin{algorithm}[H]
+\caption{Solution Generation and Homotopy Procedure}
+\label{alg:solutions_generation}
+\begin{algorithmic}[1]
+\REQUIRE Scene geometry (cylinders), observed silhouette lines $\mathcal{L}_1$, number of cameras $N$
+\STATE $f_x \gets 2000$, $f_y \gets 2000$
+\STATE $c_x \gets W_{image}/2, c_y \gets H_{image}/2$
+\STATE $s \gets 0.01$
+\STATE $\KK_0 \gets \left[
+                \left[ f_x\; s \; c_x \right],
+                \left[ 0 \; f_y \; c_y \right],
+                \left[ 0 \; 0 \; 1 \right]
+            \right]$ \; \; (initial intrinsic parameters)
+\STATE $\var{best\_solution} \gets \var{null}$
+\STATE $\var{best\_error} \gets \infty$
+\STATE $\mathbf{t}_0^{(1)} \gets \var{random}(3) * SCALE$
+\FOR{$i = 2$ to $N$}
+    \STATE $\mathbf{t}_0^{(i)}, \RR_0^{(i)} \gets \var{next\_camera\_pose}(\mathbf{t}_0^{(i-1)})$ \; \; (see Algorithm~\ref{alg:next_camera_pose})
+\ENDFOR
+\FOR{$z = 1$ to $Z$}
+    \FOR{each camera $i$}
+        \FOR{each cylinder $\CC_j$}
+            \STATE $\PP_0^{(i)} \gets \KK_0^{(i)} [\RR_0^{(i)}\,|\,\mathbf{t}_0^{(i)}]$ \; \; (projection matrix)
+            \STATE $l_{ij}^{h(0)} \gets \var{get\_cylinder\_contours}(\CC_j, \PP_0^{(i)})$ \; \; (see Algorithm~\ref{alg:get_cylinder_contours})
+        \ENDFOR
+    \ENDFOR
+    \STATE $\mathcal{L}_0 \gets \left\{ l_{ij}^{h(0)} \mid i=1,\ldots,N, j=1,\ldots,M, h=1,2 \right\}$ \; \; (synthetic silhouette lines)
+    \STATE $\mathbf{x}_0 \gets \left[\KK_0, \RR_0^{(1)}, \ldots, \RR_0^{(N)}, \mathbf{t}_0^{(1)}, \ldots, \mathbf{t}_0^{(N)}\right]$ \; \; (initial solution)
+    \STATE $\mathcal{X}_0 \gets \var{monodromy}(\mathcal{S}_0, \mathbf{x}_0, \mathcal{L}_0)$ \; \; (generate new solutions)
+    \FOR{each solution $\mathbf{x}_0^{(w)}$ of $\mathcal{X}_0$}
+        \STATE $\var{solutions} \gets \var{homotopy}_H(\mathcal{S}_0 \mathbf{x}_0^{(w)}, \mathcal{L}_0)$ \; \; (apply homotopy function $H$ defined in~\eqref{sec:silhouette-based-homotopy})
+        \FOR{each $\mathbf{x}_1$ of $\var{solutions}$}
+            \STATE $\mathbf{K}_1 \gets \mathbf{x}_1^\KK$
+            \FOR{each camera $i$}
+                \STATE $\RR_1^{(i)} \gets \mathbf{x}_1^{\RR_i}$
+                \STATE $\mathbf{t}_1^{(i)} \var{homotopy}_{\var{total\_degree}}(\mathcal{L}_1)$ \; \; (total degree homotopy does not require start solutions)
+            \ENDFOR
+            \STATE $\var{error} \gets \var{reprojection\_error}(\mathcal{S}_1, \mathbf{x}_1, \mathcal{L}_1)$ \; \; (compute reprojection error)
+            \IF{$\var{error} < \var{best\_error}$}
+                \STATE $\var{best\_solution} \gets \mathbf{x}_1$
+                \STATE $\var{best\_error} \gets \var{error}$
+            \ENDIF
+        \ENDFOR
+    \ENDFOR
+    \IF{$\var{homotopy\_halted}$}
+        \STATE $\var{best\_solution} \gets \var{null}$ \; \; (reset best solution)
+        \STATE $\var{best\_error} \gets \infty$ \; \; (reset best error)
+        \FOR{$i = 1$ to $N-1$}
+            \STATE $\mathbf{t}_0^{(i)} \gets \mathbf{t}_0^{(i+1)}$ \; \;
+            \STATE $\RR_0^{(i)} \gets \RR_0^{(i+1)}$ \; \;
+        \ENDFOR
+        \STATE $\mathbf{t}_0^{(N)}, \RR_0^{(N)} \gets \var{next\_camera\_pose}(\mathbf{t}_0^{(N-1)})$ \; \; (see Algorithm~\ref{alg:next_camera_pose})
+    \ELSE
+        \RETURN $\var{best\_solution}$
+    \ENDIF
+\ENDFOR
+\end{algorithmic}
+\end{algorithm}
 
 \subsection{Handling spurious solutions}
 \label{sec:postprocessing}

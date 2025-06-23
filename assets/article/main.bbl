@@ -13,6 +13,12 @@ Paul Breiding and Sascha Timme.
   editors, {\em Mathematical Software -- ICMS 2018}, pages 458--465, Cham,
   2018. Springer International Publishing.
 
+\bibitem{Canny1986}
+John Canny.
+\newblock A computational approach to edge detection.
+\newblock {\em IEEE Transactions on Pattern Analysis and Machine Intelligence},
+  PAMI-8(6):679--698, 1986.
+
 \bibitem{Crocco2016}
 M.~et~al. Crocco.
 \newblock Structure-from-motion with quadrics: A convex formulation.
@@ -23,12 +29,6 @@ Dongliang Ding, Junhua Sun, and Yanjun Zhang.
 \newblock Camera calibration based on free-placed single right cylindrical
   target.
 \newblock {\em IEEE Sensors Journal}, 24(2):1803--1811, 2024.
-
-\bibitem{Eberly2007}
-D.~Eberly.
-\newblock 3d game engine design: A practical approach to real-time computer
-  graphics.
-\newblock 2007.
 
 \bibitem{Garg2020}
 S.~et~al. Garg.
@@ -74,22 +74,11 @@ R.~Hartley and A.~Zisserman.
 \newblock {\em Multiple View Geometry in Computer Vision}.
 \newblock Cambridge University Press, 2nd edition, 2004.
 
-\bibitem{hartley93lines}
-Richard Hartley.
-\newblock Camera calibration using line correspondences.
-\newblock In {\em CVPR}, 1993.
-
 \bibitem{He2020}
 K.~et~al. He.
 \newblock Mask r-cnn.
 \newblock {\em IEEE Transactions on Pattern Analysis and Machine Intelligence},
   42(2):386--397, 2020.
-
-\bibitem{larsson20parallelcylinders}
-Viktor Larsson, Zuzana Kukelova, and Carl Olsson.
-\newblock The multi-view geometry of parallel cylinders.
-\newblock {\em International Journal of Computer Vision}, 128(6):1670--1687,
-  2020.
 
 \bibitem{Lepetit2009}
 V.~Lepetit, F.~Moreno-Noguer, and P.~Fua.
@@ -101,6 +90,12 @@ Tien-Yien Li.
 \newblock Homotopy continuation methods for solving polynomial systems.
 \newblock {\em Notices of the International Congress of Chinese
   Mathematicians}, 4(2):53--62, 2016.
+
+\bibitem{liu2019realtime}
+Chao Liu and Weiming Hu.
+\newblock Real-time geometric fitting and pose estimation for surface of
+  revolution.
+\newblock {\em Pattern Recognition}, 85:90--108, 2019.
 
 \bibitem{Marchand2016}
 E.~Marchand, H.~Uchiyama, and F.~Spindler.
@@ -123,6 +118,12 @@ L.~et~al. Nicholson.
   object-oriented slam.
 \newblock {\em IEEE Robotics and Automation Letters}, 4(1):1--8, 2019.
 
+\bibitem{USAC}
+Rahul Raguram, Ondrej Chum, Marc Pollefeys, Jiri Matas, and Jan-Michael Frahm.
+\newblock Usac: A universal framework for random sample consensus.
+\newblock {\em IEEE Transactions on Pattern Analysis and Machine Intelligence},
+  35(8):2022--2038, 2013.
+
 \bibitem{Redmon2018}
 J.~Redmon and A.~Farhadi.
 \newblock Yolov3: An incremental improvement.
@@ -132,20 +133,6 @@ J.~Redmon and A.~Farhadi.
 C.~et~al. Rubino.
 \newblock Reconstructing quadric surfaces from multiple views.
 \newblock In {\em British Machine Vision Conference (BMVC)}, 2018.
-
-\bibitem{Sattler2012}
-T.~Sattler, B.~Leibe, and L.~Kobbelt.
-\newblock Efficient & effective prioritized matching for large-scale
-  image-based localization.
-\newblock {\em IEEE Transactions on Pattern Analysis and Machine Intelligence},
-  39:1744--1756, 2017.
-
-\bibitem{Sattler2017}
-T.~Sattler, B.~Leibe, and L.~Kobbelt.
-\newblock Large-scale location recognition and the geometric burstiness
-  problem.
-\newblock {\em IEEE Conference on Computer Vision and Pattern Recognition
-  (CVPR)}, 2017.
 
 \bibitem{schoenberger2016sfm}
 Johannes~Lutz Sch\"{o}nberger and Jan-Michael Frahm.
@@ -158,17 +145,6 @@ Johannes~Lutz Sch\"{o}nberger, Enliang Zheng, Marc Pollefeys, and Jan-Michael
   Frahm.
 \newblock Pixelwise view selection for unstructured multi-view stereo.
 \newblock In {\em European Conference on Computer Vision (ECCV)}, 2016.
-
-\bibitem{Semple1952}
-J.G. Semple and G.T. Kneebone.
-\newblock {\em Algebraic Projective Geometry}.
-\newblock Oxford University Press, 1952.
-
-\bibitem{chsong24}
-Chaehyeon Song, Jaeho Shin, Myung-Hwan Jeon, Jongwoo Lim, and Ayoung Kim.
-\newblock Unbiased estimator for distorted conics in camera calibration.
-\newblock In {\em IEEE/CVF Conference on Computer Vision and Pattern
-  Recognition (CVPR)}, pages 373--381, June 2024.
 
 \bibitem{Teramoto2002}
 H.~Teramoto and G.~Xu.
@@ -183,12 +159,23 @@ Y.~et~al. Wang.
 \newblock {\em IEEE Conference on Computer Vision and Pattern Recognition
   (CVPR)}, 2019.
 
+\bibitem{Xie2015}
+Saining Xie and Zhuowen Tu.
+\newblock Holistically-nested edge detection.
+\newblock In {\em Proceedings of the IEEE International Conference on Computer
+  Vision (ICCV)}, pages 1395--1403, 2015.
+
 \bibitem{Xu2017}
 J.~et~al. Xu.
 \newblock Pose estimation from line correspondences: A complete analysis and a
   series of solutions.
 \newblock {\em IEEE Transactions on Pattern Analysis and Machine Intelligence},
   39:1209--1222, 2017.
+
+\bibitem{Yousefi2018}
+Mohammad Yousefi and Ghassan Hamarneh.
+\newblock Hough transform in computer vision: A survey.
+\newblock {\em ACM Computing Surveys}, 51(6):1--36, 2018.
 
 \bibitem{Zhang2007}
 H.~Zhang, K.-Y.K. Wong, and G.~Zhang.
