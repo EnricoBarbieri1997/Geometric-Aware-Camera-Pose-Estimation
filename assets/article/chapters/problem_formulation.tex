@@ -1,8 +1,32 @@
 \section{Problem formulation}
 \label{sec:problem_formulation}
 
-We consider a 3D scene containing $M$ cylinders $\mathcal{C}_j$ in general position, each with known radius, position, and axis direction $\mathbf{w}_j$. A camera with unknown but fixed intrinsic matrix $\KK$ captures $N$ images $\{I_1, \ldots, I_N\}$ of the scene. Each image $I_i$ is associated with an unknown camera matrix $\PP_i = \KK[\RR_i \,|\, \mathbf{t}_i]$, where $\RR_i$ and $\mathbf{t}_i$ denote the rotation and translation of the camera in view $i$.
+We consider a 3D scene containing $M$ cylinders $\mathcal{C}_j$ in general positions, each with known radius, position, and axis direction $\mathbf{w}_j$. All the metrics can be provided both in absolute value, and in this case the reconstruction will be metric, or relative to each other, and in this case the reconstruction will be up to scale.
+
+A camera with unknown but fixed intrinsic matrix $\KK$ captures $N$ images $\{I_1, \ldots, I_N\}$ of the scene. Each image $I_i$ is associated with an unknown camera matrix $\PP_i = \KK[\RR_i \,|\, \mathbf{t}_i]$, where $\RR_i$ and $\mathbf{t}_i$ denote the rotation and translation of the camera in view $i$.
+
 In each view $I_i$, each cylinder $\mathcal{C}_j$ projects onto a pair of \emph{contour lines}, denoted $l^h_{ij}$ with $h = 1, 2$ (see Figure~\ref{fig:problem_formulation} that displays one of the two silhouette lines of $\mathcal{C}_j$). These lines correspond to the visible contours of the cylindrical surface. Geometrically, each $l^h_{ij}$ arises from the intersection between the image plane and the planes $\Pi^h_{ij}$ that pass through the optical center of the camera $\PP_i$ and are tangent to the surface of $\mathcal{C}_j$.
+
+The problem can be posed under flexible assumptions on the intrinsic parameters of the camera, such as zero skew, known aspect ratio, or a centered principal point. The number $M$ of cylinders and the number $N$ of images vary accordingly.
+
+\paragraph{Feasibility} directly depends on the assumptions made. We will have $U$ unknown camera parameters in $\KK$. Each view $I_i$ introduces 6 constraints, 3 for the rotation $\RR_i$ and 3 for the translation $\mathbf{t}_i$. We will first solve for the rotation alone so only the $3$ unkowns coming from the rotation $RR_i$ need to be taken into account initially.
+Suppose $V$ silhouette lines in total from any cylinder in any order. Each line $l^h_{ij}$ introduces two constraints, initially to solve for the rotation $\RR_i$ of the camera we will use only one of the two.
+
+Thus the problem is solvable if
+    \begin{equation}
+        V \ge 3N + U
+    \end{equation}
+Under the assumption of full visibility of all contours, the number of silhouette lines $V$ is given by $V = 2MN$.
+
+The problem is solvable if
+  \begin{equation}
+      \begin{aligned}
+              2NM \ge 3N + U \\
+              M \ge \ceil{\frac{3}{2} + \frac{U}{2N}}
+      \end{aligned}
+      \label{eq:SolvableConditionSimple}
+  \end{equation}
+The most common solvable configurations are reported in Table~\ref{tab:scene_configurations}
 
 \begin{figure}[htb]
     \centering
@@ -47,13 +71,14 @@ In each view $I_i$, each cylinder $\mathcal{C}_j$ projects onto a pair of \emph{
     }
 \end{figure}
 
-Given in input the parameters of the 3D cylinders $\{\mathcal{C}_j\}_{j=1}^M$ and a collection of silhouette lines $\{l^h_{ij}\}$ observed in the images, our aim is  twofold:\\
-\textbf{1. Camera calibration:} estimate the intrinisc parameters of the calibration matrix
+\paragraph{Output}
+Given in input the parameters of the 3D cylinders $\{\mathcal{C}_j\}_{j=1}^M$ and a collection of $V$ silhouette lines $\{l^h_{ij}\}$ observed in the images, our aim is  twofold:\\
+\textbf{1. Camera calibration:} estimate the unknown intrinisc parameters of the calibration matrix
 \begin{equation}
 \KK=\begin{pmatrix}f_x & s &c_x\\ 0 & f_y & c_y \\ 0 & 0 & 1 \end{pmatrix},
 \end{equation}
 that correspond to  the focal lengths $f_x, f_y$, the skew $s$, and the coordinates of the principal point $(c_x, c_y)$.
-Depending on the assumptions made on the intrinsic parameters, different variants of the problem can be considered. By introducing suitable linear constraints -- such as zero skew ($s = 0$), known aspect ratio ($f_x = \alpha f_y$), or a centered principal point -- the original set of five unknowns can be reduced.\\
+Depending on the assumptions made on the intrinsic parameters, different variants of the problem can be considered. By introducing suitable linear constraints -- such as zero skew ($s = 0$), known aspect ratio ($f_x = \alpha f_y$), or a centered principal point -- the original set of five unknowns can be reduced. \\
 \textbf{2. Pose estimation:} estimate the extrinsic parameters, namely rotations $\RR_i$ and translations $\mathbf{t}_i$, for each image $I_i$.
 
 \input{tables/scene_configurations}
