@@ -1,0 +1,43 @@
+\subsection{Camera Calibration Rig}
+\label{sec:camera_calibration_rig}
+
+% What is the problem?
+Camera calibration is a crucial step in computer vision applications, ensuring that the camera's intrinsic and extrinsic parameters are accurately determined. Traditional methods often require simple but manual steps to achieve, and can be time-consuming. For example the classical checkerboard calibration requires printing a pattern, cutting it out, and securing it to a flat surface. This process can be cumbersome, especially if the camera is highly angled with the planer surface.
+
+% How does the proposed method solve it?
+The proposed method introduces a 3D printable calibration rig composed of simple cylindrical objects. The symmetry of the rig allows for easy placement and orientation, reducing setup complexity. Unlike planar patterns, the cylindrical design enables robust feature detection from a wide range of viewing angles, making the calibration process more flexible and less sensitive to camera positioning. This approach streamlines the calibration workflow and improves usability in practical scenarios.
+The calibration rig 3D model is available at \href{https://github.com/EnricoBarbieri1997/cylinder-based-homotopy-camera-calibration/assets/calibration_rig.stl}{calibration rig}.
+
+\paragraph{Procedure}
+
+\begin{figure}[hb]
+	\subfloat[Camera calibration rig 3D printing.]{
+		\includegraphics[width=0.31\textwidth]{applications/camera_rig/3dprint.png}
+		\label{fig:camera_rig_3dprint}
+	}
+	\hspace{0.03\textwidth}
+	\subfloat[Position the rig against a high contrast background, make sure it has no harsh shadows on the contact surface. White rig against black background is recommended.]{
+		\includegraphics[width=0.31\textwidth]{applications/camera_rig/setup.png}
+		\label{fig:camera_rig_setup}
+	}
+	\hspace{0.03\textwidth}
+	\subfloat[Take two photos of the rig from different angles, take the shots as close as possible to the rig. If the cylinders go beyond the edges of the shot the accuracy increase significantly. Here an example shot]{
+		\includegraphics[width=0.31\textwidth]{applications/camera_rig/photo.png}
+		\label{fig:camera_rig_photo}
+	}
+	\\
+	\subfloat[Run each photo through a edge detection algorithm, here canny edge detection is used.]{
+		\includegraphics[width=0.31\textwidth]{applications/camera_rig/edge_detector.png}
+		\label{fig:camera_rig_edge_detector}
+	}
+	\hspace{0.03\textwidth}
+	\subfloat[Manually match the detected edges to each cylindrica.]{
+		\includegraphics[width=0.31\textwidth]{applications/camera_rig/match.png}
+		\label{fig:camera_rig_match}
+	}
+	\hspace{0.03\textwidth}
+	\subfloat[Run the homotopy algorithm to estimate the camera parameters.]{
+		\includegraphics[width=0.31\textwidth]{applications/camera_rig/homotopy.png}
+		\label{fig:camera_rig_homotopy}
+	}
+\end{figure}

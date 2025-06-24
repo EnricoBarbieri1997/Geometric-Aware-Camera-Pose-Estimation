@@ -9,25 +9,6 @@ In each view $I_i$, each cylinder $\mathcal{C}_j$ projects onto a pair of \emph{
 
 The problem can be posed under flexible assumptions on the intrinsic parameters of the camera, such as zero skew, known aspect ratio, or a centered principal point. The number $M$ of cylinders and the number $N$ of images vary accordingly.
 
-\paragraph{Feasibility} directly depends on the assumptions made. We will have $U$ unknown camera parameters in $\KK$. Each view $I_i$ introduces 6 constraints, 3 for the rotation $\RR_i$ and 3 for the translation $\mathbf{t}_i$. We will first solve for the rotation alone so only the $3$ unkowns coming from the rotation $RR_i$ need to be taken into account initially.
-Suppose $V$ silhouette lines in total from any cylinder in any order. Each line $l^h_{ij}$ introduces two constraints, initially to solve for the rotation $\RR_i$ of the camera we will use only one of the two.
-
-Thus the problem is solvable if
-    \begin{equation}
-        V \ge 3N + U
-    \end{equation}
-Under the assumption of full visibility of all contours, the number of silhouette lines $V$ is given by $V = 2MN$.
-
-The problem is solvable if
-  \begin{equation}
-      \begin{aligned}
-              2NM \ge 3N + U \\
-              M \ge \ceil{\frac{3}{2} + \frac{U}{2N}}
-      \end{aligned}
-      \label{eq:SolvableConditionSimple}
-  \end{equation}
-The most common solvable configurations are reported in Table~\ref{tab:scene_configurations}
-
 \begin{figure}[htb]
     \centering
     \subfloat[The geometric constraints between a cylinder $\mathcal{C}_j$ and one of its  silhouette lines $l^h_{ij}$. The backprojection of $l^h_{ij}$ is a plane $\Pi^h_{ij}$ tangent to  $C_{ij}$ \eqref{eq:dual_quadric_constraint} and passing to the point at infinity of the cylinder\eqref{eq:expanded_vertex_constraint}, \emph{i.e.}, parallel to its axis.]{

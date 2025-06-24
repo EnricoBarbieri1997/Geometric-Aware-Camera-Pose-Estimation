@@ -1,0 +1,15 @@
+\section{Practical applications}
+\label{sec:applications}
+
+In this section, we discuss practical applications of the proposed method for camera calibration using cylindrical objects.
+We will discuss three main applications, discuss what problem they solve, how they can improve quality of life under certain circumstances.
+
+\paragraph{A camera calibration rig} consisting of a 3D printable frame of reference alike structure made of simple cylinders is placed on the scene and 2 photos are taken from different angles. If the camera cannot be moved during calibration printing checkerboard patterns and securing them to a flat surface requires manual work for the construction and measurements, in contrast, the 3D printable calibration rig is fast and easy to make, can be easily reused, and require no manual work to set up. It can be freely moved around.
+
+\paragraph{Automatic camera recalibration} refers to the process of perdiocally refresh the camera calibration parameters automatically to ensure the same process accuracy as the initial calibration over time. This is applicable in scenarios in which the calibration targets remain visible to the camera during operation mode. After a fixed amount of time or by measuring uncertainty in the estimation the camera will use two consecutives frames to recalibrate itself.
+
+\paragraph{Extended reality} applications through alternating calibration, and localization steps. In an image sequence strong features are detected and matched to a 3D model of the scene. The first $N$ frames are used for calibration, after that each frame pose is computed starting from the solution of the previous one, after a certain number of frames or if the algorithm fails a new full calibration is performed using again $N$ frames. This is best suited for videos since the calibration step is costly for real time but we will propose a solution later in the relevant chapter.
+
+\input{chapters/applications/camera_calibration_rig}
+\input{chapters/applications/automatic_recalibration}
+\input{chapters/applications/extended_reality}

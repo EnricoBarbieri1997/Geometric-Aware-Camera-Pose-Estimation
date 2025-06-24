@@ -89,7 +89,7 @@ Each solution is substituted in~\eqref{eq:dual_quadric_constraint}. Since the re
 
 Convergence to the real solution, while not violating the system constraints, is not always garaunteed. For this reason if the process for a starting \emph{synthetic} system $\mathcal{S}_0$ is halted prematurely by the homotopy package the process is repeated for a new system $\mathcal{S}_0$ by drawing a new set of \emph{synthetic} cameras.
 
-\subsection{Generating starting systems}
+\subsection{Procedure in detail}
 \label{sec:iterating_procedure}
 Given equations of degree $d$ in $n$ unknowns, Homotopy continuation is garaunteed to find a solution if the number of paths explored $p$ satysfies $p > n^d$.
 The actual number of minimum paths can be lower depending on the problem at hand, and is equal to the number of possible imaginary solutions of the system.
@@ -99,6 +99,25 @@ For the full camera calibration, using this method, on average $177147$ paths (i
 We will now go through the different steps we took to optimize the number of trials, namely: intrinsic initialization, poses initialization, lines generation, monodromy, best practices on iterating the procedure.
 
 Algorithm~\ref{alg:solutions_generation} summarizes the procedure and a graphical representation is available in Figure~\ref{fig:homotopy}.
+
+\paragraph{Feasibility} directly depends on the assumptions made. We will have $U$ unknown camera parameters in $\KK$. Each view $I_i$ introduces 6 constraints, 3 for the rotation $\RR_i$ and 3 for the translation $\mathbf{t}_i$. We will first solve for the rotation alone so only the $3$ unkowns coming from the rotation $RR_i$ need to be taken into account initially.
+Suppose $V$ silhouette lines in total from any cylinder in any order. Each line $l^h_{ij}$ introduces two constraints, initially to solve for the rotation $\RR_i$ of the camera we will use only one of the two.
+
+Thus the problem is solvable if
+    \begin{equation}
+        V \ge 3N + U
+    \end{equation}
+Under the assumption of full visibility of all contours, the number of silhouette lines $V$ is given by $V = 2MN$.
+
+The problem is solvable if
+  \begin{equation}
+      \begin{aligned}
+              2NM \ge 3N + U \\
+              M \ge \ceil{\frac{3}{2} + \frac{U}{2N}}
+      \end{aligned}
+      \label{eq:SolvableConditionSimple}
+  \end{equation}
+The most common solvable configurations are reported in Table~\ref{tab:scene_configurations}
 
 \paragraph{Intrinsics initialization}
 If avaible a priory knowledge about the scene can be leveraged, \eg{we know the model of the camera and it's specifications but want to account for manufacturing flactuations}. If no prior about focal length is known, assuming a square focal length of value $2000$ is a reasonable guess for a smartphone camera (line 1). Principal point is initialized at $c_x = IMAGE\_WIDTH / 2, \; cy = IMAGE\_HEIGHT / 2$ (line 2). The skew parameter is set to a small value different from $0$ (line 3).
