@@ -68,7 +68,10 @@
 \usepackage{amssymb,amsfonts}
 \usepackage{booktabs}
 \usepackage{pifont}
+
 \usepackage{tikz}
+\usetikzlibrary{positioning,calc,decorations.pathreplacing}
+
 \usepackage{xspace}
 \usepackage{caption}
 \usepackage{mathtools}
@@ -88,6 +91,36 @@
 \newcommand{\cmark}{\textcolor{green!70!black}{\ding{51}}} % check mark
 \newcommand{\xmark}{\textcolor{red!70!black}{\ding{55}}} % cross mark
 \newcommand{\mehmark}{\textcolor{yellow!50!red}{\ding{55}}} % cross mark
+
+% Half-horizontal-left brace
+\newcommand{\HalfLeftBrace}[2]{%
+  \draw[decorate,decoration={brace,amplitude=6pt}]
+    (#1) -- ($(#1)!0.5!(#2)$);
+}
+
+% Half-horizontal-right brace
+\newcommand{\HalfRightBrace}[2]{%
+  \draw[decorate,decoration={brace,amplitude=6pt}]
+    ($(#1)!0.5!(#2)$) -- (#2);
+}
+% Full macro: nodes, midpoint fraction, draw both half braces
+\newcommand{\SplitBrace}[4]{%
+  % #1 = node A
+  % #2 = node B
+  % #3 = name of midpoint coordinate
+  % #4 = fraction (0-1)
+
+  \path let \p1=($(#1)$), \p2=($(#2)$) in
+    coordinate (#3) at ($(\p1)!\pgfmathparse{#4}\pgfmathresult!(\p2)$);
+    
+  % Draw left half
+  \draw[decorate,decoration={brace,amplitude=6pt}]
+    (#1) -- (#3);
+    
+  % Draw right half
+  \draw[decorate,decoration={brace,mirror,amplitude=6pt}]
+    (#3) -- (#2);
+}
 
 \newcommand{\eg}{\emph{e.g.}\xspace}
 \newcommand{\Eg}{\emph{E.g.}\xspace}

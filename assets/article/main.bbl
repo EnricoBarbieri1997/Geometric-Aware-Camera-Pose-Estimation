@@ -1,10 +1,5 @@
 \begin{thebibliography}{10}
 
-\bibitem{BoninFont2008}
-F.~Bonin-Font, A.~Ortiz, and G.~Oliver.
-\newblock Visual navigation for mobile robots: A survey.
-\newblock {\em Journal of Intelligent and Robotic Systems}, 53:263--296, 2008.
-
 \bibitem{HomotopyContinuationJL}
 Paul Breiding and Sascha Timme.
 \newblock Homotopycontinuation.jl: A package for homotopy continuation in
@@ -96,12 +91,6 @@ Chao Liu and Weiming Hu.
 \newblock Real-time geometric fitting and pose estimation for surface of
   revolution.
 \newblock {\em Pattern Recognition}, 85:90--108, 2019.
-
-\bibitem{Marchand2016}
-E.~Marchand, H.~Uchiyama, and F.~Spindler.
-\newblock Pose estimation for augmented reality: A hands-on survey.
-\newblock {\em IEEE Transactions on Visualization and Computer Graphics},
-  22(12):2633--2651, 2016.
 
 \bibitem{may2004parametrizedhomotopytheory}
 J.~P. May and J.~Sigurdsson.

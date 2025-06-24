@@ -9,8 +9,14 @@ The proposed method introduces a 3D printable calibration rig composed of simple
 The calibration rig 3D model is available at \href{https://github.com/EnricoBarbieri1997/cylinder-based-homotopy-camera-calibration/assets/calibration_rig.stl}{calibration rig}.
 
 \paragraph{Procedure}
+3D print the calibration rig (Figure~\ref{fig:camera_rig_3dprint}), position it against a high contrast background (Figure~\ref{fig:camera_rig_setup}), and take two photos of the rig from different angles (Figure~\ref{fig:camera_rig_photo}).
+The photos should be taken as close as possible to the rig, ideally capturing the cylinders extending beyond the edges of the shot to enhance accuracy.
+Next, run each photo through an edge detection algorithm (Figure~\ref{fig:camera_rig_edge_detector}), such as Canny edge detection, Hough Transform, RANSAC, to identify the edges of the cylinders.
+Manually match the detected edges to each cylindrical object in the rig (Figure~\ref{fig:camera_rig_match}).
+Automatic matching is possible if the camera shots are claer enough of other items and has been lightly tested. Fully exploring this task is beyond the scope of this paper and the collected amount of data is not enough to support or reccomend any particular method.
+Finally, run the homotopy algorithm to estimate the camera parameters (Figure~\ref{fig:camera_rig_homotopy}).
 
-\begin{figure}[hb]
+\begin{figure}
 	\subfloat[Camera calibration rig 3D printing.]{
 		\includegraphics[width=0.31\textwidth]{applications/camera_rig/3dprint.png}
 		\label{fig:camera_rig_3dprint}
@@ -40,4 +46,6 @@ The calibration rig 3D model is available at \href{https://github.com/EnricoBarb
 		\includegraphics[width=0.31\textwidth]{applications/camera_rig/homotopy.png}
 		\label{fig:camera_rig_homotopy}
 	}
+	\caption{A step-by-step guide to use our method with the provided camera calibration rig.}
+	\label{fig:camera_rig}
 \end{figure}

@@ -1,0 +1,65 @@
+\subsection{Automatic Recalibration}
+\label{sec:automatic_recalibration}
+
+% What is the problem?
+In many real world computer vision applications, the camera needs to be calibrated, since as any other sensor, it is subject to drift and misalignment over time. This can lead to inaccuracies in the captured images and subsequent processing tasks. Traditional calibration methods often require manual intervention, which can be time-consuming and prone to human error.
+
+% How does the proposed method solve it?
+The proposed method automates the recalibration process by periodically using the last $N$ captured frames to reestimate the camera parameters. This approach leverages the flexibility of our method, which can handle both the calibration and pose estimation case under the same framework. By continuously updating the camera parameters, the system can maintain accuracy without requiring manual recalibration steps, or by greately increasing the amount of time between manual checkups.
+
+\paragraph{Procedure}
+At frame $I_0$, the camera is calibrated using a set of images. Refer to Table~\ref{tab:scene_configurations} for the minimum amount of views $N$ for each case. The calibration is performed once at the start, and the camera parameters are stored. At each subsequent time step $I_i$ (where $i > 0$), the camera captures a new frame and the method is used on the same targets as before estimating only the camera pose $\RR_{t_i}$, $\mathbf{t}_{t_i}$ at frame $I_i$. Every $X$ frames, or if returned pose results seems out of scale, the camera parameters are recalibrated using the last $N$ frames, and the new camera parameters are stored. The process continues until the end of the application.
+The full procedure is illustrated in Figure~\ref{fig:automatic_recalibration_procedure}.
+
+\vspace{8pt}
+\begin{tikzpicture}[node distance=1.0cm, ]
+    % Frame nodes
+    \node[draw, minimum size=1cm] (i1) {$I_1$};
+    \node[draw, minimum size=1cm, right=of i1] (i2) {$I_2$};
+    \node[draw, minimum size=1cm, right=of i2] (i3) {$I_3$};
+    \node[draw, minimum size=1cm, right=of i3] (dots1) {$\cdots$};
+    \node[draw, minimum size=1cm, right=of dots1] (ixm2) {$I_{x-2}$};
+    \node[draw, minimum size=1cm, right=of ixm2] (ixm1) {$I_{x-1}$};
+    \node[draw, minimum size=1cm, right=of ixm1] (ix) {$I_{x}$};
+    \node[draw, minimum size=1cm, right=of ix] (ixp1) {$I_{x+1}$};
+
+    % homotopy nodes below
+    % \node[below=0.8cm of i1] (h1) {$H$};
+    \node[below=0.8cm of i2] (h2) {$H$};
+    \node[below=0.8cm of i3] (h3) {$H$};
+    \node[below=0.8cm of dots1] (h4) {$H$};
+    \node[below=0.8cm of ixm2] (h5) {$H$};
+    \node[below=0.8cm of ixm1] (h6) {$H$};
+    \node[below=0.8cm of ix] (h7) {$H$};
+    \node[below=0.8cm of ixp1] (h8) {$H$};
+
+    % Operation nodes below
+    % \node[below=1cm of i1] (p1) {Pose};
+    \node[below=0.8cm of h2] (c1) {Calibration};
+    \node[below=0.8cm of h3] (p2) {Pose};
+    \node[below=0.8cm of h4] (p3) {$\cdots$};
+    \node[below=0.8cm of h5] (p4) {Pose};
+    \node[below=0.8cm of h6] (p5) {Pose};
+    \node[below=0.8cm of h7] (c2) {Calibration};
+    \node[below=0.8cm of h8] (p6) {Pose};
+
+    \draw[->] (i1) -- (h2);
+    \draw[->] (i2) -- (h2);
+    \draw[->] (i3) -- (h3);
+    \draw[->] (dots1) -- (h4);
+    \draw[->] (ixm2) -- (h5);
+    \draw[->] (ixm1) -- (h6);
+    \draw[->] (ixm1) -- (h7);
+    \draw[->] (ix) -- (h7);
+    \draw[->] (ixp1) -- (h8);
+
+    \draw[->] (h2) -- (c1);
+    \draw[->] (h3) -- (p2);
+    \draw[->] (h4) -- (p3);
+    \draw[->] (h5) -- (p4);
+    \draw[->] (h6) -- (p5);
+    \draw[->] (h7) -- (c2);
+    \draw[->] (h8) -- (p6);
+
+    \label{fig:automatic_recalibration_procedure}
+\end{tikzpicture}

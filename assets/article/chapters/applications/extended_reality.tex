@@ -1,0 +1,103 @@
+\subsection{Extended Reality Applications}
+\label{sec:extended_reality}
+
+% What is the problem?
+Extended Reality (XR) applications, including Augmented Reality (AR) and Virtual Reality (VR), require precise camera pose estimation to ensure that virtual objects are accurately aligned with the real world. All VR headsets undergo some form of calibration already so we are not going over them. We are going to focus on AR applications on still videos, where the camera pose needs to be estimated from a sequence of images. Traditional methods require to get access to the camera and perform calibration before doing pose estimation and tracking.
+
+% How does the proposed method solve it?
+The proposed method allows for camera calibration and pose estimation from the very same video, without the need to access the camera directly. This is particularly useful in scenarios where the camera is not accessible anymore or the video has unkown sources and the original camera was never available. The method can be applied to any video sequence, enabling real-time pose estimation and tracking of virtual objects in the scene.
+
+\paragraph{Procedure}
+A lot like the automatic recalibration procedure, the camera is calibrated using a set of images from frame $I_0$ to frame $I_{0+N}$. Refer to Table~\ref{tab:scene_configurations} for the minimum amount of views $N$ for each case. The calibration is performed once at the start, and the camera parameters are stored. At each subsequent time step $I_i$ (where $i > 0$), the camera captures a new frame. This time the method is initialized with the previous frame $I_{i-1}$ pose result to stimate current pose $\RR_{t_i}$, $\mathbf{t}_{t_i}$ at frame $I_i$. This method achieves lower accuracy but faster execution times. If the Homotopy fails to found a fitting pose, the camera parameters are recalibrated using the last $N$ frames, and the new camera parameters are stored. The process continues until the end of the image sequence. The full procedure is illustrated in Figure~\ref{fig:extended_reality_procedure}. An image sequence demonstrating the procedure is shown in Figure~\ref{fig:extended_reality_sequence}.
+
+\vspace{8pt}
+\begin{tikzpicture}[node distance=1.0cm, ]
+    % Frame nodes
+    \node[draw, minimum size=1cm] (i1) {$I_1$};
+    \node[draw, minimum size=1cm, right=of i1] (i2) {$I_2$};
+    \node[draw, minimum size=1cm, right=of i2] (i3) {$I_3$};
+    \node[draw, minimum size=1cm, right=of i3] (dots1) {$\cdots$};
+    \node[draw, minimum size=1cm, right=of dots1] (ixm2) {$I_{x-2}$};
+    \node[draw, minimum size=1cm, right=of ixm2] (ixm1) {$I_{x-1}$};
+    \node[draw, minimum size=1cm, right=of ixm1] (ix) {$I_{x}$};
+    \node[draw, minimum size=1cm, right=of ix] (ixp1) {$I_{x+1}$};
+
+    % homotopy nodes below
+    % \node[below=0.8cm of i1] (h1) {$H$};
+    \node[below=0.8cm of i2] (h2) {$H$};
+    \node[below=0.8cm of i3] (h3) {$H$};
+    \node[below=0.8cm of dots1] (h4) {$H$};
+    \node[below=0.8cm of ixm2] (h5) {$H$};
+    \node[below=0.8cm of ixm1] (h6) {$H$};
+    \node[below=0.8cm of ix] (h7) {$H$};
+    \node[below=0.8cm of ixp1] (h8) {$H$};
+
+    % Operation nodes below
+    % \node[below=1cm of i1] (p1) {Pose};
+    \node[below=0.8cm of h2] (c1) {Calibration};
+    \node[below=0.8cm of h3] (p2) {Pose};
+    \node[below=0.8cm of h4] (p3) {$\cdots$};
+    \node[below=0.8cm of h5] (p4) {Pose};
+    \node[below=0.8cm of h6] (p5) {Pose};
+    \node[below=0.8cm of h7] (c2) {Calibration};
+    \node[below=0.8cm of h8] (p6) {Pose};
+
+    \draw[->] (i1) -- (h2);
+    \draw[->] (i2) -- (h2);
+    \draw[->] (i3) -- (h3);
+    \draw[->] (dots1) -- (h4);
+    \draw[->] (ixm2) -- (h5);
+    \draw[->] (ixm1) -- (h6);
+    \draw[->] (ixm1) -- (h7);
+    \draw[->] (ix) -- (h7);
+    \draw[->] (ixp1) -- (h8);
+
+    \draw[->] (h2) -- (c1);
+    \draw[->] (h3) -- (p2);
+    \draw[->] (h4) -- (p3);
+    \draw[->] (h5) -- (p4);
+    \draw[->] (h6) -- (p5);
+    \draw[->] (h7) -- (c2);
+    \draw[->] (h8) -- (p6);
+    
+    \draw[->] (c1) -- (h3);
+    \draw[->] (p2) -- (h4);
+    \draw[->] (p3) -- (h5);
+    \draw[->] (p4) -- (h6);
+    \draw[->] (c2) -- (h8);
+
+    \label{fig:automatic_recalibration_procedure}
+\end{tikzpicture}
+
+\begin{figure}
+	\subfloat[Frame 1.]{
+		\includegraphics[width=0.31\textwidth]{applications/extended_reality/frame1.png}
+		\label{fig:extended_reality_frame1}
+	}
+	\hspace{0.03\textwidth}
+    \subfloat[Frame 2.]{
+        \includegraphics[width=0.31\textwidth]{applications/extended_reality/frame2.png}
+        \label{fig:extended_reality_frame2}
+    }
+    \hspace{0.03\textwidth}
+    \subfloat[Frame 3.]{
+        \includegraphics[width=0.31\textwidth]{applications/extended_reality/frame3.png}
+        \label{fig:extended_reality_frame3}
+    }
+    \\
+    \subfloat[Frame 4.]{
+        \includegraphics[width=0.31\textwidth]{applications/extended_reality/frame4.png}
+        \label{fig:extended_reality_frame4}
+    }
+    \hspace{0.03\textwidth}
+    \subfloat[Frame 5.]{
+        \includegraphics[width=0.31\textwidth]{applications/extended_reality/frame5.png}
+        \label{fig:extended_reality_frame5}
+    }
+    \hspace{0.03\textwidth}
+    \subfloat[Frame 6.]{
+        \includegraphics[width=0.31\textwidth]{applications/extended_reality/frame6.png}
+        \label{fig:extended_reality_frame6}
+    }
+    \caption{An image sequence from the pipe video showing a virtual object being placed in the scene. The camera pose is estimated using the proposed method, allowing for accurate alignment of the virtual object with the real world. The frames demonstrate the continuous tracking and pose estimation capabilities of the method.}
+\end{figure}
