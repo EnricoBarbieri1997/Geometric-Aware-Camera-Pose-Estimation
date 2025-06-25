@@ -430,7 +430,7 @@ module CylindersBasedCameraResectioning
 
         plot_reconstructed_scene(scene, problems)
 
-        save_2d_figures("assets/test_scenes/pipes/figures/", scene, problems; scene_file_path = "./assets/test_scenes/pipes/scene.json")
+        save_2d_figures("assets/test_scenes/pipes/figures/", scene, problems; prefix = "localization", scene_file_path = "./assets/test_scenes/pipes/scene.json")
 
         display(scene.figure)
     end
