@@ -17,6 +17,7 @@ def customPlotFun(y, pos):
 method_labels = {
     "ours": "Ours",
     "ours_skew": "Ours",
+    "ours_localization": "Ours Loc.",
     "quadric_based": "Gummeson",
     "right_cylinder": "Ding",
     # "zhang_4": "Zhang 4 views",
@@ -35,6 +36,7 @@ metric_labels = {
 method_supports = {
     "ours": {"delta_f": True, "delta_uv": True, "delta_skew": False, "delta_r": True, "delta_t": True, "success_rate": True},
     "ours_skew": {"delta_f": False, "delta_uv": False, "delta_skew": True, "delta_r": False, "delta_t": False, "success_rate": False},
+    "ours_localization": {"delta_f": False, "delta_uv": False, "delta_skew": False, "delta_r": True, "delta_t": True, "success_rate": True},
     "quadric_based": {"delta_f": False, "delta_uv": False, "delta_skew": False, "delta_r": True, "delta_t": True, "success_rate": True},
     "right_cylinder": {"delta_f": True, "delta_uv": True, "delta_skew": False, "delta_r": False, "delta_t": False, "success_rate": True},
     "zhang_4": {"delta_f": True, "delta_uv": True, "delta_skew": False, "delta_r": True, "delta_t": True, "success_rate": True},
@@ -43,8 +45,8 @@ method_supports = {
 
 methods = list(method_labels.keys())
 metrics = list(metric_labels.keys())
-colors = ["blue", "blue", "purple", "green", "orange", "red"]
-linestyles = ["-", "-", "--", "-.", ":", ":"]
+colors = ["blue", "blue", "blue", "purple", "green", "orange", "red"]
+linestyles = ["-", "-", "--", "--", "-.", ":", ":"]
 
 # Load data
 with open("./synthetic/results.json") as f:
@@ -106,9 +108,11 @@ for metric in metrics:
             x_values,
             means,
             color=colors[idx],
-            label=method_labels[method]
+            label=method_labels[method],
+            linestyle=linestyles[idx],
         )
-        plt.plot(x_values, means, 'o', color=colors[idx], markersize=4.0)
+        markerfacecolor = colors[idx] if method != "ours_localization" else 'none'
+        plt.plot(x_values, means, 'o', color=colors[idx], markersize=4.0, markerfacecolor=markerfacecolor)
 
     # plt.ylabel(metric_labels[metric])
     plt.gca().xaxis.set_major_locator(MaxNLocator(nbins=5))

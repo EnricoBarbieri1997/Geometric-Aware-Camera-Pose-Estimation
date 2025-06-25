@@ -179,7 +179,7 @@ function multiple_seeds_multiple_configuration(;
                 problems;
                 start_error=solution_error,
                 intrinsic_configuration=configuration,
-                scene,
+                # scene,
               )
               if solution_error < 1e-6
                 break
