@@ -55,12 +55,12 @@ function multiple_seeds_multiple_configuration(;
 
   number_of_seeds = 5
   configurations = [
-    # IntrinsicParametersConfigurations.none,
+    IntrinsicParametersConfigurations.none,
     # IntrinsicParametersConfigurations.skew,
     # IntrinsicParametersConfigurations.fₓ,
     # IntrinsicParametersConfigurations.fₓ_fᵧ,
     # IntrinsicParametersConfigurations.fₓ_fᵧ_cₓ_cᵧ,
-    IntrinsicParametersConfigurations.fₓ_fᵧ_skew_cₓ_cᵧ,
+    # IntrinsicParametersConfigurations.fₓ_fᵧ_skew_cₓ_cᵧ,
   ]
 
   cylinder_views_per_config = Dict([
@@ -89,7 +89,7 @@ function multiple_seeds_multiple_configuration(;
   ])
 
   noise_values = if isnothing(noises)
-    collect(0.0:0.0005:0.002)
+    collect(0.0:0.0005:0.04)
   else
     noises
   end
