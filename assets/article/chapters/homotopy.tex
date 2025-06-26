@@ -46,6 +46,59 @@ We then iterate the process until we reach $t=1$.
 \end{algorithmic}
 \end{algorithm}
 
+\subsection {Parametric Homotopy}
+\label{sec:parametric_homotopy}
+In many applications, a polynomial system can be seen as a specific instance (Figure~\ref{fig:monodromy_original}) of a family of polynomial systems that depend on parameters.
+For example, consider the insersections of two parabolae curves, which can be described by the polynomial system
+\[
+F(x; p) = \begin{pmatrix}
+p_1 x^2 + p_2 x + p_3 - y = 0 \\
+p_4 x^2 + p_5 x + p_6 - y = 0
+\end{pmatrix},
+\]
+where \(p = (p_1, p_2, p_3, p_4, p_5, p_6)\) are the parameters that define the specific instance of the system. Changing the parameters \(p\) will change the shape and position of the curves, thus changing the solution set of the system \(F(x; p) = 0\). The solution set will vary continuously as the parameters change, and we can track how the solutions evolve as we vary \(p\). By just varying the parameters, we can explore a vast range of solutions from two points intersections, one tangent point, to no intersections at all.
+
+\begin{figure}[hb]
+	\centering
+	\subfloat[
+		A parabola instance of the family $y = p_1 x^2 + p_3$.
+	]{
+		\includegraphics[width=0.23\linewidth]{images/parametric_homotopy/original}
+		\label{fig:parametric_homotopy_original}
+	}
+	\hspace{0.01\linewidth}
+	\subfloat[
+		The surface resulting from varying the parameter $p_3$. We can see that the solution set (highlighted in red) varies continuously as the parameter changes.
+	]{
+		\includegraphics[width=0.23\linewidth]{images/parametric_homotopy/surface}
+		\label{fig:parametric_homotopy_family}
+	}
+	\hspace{0.01\linewidth}
+	\subfloat[
+		An instance of the polynomial system $F(x; p) = 0$ with $p = (1, 0, 0, 1, 0, 0)$.
+	]{
+		\includegraphics[width=0.23\linewidth]{images/parametric_homotopy/instance1}
+		\label{fig:parametric_homotopy_instance1}
+	}
+	\hspace{0.01\linewidth}
+	\subfloat[
+		An instance of the polynomial system $F(x; p) = 0$ with $p = (1, 0, 0, 1, 0, 1)$.
+	]{
+		\includegraphics[width=0.23\linewidth]{images/parametric_homotopy/instance2}
+		\label{fig:parametric_homotopy_instance2}
+	}
+	\caption{Parametric homotopy in polynomial systems. The first image shows a parabola instance of the family $y = p_1 x^2 + p_3$, the second shows the surface resulting from varying the parameter $p_3$, and the third and fourth images show two instances of the polynomial system $F(x; p) = 0$ with different parameter values.}
+\end{figure}
+
+From such systems we can construct a \emph{parametric homotopy} to track solutions as the parameters vary if for any parameter set $p_0$ a solution $x_0$ is known. In our parabola example, we can take \(p_0 = (1, 0, 0, -1, 0, 0)\) and \(x_0 = (0, 0)\) as a known solution. We can then track solutions as the parameters vary from \(p_0\) to any other parameter set \(p_1\) (e.g., \(p_1 = (1, 0, 0, 1, 0, 1)\)).
+
+More formally, given a polynomial system \(F(x; p) = 0\) where \(x \in \mathbb{C}^n\) are the unknowns, \(p \in \mathbb{C}^m\) are parameters, $p_0$ is a starting parameter set, and $p_1$ is the target parameters set we are interested in, we can construct a homotopy
+\[
+H(x, p, t) = \,F(x; (1-t)p_0 + tp_1) = 0,
+\]
+where $p_0$ is a starting set for which we know the solution $x_0$.
+We can then track solutions \(x(t; p)\) as \(t\) varies from \(0\) to \(1\) and \(p\) varies over a path in parameter space from $p_0$ to $p_1$.
+
 \subsection{Monodromy}
 \label{sec:monodromy}
 

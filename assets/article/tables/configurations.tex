@@ -4,6 +4,7 @@
         \toprule
                  & \textbf{Best performing} & \textbf{Least cylinders} & \textbf{Least views} \\
         \midrule
+        none                  & 2 cylinders, 1 view & 2 cylinders, 1 view & 2 cylinders, 1 view \\
         $f$                  & 2 cylinders, 1 view & 2 cylinders, 1 view & 2 cylinders, 1 view \\
         $f\, c_x\, c_y$      & 3 cylinders, 1 view & 2 cylinders, 2 views & 3 cylinders, 1 view \\
         $f_x\, f_y\, c_x\, c_y$ & 3 cylinders, 2 views & 2 cylinders, 4 views & 4 cylinders, 1 view \\
@@ -14,5 +15,6 @@
       \caption{
         Scene settings for which the most common intrinsic parameters configurations can be estimated.
         The first column indicates the best performing configuration in terms of speed and accuracy, while the second and third columns indicate the least number of cylinders and views, respectively, for which the configuration can be estimated.
+        \bf{Note: both the unknown square focal length case and the pose estimation only case require at least 2 cylinders and 1 view.}
       }
 \end{table*}

@@ -1,0 +1,65 @@
+This is BibTeX, Version 0.99d (TeX Live 2025)
+Capacity: max_strings=200000, hash_size=200000, hash_prime=170003
+The top-level auxiliary file: main.aux
+The style file: plain.bst
+Database file #1: bibliography.bib
+Warning--I didn't find a database entry for "hartley2004multiple"
+Warning--I didn't find a database entry for "faugeras1992self"
+Warning--I didn't find a database entry for "zhang2007camera"
+Warning--I didn't find a database entry for "teramoto2002camera"
+Warning--I didn't find a database entry for "agrawal2003camera"
+Warning--I didn't find a database entry for "daucher1999calibration"
+Warning--I didn't find a database entry for "chen1992object"
+Warning--I didn't find a database entry for "li2010calibration"
+Warning--I didn't find a database entry for "gummeson2022fast"
+Warning--I didn't find a database entry for "navab1996pose"
+Warning--I didn't find a database entry for "gaudilliere2023perspective"
+Warning--I didn't find a database entry for "gaudilliere2019pose"
+Warning--I didn't find a database entry for "gaudilliere2020pose"
+Warning--I didn't find a database entry for "zins2022object"
+Warning--I didn't find a database entry for "rubino2018reconstructing"
+Warning--I didn't find a database entry for "sturm2012benchmark"
+Warning--I didn't find a database entry for "garg2020semantic"
+Warning--I didn't find a database entry for "JuliaHomotopyContinuation"
+You've used 32 entries,
+            2118 wiz_defined-function locations,
+            716 strings with 9116 characters,
+and the built_in function-call counts, 10084 in all, are:
+= -- 985
+> -- 424
+< -- 4
++ -- 169
+- -- 134
+* -- 655
+:= -- 1671
+add.period$ -- 96
+call.type$ -- 32
+change.case$ -- 161
+chr.to.int$ -- 0
+cite$ -- 32
+duplicate$ -- 409
+empty$ -- 864
+format.name$ -- 134
+if$ -- 2121
+int.to.chr$ -- 0
+int.to.str$ -- 32
+missing$ -- 32
+newline$ -- 162
+num.names$ -- 66
+pop$ -- 176
+preamble$ -- 1
+purify$ -- 129
+quote$ -- 0
+skip$ -- 281
+stack$ -- 0
+substring$ -- 632
+swap$ -- 74
+text.length$ -- 4
+text.prefix$ -- 0
+top$ -- 0
+type$ -- 126
+warning$ -- 0
+while$ -- 101
+width$ -- 34
+write$ -- 343
+(There were 18 warnings)
