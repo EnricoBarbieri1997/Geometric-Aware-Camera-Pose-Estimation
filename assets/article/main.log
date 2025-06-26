@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.141592653-2.6-1.40.27 (TeX Live 2025) (preloaded format=pdflatex 2025.6.12)  26 JUN 2025 13:11
+This is pdfTeX, Version 3.141592653-2.6-1.40.27 (TeX Live 2025) (preloaded format=pdflatex 2025.6.12)  26 JUN 2025 13:13
 entering extended mode
  restricted \write18 enabled.
  file:line:error style messages enabled.
@@ -814,12 +814,6 @@ Package: ifvtex 2019/10/25 v1.7 ifvtex legacy package. Use iftex instead.
 \c@algsubstate=\count371
 ) (./abstract.tex) (./main.aux
 
-LaTeX Warning: Label `eq:SolvableConditionSimple' multiply defined.
-
-
-LaTeX Warning: Label `eq:SolvableConditionSimple@cref' multiply defined.
-
-
 LaTeX Warning: Label `fig:automatic_recalibration_procedure' multiply defined.
 
 
@@ -1004,4 +998,10 @@ Package pdftex.def Info: images/raggiera_polimi-eps-converted-to.pdf  used on in
 (pdftex.def)             Requested size: 262.90492pt x 262.90266pt.
 [1
 
-{/usr/local/texlive/2025/texmf-var/fonts/map/pdftex/updmap/pdftex.map}{/usr/local/texlive/2025/texmf-dist/fonts/enc/dvips/cm-super/cm-super-t1.enc} <./images/raggiera
+{/usr/local/texlive/2025/texmf-var/fonts/map/pdftex/updmap/pdftex.map}{/usr/local/texlive/2025/texmf-dist/fonts/enc/dvips/cm-super/cm-super-t1.enc} <./images/raggiera_polimi-eps-converted-to.pdf> <./images/logo_polimi_ing_indinf-eps-converted-to.pdf>]
+
+[2 <./images/header_image/teaser.pdf>]
+
+[3]
+
+Package capti
