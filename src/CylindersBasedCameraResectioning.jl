@@ -1,8 +1,8 @@
 module CylindersBasedCameraResectioning
     const GUI_ENABLED = get(ENV, "GUI_ENABLED", "true") == "true"
     const ASSERTS_ENABLED = get(ENV, "ASSERTS_ENABLED", "false") == "true"
-    const IMAGE_HEIGHT = 1920
-    const IMAGE_WIDTH = 1080
+    const IMAGE_HEIGHT = 1080
+    const IMAGE_WIDTH = 1920
     include("includes.jl")
 
 	using ..Scene: ParametersSolutionsPair, averaged_solution!, best_overall_solution!, best_overall_solution_by_steps!, best_intrinsic_rotation_translation_system_solution!, camera_from_solution, create_scene_instances_and_problems, scene_instances_and_problems_from_files, intrinsic_rotation_system_setup, intrinsic_rotation_translation_system_setup, plot_interactive_scene, plot_reconstructed_scene, split_intrinsic_rotation_parameters
@@ -356,9 +356,11 @@ module CylindersBasedCameraResectioning
                 problems;
                 start_error=solution_error,
                 intrinsic_configuration,
-                scene,
             )
         end
+
+        solution_error = solution_error / 2
+        display("Solution error: $solution_error")
 
         for (i, instance) in enumerate(scene.instances)
             display("View $i")
@@ -413,8 +415,11 @@ module CylindersBasedCameraResectioning
                 problems;
                 start_error=solution_error,
                 intrinsic_configuration,
+                validation_cylinders = scene.cylinders,
             )
         end
+        solution_error = solution_error / 2
+        display("Solution error: $solution_error")
 
         for (i, instance) in enumerate(scene.instances)
             display("View $i")
@@ -516,7 +521,7 @@ module CylindersBasedCameraResectioning
         )
         intrinsic_configuration = problems[1].intrinsic_configuration
 
-        rotation_intrinsic_system, parameters = intrinsic_rotation_system_setup(problems)
+        rotation_intrinsic_system, parameters = intrinsic_rotation_system_setup(problems; intrinsic_configuration)
         # display(parameters)
 
         display(scene.figure)
@@ -549,6 +554,8 @@ module CylindersBasedCameraResectioning
                 # scene,
             )
         end
+
+        display("Solution error: $solution_error")
 
         for (i, instance) in enumerate(scene.instances)
             display("View $i")

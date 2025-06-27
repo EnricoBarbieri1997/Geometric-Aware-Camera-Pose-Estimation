@@ -10,64 +10,65 @@ The proposed method allows for camera calibration and pose estimation from the v
 \paragraph{Procedure}
 A lot like the automatic recalibration procedure, the camera is calibrated using a set of images from frame $I_0$ to frame $I_{0+N}$. Refer to Table~\ref{tab:scene_configurations} for the minimum amount of views $N$ for each case. The calibration is performed once at the start, and the camera parameters are stored. At each subsequent time step $I_i$ (where $i > 0$), the camera captures a new frame. This time the method is initialized with the previous frame $I_{i-1}$ pose result to stimate current pose $\RR_{t_i}$, $\mathbf{t}_{t_i}$ at frame $I_i$. This method achieves lower accuracy but faster execution times. If the Homotopy fails to found a fitting pose, the camera parameters are recalibrated using the last $N$ frames, and the new camera parameters are stored. The process continues until the end of the image sequence. The full procedure is illustrated in Figure~\ref{fig:extended_reality_procedure}. An image sequence demonstrating the procedure is shown in Figure~\ref{fig:extended_reality_sequence}.
 
-\vspace{8pt}
-\begin{tikzpicture}[node distance=1.0cm, ]
-    % Frame nodes
-    \node[draw, minimum size=1cm] (i1) {$I_1$};
-    \node[draw, minimum size=1cm, right=of i1] (i2) {$I_2$};
-    \node[draw, minimum size=1cm, right=of i2] (i3) {$I_3$};
-    \node[draw, minimum size=1cm, right=of i3] (dots1) {$\cdots$};
-    \node[draw, minimum size=1cm, right=of dots1] (ixm2) {$I_{x-2}$};
-    \node[draw, minimum size=1cm, right=of ixm2] (ixm1) {$I_{x-1}$};
-    \node[draw, minimum size=1cm, right=of ixm1] (ix) {$I_{x}$};
-    \node[draw, minimum size=1cm, right=of ix] (ixp1) {$I_{x+1}$};
+\begin{figure}
+    \begin{tikzpicture}[node distance=1.0cm, ]
+        % Frame nodes
+        \node[draw, minimum size=1cm] (i1) {$I_1$};
+        \node[draw, minimum size=1cm, right=of i1] (i2) {$I_2$};
+        \node[draw, minimum size=1cm, right=of i2] (i3) {$I_3$};
+        \node[draw, minimum size=1cm, right=of i3] (dots1) {$\cdots$};
+        \node[draw, minimum size=1cm, right=of dots1] (ixm2) {$I_{x-2}$};
+        \node[draw, minimum size=1cm, right=of ixm2] (ixm1) {$I_{x-1}$};
+        \node[draw, minimum size=1cm, right=of ixm1] (ix) {$I_{x}$};
+        \node[draw, minimum size=1cm, right=of ix] (ixp1) {$I_{x+1}$};
 
-    % homotopy nodes below
-    % \node[below=0.8cm of i1] (h1) {$H$};
-    \node[below=0.8cm of i2] (h2) {$H$};
-    \node[below=0.8cm of i3] (h3) {$H$};
-    \node[below=0.8cm of dots1] (h4) {$H$};
-    \node[below=0.8cm of ixm2] (h5) {$H$};
-    \node[below=0.8cm of ixm1] (h6) {$H$};
-    \node[below=0.8cm of ix] (h7) {$H$};
-    \node[below=0.8cm of ixp1] (h8) {$H$};
+        % homotopy nodes below
+        % \node[below=0.8cm of i1] (h1) {$H$};
+        \node[below=0.8cm of i2] (h2) {$H$};
+        \node[below=0.8cm of i3] (h3) {$H$};
+        \node[below=0.8cm of dots1] (h4) {$H$};
+        \node[below=0.8cm of ixm2] (h5) {$H$};
+        \node[below=0.8cm of ixm1] (h6) {$H$};
+        \node[below=0.8cm of ix] (h7) {$H$};
+        \node[below=0.8cm of ixp1] (h8) {$H$};
 
-    % Operation nodes below
-    % \node[below=1cm of i1] (p1) {Pose};
-    \node[below=0.8cm of h2] (c1) {Calibration};
-    \node[below=0.8cm of h3] (p2) {Pose};
-    \node[below=0.8cm of h4] (p3) {$\cdots$};
-    \node[below=0.8cm of h5] (p4) {Pose};
-    \node[below=0.8cm of h6] (p5) {Pose};
-    \node[below=0.8cm of h7] (c2) {Calibration};
-    \node[below=0.8cm of h8] (p6) {Pose};
+        % Operation nodes below
+        % \node[below=1cm of i1] (p1) {Pose};
+        \node[below=0.8cm of h2] (c1) {Calibration};
+        \node[below=0.8cm of h3] (p2) {Pose};
+        \node[below=0.8cm of h4] (p3) {$\cdots$};
+        \node[below=0.8cm of h5] (p4) {Pose};
+        \node[below=0.8cm of h6] (p5) {Pose};
+        \node[below=0.8cm of h7] (c2) {Calibration};
+        \node[below=0.8cm of h8] (p6) {Pose};
 
-    \draw[->] (i1) -- (h2);
-    \draw[->] (i2) -- (h2);
-    \draw[->] (i3) -- (h3);
-    \draw[->] (dots1) -- (h4);
-    \draw[->] (ixm2) -- (h5);
-    \draw[->] (ixm1) -- (h6);
-    \draw[->] (ixm1) -- (h7);
-    \draw[->] (ix) -- (h7);
-    \draw[->] (ixp1) -- (h8);
+        \draw[->] (i1) -- (h2);
+        \draw[->] (i2) -- (h2);
+        \draw[->] (i3) -- (h3);
+        \draw[->] (dots1) -- (h4);
+        \draw[->] (ixm2) -- (h5);
+        \draw[->] (ixm1) -- (h6);
+        \draw[->] (ixm1) -- (h7);
+        \draw[->] (ix) -- (h7);
+        \draw[->] (ixp1) -- (h8);
 
-    \draw[->] (h2) -- (c1);
-    \draw[->] (h3) -- (p2);
-    \draw[->] (h4) -- (p3);
-    \draw[->] (h5) -- (p4);
-    \draw[->] (h6) -- (p5);
-    \draw[->] (h7) -- (c2);
-    \draw[->] (h8) -- (p6);
-    
-    \draw[->] (c1) -- (h3);
-    \draw[->] (p2) -- (h4);
-    \draw[->] (p3) -- (h5);
-    \draw[->] (p4) -- (h6);
-    \draw[->] (c2) -- (h8);
-
-    \label{fig:automatic_recalibration_procedure}
-\end{tikzpicture}
+        \draw[->] (h2) -- (c1);
+        \draw[->] (h3) -- (p2);
+        \draw[->] (h4) -- (p3);
+        \draw[->] (h5) -- (p4);
+        \draw[->] (h6) -- (p5);
+        \draw[->] (h7) -- (c2);
+        \draw[->] (h8) -- (p6);
+        
+        \draw[->] (c1) -- (h3);
+        \draw[->] (p2) -- (h4);
+        \draw[->] (p3) -- (h5);
+        \draw[->] (p4) -- (h6);
+        \draw[->] (c2) -- (h8);
+    \end{tikzpicture}
+    \caption{}
+    \label{fig:extended_reality_procedure}
+\end{figure}
 
 \begin{figure}
 	% \subfloat[Frame 1.]{
@@ -95,4 +96,5 @@ A lot like the automatic recalibration procedure, the camera is calibrated using
         \label{fig:extended_reality_frame6}
     }
     \caption{An image sequence from the pipe video showing a virtual object being placed in the scene. The camera pose is estimated using the proposed method, allowing for accurate alignment of the virtual object with the real world. The frames demonstrate the continuous tracking and pose estimation capabilities of the method.}
+    \label{fig:extended_reality_sequence}
 \end{figure}

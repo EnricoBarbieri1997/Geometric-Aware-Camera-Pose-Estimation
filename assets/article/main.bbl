@@ -2,13 +2,17 @@
 
 \bibitem{HomotopyContinuationJL}
 Paul Breiding and Sascha Timme.
-\newblock Homotopycontinuation.jl: A package for homotopy continuation in julia.
-\newblock In James~H. Davenport, Manuel Kauers, George Labahn, and Josef Urban, editors, {\em Mathematical Software -- ICMS 2018}, pages 458--465, Cham, 2018. Springer International Publishing.
+\newblock Homotopycontinuation.jl: A package for homotopy continuation in
+  julia.
+\newblock In James~H. Davenport, Manuel Kauers, George Labahn, and Josef Urban,
+  editors, {\em Mathematical Software -- ICMS 2018}, pages 458--465, Cham,
+  2018. Springer International Publishing.
 
 \bibitem{Canny1986}
 John Canny.
 \newblock A computational approach to edge detection.
-\newblock {\em IEEE Transactions on Pattern Analysis and Machine Intelligence}, PAMI-8(6):679--698, 1986.
+\newblock {\em IEEE Transactions on Pattern Analysis and Machine Intelligence},
+  PAMI-8(6):679--698, 1986.
 
 \bibitem{Crocco2016}
 M.~et~al. Crocco.
@@ -17,7 +21,8 @@ M.~et~al. Crocco.
 
 \bibitem{CalibrationFreePlacedRightCylinder}
 Dongliang Ding, Junhua Sun, and Yanjun Zhang.
-\newblock Camera calibration based on free-placed single right cylindrical target.
+\newblock Camera calibration based on free-placed single right cylindrical
+  target.
 \newblock {\em IEEE Sensors Journal}, 24(2):1803--1811, 2024.
 
 \bibitem{Garg2020}
@@ -25,9 +30,17 @@ S.~et~al. Garg.
 \newblock Semantic object and plane slam for dynamic environments.
 \newblock {\em IEEE Robotics and Automation Letters}, 5(2):3215--3222, 2020.
 
+\bibitem{gaudilliere2017perspective}
+Vincent Gaudilliere, Daniel Barath, Zuzana Kukelova, and Tomas Pajdla.
+\newblock Perspective-1-ellipsoid: Minimal solvers for ellipsoid-based single
+  perspective views.
+\newblock In {\em Proceedings of the IEEE Conference on Computer Vision and
+  Pattern Recognition}, pages 4835--4843, 2017.
+
 \bibitem{Gaudilliere2023}
 V.~Gaudillière, G.~Simon, and M.-O. Berger.
-\newblock Perspective-1-ellipsoid: Formulation, analysis and solutions of the camera pose estimation problem from one ellipse-ellipsoid correspondence.
+\newblock Perspective-1-ellipsoid: Formulation, analysis and solutions of the
+  camera pose estimation problem from one ellipse-ellipsoid correspondence.
 \newblock {\em arXiv preprint}, arXiv:2208.12513, 2023.
 
 \bibitem{Girshick2015}
@@ -35,15 +48,12 @@ R.~Girshick.
 \newblock Fast r-cnn.
 \newblock {\em IEEE International Conference on Computer Vision (ICCV)}, 2015.
 
-\bibitem{Gummeson2022}
-A.~Gummeson, J.~Engman, K.~Åström, and M.~Oskarsson.
-\newblock Fast and efficient minimal solvers for quadric based camera pose estimation.
-\newblock In {\em 26th International Conference on Pattern Recognition (ICPR)}, 2022.
-
 \bibitem{gummeson22pose}
-A.~Gummeson and M.~Oskarsson.
-\newblock Camera pose estimation using cylindrical silhouettes.
-\newblock In {\em ICPR}, 2022.
+A.~Gummeson, J.~Engman, K.~Åström, and M.~Oskarsson.
+\newblock Fast and efficient minimal solvers for quadric based camera pose
+  estimation.
+\newblock In {\em 26th International Conference on Pattern Recognition (ICPR)},
+  2022.
 
 \bibitem{gummeson24relative}
 A.~Gummeson and M.~Oskarsson.
@@ -52,7 +62,8 @@ A.~Gummeson and M.~Oskarsson.
 
 \bibitem{guo23vanishing}
 Kai Guo and et~al.
-\newblock Pose and focal length estimation using two vanishing points with known camera center.
+\newblock Pose and focal length estimation using two vanishing points with
+  known camera center.
 \newblock {\em MDPI Sensors}, 2023.
 
 \bibitem{Hartley2004}
@@ -63,12 +74,14 @@ R.~Hartley and A.~Zisserman.
 \bibitem{He2020}
 K.~et~al. He.
 \newblock Mask r-cnn.
-\newblock {\em IEEE Transactions on Pattern Analysis and Machine Intelligence}, 42(2):386--397, 2020.
+\newblock {\em IEEE Transactions on Pattern Analysis and Machine Intelligence},
+  42(2):386--397, 2020.
 
 \bibitem{khovanskii2011faa4}
 Askold~G. Khovanskii.
 \newblock Faa4 lecture notes.
-\newblock Lecture notes Faa4, Department of Mathematics, University of Toronto, 2011.
+\newblock Lecture notes Faa4, Department of Mathematics, University of Toronto,
+  2011.
 \newblock Accessed: 2025-06-26.
 
 \bibitem{Lepetit2009}
@@ -79,11 +92,20 @@ V.~Lepetit, F.~Moreno-Noguer, and P.~Fua.
 \bibitem{HomotophyContinuationMethods}
 Tien-Yien Li.
 \newblock Homotopy continuation methods for solving polynomial systems.
-\newblock {\em Notices of the International Congress of Chinese Mathematicians}, 4(2):53--62, 2016.
+\newblock {\em Notices of the International Congress of Chinese
+  Mathematicians}, 4(2):53--62, 2016.
+
+\bibitem{Li2024}
+Zhiying Li, Sitong Li, Wei Qin, and Pengjie Tao.
+\newblock A robust camera self‑calibration method based on circular oblique
+  images.
+\newblock {\em ISPRS Annals of the Photogrammetry, Remote Sensing and Spatial
+  Information Sciences}, X-1:131--135, 2024.
 
 \bibitem{liu2019realtime}
 Chao Liu and Weiming Hu.
-\newblock Real-time geometric fitting and pose estimation for surface of revolution.
+\newblock Real-time geometric fitting and pose estimation for surface of
+  revolution.
 \newblock {\em Pattern Recognition}, 85:90--108, 2019.
 
 \bibitem{may2004parametrizedhomotopytheory}
@@ -97,13 +119,15 @@ S.J. Maybank and O.D. Faugeras.
 
 \bibitem{Nicholson2019}
 L.~et~al. Nicholson.
-\newblock Quadricslam: Dual quadrics from object detections as landmarks in object-oriented slam.
+\newblock Quadricslam: Dual quadrics from object detections as landmarks in
+  object-oriented slam.
 \newblock {\em IEEE Robotics and Automation Letters}, 4(1):1--8, 2019.
 
 \bibitem{USAC}
 Rahul Raguram, Ondrej Chum, Marc Pollefeys, Jiri Matas, and Jan-Michael Frahm.
 \newblock Usac: A universal framework for random sample consensus.
-\newblock {\em IEEE Transactions on Pattern Analysis and Machine Intelligence}, 35(8):2022--2038, 2013.
+\newblock {\em IEEE Transactions on Pattern Analysis and Machine Intelligence},
+  35(8):2022--2038, 2013.
 
 \bibitem{Redmon2018}
 J.~Redmon and A.~Farhadi.
@@ -118,32 +142,53 @@ C.~et~al. Rubino.
 \bibitem{schoenberger2016sfm}
 Johannes~Lutz Sch\"{o}nberger and Jan-Michael Frahm.
 \newblock Structure-from-motion revisited.
-\newblock In {\em Conference on Computer Vision and Pattern Recognition (CVPR)}, 2016.
+\newblock In {\em Conference on Computer Vision and Pattern Recognition
+  (CVPR)}, 2016.
 
 \bibitem{schoenberger2016mvs}
-Johannes~Lutz Sch\"{o}nberger, Enliang Zheng, Marc Pollefeys, and Jan-Michael Frahm.
+Johannes~Lutz Sch\"{o}nberger, Enliang Zheng, Marc Pollefeys, and Jan-Michael
+  Frahm.
 \newblock Pixelwise view selection for unstructured multi-view stereo.
 \newblock In {\em European Conference on Computer Vision (ECCV)}, 2016.
 
+\bibitem{Sturm2004}
+Peter Sturm and Stephen~J. Maybank.
+\newblock On plane-based camera calibration: A general algorithm,
+  singularities, applications.
+\newblock In {\em CVPR}, pages 432--437, 2004.
+
 \bibitem{Teramoto2002}
 H.~Teramoto and G.~Xu.
-\newblock Camera calibration by a single image of balls: From conics to the absolute conic.
+\newblock Camera calibration by a single image of balls: From conics to the
+  absolute conic.
 \newblock In {\em Asian Conference on Computer Vision (ACCV)}, 2002.
+
+\bibitem{teramoto2002calibration}
+Hirohisa Teramoto and Gang Xu.
+\newblock Camera calibration by a single image of balls: From conics to the
+  absolute conic.
+\newblock In {\em Proceedings of the 5th Asian Conference on Computer Vision
+  (ACCV)}, pages 1--8, Melbourne, Australia, 2002.
 
 \bibitem{Wang2019}
 Y.~et~al. Wang.
-\newblock Normalized object coordinate space for category-level 6d object pose and size estimation.
-\newblock {\em IEEE Conference on Computer Vision and Pattern Recognition (CVPR)}, 2019.
+\newblock Normalized object coordinate space for category-level 6d object pose
+  and size estimation.
+\newblock {\em IEEE Conference on Computer Vision and Pattern Recognition
+  (CVPR)}, 2019.
 
 \bibitem{Xie2015}
 Saining Xie and Zhuowen Tu.
 \newblock Holistically-nested edge detection.
-\newblock In {\em Proceedings of the IEEE International Conference on Computer Vision (ICCV)}, pages 1395--1403, 2015.
+\newblock In {\em Proceedings of the IEEE International Conference on Computer
+  Vision (ICCV)}, pages 1395--1403, 2015.
 
 \bibitem{Xu2017}
 J.~et~al. Xu.
-\newblock Pose estimation from line correspondences: A complete analysis and a series of solutions.
-\newblock {\em IEEE Transactions on Pattern Analysis and Machine Intelligence}, 39:1209--1222, 2017.
+\newblock Pose estimation from line correspondences: A complete analysis and a
+  series of solutions.
+\newblock {\em IEEE Transactions on Pattern Analysis and Machine Intelligence},
+  39:1209--1222, 2017.
 
 \bibitem{Yousefi2018}
 Mohammad Yousefi and Ghassan Hamarneh.
@@ -153,16 +198,20 @@ Mohammad Yousefi and Ghassan Hamarneh.
 \bibitem{Zhang2007}
 H.~Zhang, K.-Y.K. Wong, and G.~Zhang.
 \newblock Camera calibration from images of spheres.
-\newblock {\em IEEE Transactions on Pattern Analysis and Machine Intelligence}, 29(3):499--502, 2007.
+\newblock {\em IEEE Transactions on Pattern Analysis and Machine Intelligence},
+  29(3):499--502, 2007.
 
 \bibitem{Zhang2000}
 Zhengyou Zhang.
 \newblock A flexible new technique for camera calibration.
-\newblock {\em IEEE Transactions on Pattern Analysis and Machine Intelligence}, 22(11):1330--1334, 2000.
+\newblock {\em IEEE Transactions on Pattern Analysis and Machine Intelligence},
+  22(11):1330--1334, 2000.
 
 \bibitem{Zins2022}
 M.~Zins, G.~Simon, and M.-O. Berger.
-\newblock Object-based visual camera pose estimation from ellipsoidal model and 3d-aware ellipse prediction.
-\newblock In {\em International Journal of Computer Vision}, volume 130, pages 1107--1126, 2022.
+\newblock Object-based visual camera pose estimation from ellipsoidal model and
+  3d-aware ellipse prediction.
+\newblock In {\em International Journal of Computer Vision}, volume 130, pages
+  1107--1126, 2022.
 
 \end{thebibliography}

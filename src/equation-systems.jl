@@ -134,8 +134,8 @@ module EquationSystems
 
 		default_intrinsic = problems[1].camera.intrinsic
 		fᵧ = default_intrinsic[2, 2]
-		default_intrinsic = default_intrinsic ./ fᵧ
-		factor = 1 / fᵧ
+		# default_intrinsic = default_intrinsic ./ fᵧ
+		factor = parameters_factor = 1 / fᵧ
 		fₓ = default_intrinsic[1, 1]
 		fᵧ = 1
 		skew = default_intrinsic[1, 2]
@@ -173,10 +173,12 @@ module EquationSystems
 		end
 
 		intrinsic = [
-			fₓ skew cₓ;
-			0 fᵧ cᵧ;
-			0 0 factor
+			fₓ (skew / parameters_factor) (cₓ / parameters_factor);
+			0 fᵧ (cᵧ / parameters_factor);
+			0 0 factor;
 		]
+
+		display(intrinsic)
 
 		for (index, problem) in enumerate(problems)
 			lines_count = size(problem.lines)[1]
@@ -190,7 +192,7 @@ module EquationSystems
 			], lines_count, 3)
 
 			for line_index in 1:lines_count
-				equation = lines[line_index, :]' * intrinsic * R * problem.points_at_infinity[line_index, :] / 1000
+				equation = lines[line_index, :]' * intrinsic * R * problem.points_at_infinity[line_index, :]
 				push!(system_to_solve, equation)
 			end
 

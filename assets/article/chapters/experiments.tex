@@ -1,30 +1,122 @@
 \section{Experiments}
 \label{sec:experiments}
-We implemented our solver in \textsc{Julia} and our code is available at \href{https://github.com/EnricoBarbieri1997/cylinder-based-homotopy-camera-calibration}{Github}. Accuracy and robustness are assessed in a synthetic controlled scenario, on a digital replica of a real setting, and in two scenarios where real photographs of the scene were taken.
+We implemented our solver in \textsc{Julia} and our code is available at \href{https://github.com/EnricoBarbieri1997/cylinder-based-homotopy-camera-calibration}{Github}. Accuracy and robustness are assessed in a synthetic controlled scenario, on a digital replica of a real setting, and in two real life scenarios from photographs.
 
 \subsection{Synthetic experiments}
 
 We generated 50 different synthetic configurations consisting of $N = 2$ cameras and $M = 3$ cylinders. The cylinders are placed in general 3D positions, while all cameras share the same intrinsic matrix $\KK$ and are also positioned generically in space, with their optical axes oriented toward the barycenter of the cylinders.
-We evaluate the performance of our method on the two tasks of camera calibration and camera pose estimation.
+We evaluate the performance of our method on the two tasks of joint camera calibration and pose estimation, and pose estimation alone.
 As regard camera calibration, we consider the relative errors $\Delta f, \Delta c$ and $\Delta s$ on focal lenghts, principal point and skew. In formulas:
 \begin{equation}
 \Delta f = \frac{1}{2}\frac{|f_x-\overline{f_x}|}{\overline{f_x}}+\frac{1}{2}\frac{|f_y-\overline{f_y}|}{\overline{f_y}},\quad 
 \Delta c = \frac{1}{2}\frac{|c_x-\overline{c_x}|}{|\overline{c_x}|}+\frac{1}{2}\frac{|c_y-\overline{c_y}|}{|\overline{c_y}|}, \quad
  \Delta \alpha = \frac{|\alpha-\overline{\alpha}|}{\overline{\alpha}}.
+ \label{eq:calibration_errors}
 \end{equation}
 Poses are evaluated in terms of a rotation error in degree $\Delta \RR$ and a transaltion error $\Delta \mathbf{t}$:
 \begin{equation}
  \Delta \RR = \cos^{-1}\left(\frac{\mathrm{trace}(\RR \overline{\RR}^\top) - 1}{2} \right),\quad
   \Delta \mathbf{t} = \frac{||\mathbf{t}-\overline{\mathbf{t}}||}{||\overline{\mathbf{t}}||}
+    \label{eq:pose_errors}
 \end{equation}
 
-To assess the robustness of our method, we perturbed the observed silhouette lines in $\mathcal{L}_0$ by increasing levels of noise, adopting the same settings as in~\cite{gummeson22pose}. Instead of perturbing the line parameters directly, each line is modified by displacing its intersection points with the image boundaries using a random 2D vector whose magnitude matches the prescribed noise level. This results in a more realistic, albeit more severe, form of perturbation.
+To assess the robustness of our method, we perturbed the observed silhouette lines in $\mathcal{L}_0$ by increasing levels of noise, adopting the same settings as in~\cite{gummeson22pose} but with a different noise model. Instead of perturbing the line parameters directly, each line is modified by displacing its intersection points with the image boundaries using two 2D vector for each line with random directions $\theta_1$, $theta_2$ whose magnitude matches the prescribed noise level. This results in a more realistic, albeit more severe, form of perturbation. A graphical representation of the noise model is shown in Figure~\ref{fig:noise_model}.
+
+\begin{figure}
+    \centering
+    \hfill
+    \subfloat[Gummeson~\cite{gummeson22pose} noise model]{
+        \begin{tikzpicture}
+            \draw[thick, opacity=0.5] (0,0) -- (4,0);
+            \draw[thick, opacity=0.5] (0,4) -- (4,4);
+            \draw[thick, opacity=0.5] (0,0) -- (0,4);
+            \draw[thick, opacity=0.5] (4,0) -- (4,4);
+
+            \coordinate (A) at (0.5, 0);
+            \coordinate (B) at (4, 3.5);
+            
+            \draw[thick, dashed] (A) -- (B);
+
+            \coordinate (C) at (0.25, 0.0);
+            \coordinate (D) at (3.8, 3.75);
+
+            \draw[->, thick] (A) -- (C);
+            \draw[->, thick] (B) -- (D);
+
+            \draw[fill=black] (A) circle (2pt);
+            \draw[fill=black] (B) circle (2pt);
+
+            \draw[thick] (C) -- (D);
+            \draw[thick] ($ (C)!0.0!(D) $) -- ($ (C)!1.05!(D) $);
+
+            \node at (2, 4.5) {Image Boundary};
+            \node at (3.2, 2.0) {$l$};
+            \node at (0.7, 1.0) {$l'$};
+
+            %to center figure
+            % \draw[fill=white, opacity=0.0] (-1, -0.1) circle (1pt);
+            \draw[fill=white, opacity=0.0] (5, 4.1) circle (1pt);
+        \end{tikzpicture}
+    }
+    \hfill
+    \subfloat[
+        Our noise model. 
+    ]{
+        \begin{tikzpicture}
+            \draw[thick, opacity=0.5] (0,0) -- (4,0);
+            \draw[thick, opacity=0.5] (0,4) -- (4,4);
+            \draw[thick, opacity=0.5] (0,0) -- (0,4);
+            \draw[thick, opacity=0.5] (4,0) -- (4,4);
+
+            \coordinate (A) at (0.5, 0);
+            \coordinate (B) at (4, 3.5);
+            
+            \draw[thick, dashed] (A) -- (B);
+
+            \coordinate (C) at (0.8, 0.8);
+            \coordinate (D) at (3.8, 2.5);
+
+            \draw[->, thick] (A) -- (C);
+            \draw[->, thick] (B) -- (D);
+
+            \draw[fill=black] (A) circle (2pt);
+            \draw[fill=black] (B) circle (2pt);
+
+            \draw[thick] (C) -- (D);
+            \draw[thick] ($ (C)!-0.27!(D) $) -- ($ (C)!1.06!(D) $);
+
+            \node at (2, 4.5) {Image Boundary};
+            \node at (2.2, 2.4) {$l$};
+            \node at (3.3, 1.8) {$l'$};
+
+            \coordinate (xaxis) at (1, 0);
+            \draw pic[draw=black, angle radius=0.7cm, angle eccentricity=1.3] {angle = xaxis--A--C};
+            \node at ($(A) + (15:1.1cm)$) {$\theta_1$};
+            \coordinate (xaxis) at (5, 3.5);
+            \draw [dashed] (B) -- (xaxis);
+            \draw pic[draw=black, angle radius=0.7cm, angle eccentricity=1.3] {angle = xaxis--B--D};
+            \node at ($(B) + (180:1.1cm)$) {$\theta_2$};
+
+            %to center figure
+            \draw[fill=white, opacity=0.0] (-1, -0.1) circle (1pt);
+        \end{tikzpicture}
+    }
+    \hfill
+
+    \caption{Noise models effect comparison given the same noise magnitude shown for a single silhouette line. Gummeson's~\cite{gummeson22pose} noise model (a) perturbs the line parameters directly, while our model (b) perturbs the intersection points with the image boundaries. The perturbation is applied in two random directions $\theta_1$ and $\theta_2$ whose magnitude matches the prescribed noise level.
+    Gummeson's~\cite{gummeson22pose} model tends to preserve direction and just move the line, while ours tends to perturb the corresponding point at infinity that is the main cause of inacurracies in the camera calibration and pose estimation tasks.
+    The image boundaries are shown in solid transparent lines. The dashed line $l$ represents the original silhouette line. The perturbed line $l'$ is shown in solid black. The arrows indicate the perturbation applied to the intersection points with the image boundaries.}
+    \label{fig:noise_model}
+    
+\end{figure}
 
 We compare our camera calibration results with the method proposed by Ding~\cite{CalibrationFreePlacedRightCylinder}. For a fair comparison, we first assume zero skew ($s = 0$) as the formulation of Ding cannot  estimate this parameter. The results are reported in Figures~\ref{fig:delta_f} and~\ref{fig:delta_uv} in logarithmic scale. Our method consistently outperforms Ding's across all noise levels.
 
 We also evaluate separately the estimation of the skew parameter, shown in Figure~\ref{fig:delta_skew}. While the performance is slightly worse in this case, it is worth noting that, due to the small magnitude of the true skew values, relative error metrics tend to amplify minor fluctuations. In practice, however, for modest noise values the estimated skew remains in the sub $10\%$ range while for higher ones it diverges towards a $50\%$ error.
 
-Results on pose estimation are shown in Figures~\ref{fig:delta_r} and~\ref{fig:delta_t}. Gummeson~\cite{gummeson22pose} represents our closest competitor, as our method can be seen as a generalization of theirs to the case of unknown intrinsics. Our approach consistently outperforms the baseline across all noise levels, demonstrating the advantages of using silhouette-based homotopy continuation over Gröbner basis methods.
+Results on pose estimation are shown in Figures~\ref{fig:delta_r} and~\ref{fig:delta_t}.
+Gummeson~\cite{gummeson22pose} represents our closest competitor, as our method can be seen as a generalization of theirs to the case of unknown intrinsics. Our approach consistently outperforms the baseline across all noise levels, demonstrating the advantages of using silhouette-based homotopy continuation over Gröbner basis methods.
+We have also tested our method in the case of known intrinsics, which is equivalent to the method of Gummeson~\cite{gummeson22pose}. The results are shown in Figures~\ref{fig:delta_r} and~\ref{fig:delta_t} as well. In this case, our method performs perfectly in the chosen noise regime.
 Finally, Figure~\ref{fig:success_rate} reports the success rate of the method. While other approaches that rely on matrix factorizations often fail when the matrices involved become nearly singular, our method consistently finds a physically feasible solution. This highlights the numerical stability of our approach .
 Note that, as highlighted in Table~\ref{tab:soa}, our method is the only one capable of  solving both camera pose and calibration.
 
@@ -71,14 +163,14 @@ Note that, as highlighted in Table~\ref{tab:soa}, our method is the only one cap
     \end{figure}
     
 
-\subsection{Results on rendered scene}
+\subsection{Pipes: Results on rendered scene}
 
 We further evaluated the proposed methods on a digital replica of a real scene, composed of three pipes around a corner. This setting is interesting since edge detection and pairing is as close as possible to a real scenario while still knowing ground truth. The scene is shown in Figure~\ref{fig:pipes}.
 
 The pipes are assumed to be unitary radius, and meet at the world origin.
 
 We assume the skew set to zero and use two view of the scene.
-The estimated intrinsic parameters ($f_x = 2563.36$, $f_y = 2924.82$, $c_x = 518.657$, $c_y = 1242.12$) differ from ground truth ($f_x = 1500.00$, $f_y = 2666.67$, $c_x = 540$, $c_y = 960$) by a mean relative error of $28.5\%$.
+The estimated intrinsic parameters ($f_x = 2563.36$, $f_y = 2924.82$, $c_x = 518.657$, $c_y = 1242.12$) differ from ground truth ($f_x = 1500.00$, $f_y = 2666.67$, $c_x = 540.00$, $c_y = 960.00$) by a mean relative error of $28.5\%$.
 The horizontal focal length $f_x$ contributes the most to this error, this is due to the fact that the algorithm has been initialized with a square aspect ratio as it is the most common case. Leveraging known at priori in this case would yield better results.
 
 The reprojection error visualized in Figure~\ref{fig:pipes} shows that the estimated camera is very close to the ground truth.
@@ -131,4 +223,4 @@ For localization, $\Delta \RR$ is computed on the relative pose of the two camer
 For estimating the full camera parameters ($\KK, \RR,\mathbf{t}$), tracking all $59,\!049$ homotopy paths required 1 minute and 39 seconds.
 Interestingly, once $\KK$ is estimated,  localization for additional frames requires tracking fewer parameters, resulting in improved speed and accuracy. Execution time drops below one second (single-threaded), with a relative rotation error of $2\%$ and translation error of $0.9\%$.% Furthermore, since subsequent frames can be processed independently, the method becomes suitable for real-time scenarios.
 
-%-------------------------------------------------------------------------
+\input{tables/scenes_compare.tex}

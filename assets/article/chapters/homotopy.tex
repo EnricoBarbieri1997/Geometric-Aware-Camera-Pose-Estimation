@@ -63,28 +63,68 @@ where \(p = (p_1, p_2, p_3, p_4, p_5, p_6)\) are the parameters that define the 
 	\subfloat[
 		A parabola instance of the family $y = p_1 x^2 + p_3$.
 	]{
-		\includegraphics[width=0.23\linewidth]{images/parametric_homotopy/original}
+		% \includegraphics[width=0.23\linewidth]{images/parametric_homotopy/original}
+		\begin{tikzpicture}[scale=0.3]
+			% Draw axes
+			\draw[->] (-3, 0) -- (3, 0) node[right] {$x$};
+			\draw[->] (0, -1) -- (0, 5) node[above] {$y$};
+
+			% Draw parabola y = x^2
+			\draw[domain=-2:2, smooth, variable=\x, black, thick] 
+				plot ({\x}, {\x*\x}) node[right] {$y = x^2$};
+		\end{tikzpicture}
 		\label{fig:parametric_homotopy_original}
 	}
 	\hspace{0.01\linewidth}
 	\subfloat[
-		The surface resulting from varying the parameter $p_3$. We can see that the solution set (highlighted in red) varies continuously as the parameter changes.
+		The surface resulting from varying the parameter $p_3$. We can see that the solution set (highlighted in blue) varies continuously as the parameter (Y axis) changes.
 	]{
-		\includegraphics[width=0.23\linewidth]{images/parametric_homotopy/surface}
+		\includegraphics[width=0.23\linewidth]{images/parametric_homotopy/family_surface.png}
 		\label{fig:parametric_homotopy_family}
 	}
 	\hspace{0.01\linewidth}
 	\subfloat[
-		An instance of the polynomial system $F(x; p) = 0$ with $p = (1, 0, 0, 1, 0, 0)$.
+		An instance of the polynomial system $F(x; p) = 0$ with $p = (1, 0, 0, -1, 0, 0)$.
 	]{
-		\includegraphics[width=0.23\linewidth]{images/parametric_homotopy/instance1}
+		% \includegraphics[width=0.23\linewidth]{images/parametric_homotopy/instance1}
+		\begin{tikzpicture}[scale=0.3]
+			% Draw axes
+			\draw[->] (-3, 0) -- (3, 0) node[right] {$x$};
+			\draw[->] (0, -1) -- (0, 5) node[above] {$y$};
+
+			% Draw parabola y = x^2
+			\draw[domain=-2:2, smooth, variable=\x, black, thick] 
+				plot ({\x}, {\x*\x}) node[right] {$y = x^2$};
+			% Draw parabola y = -x^2
+			\draw[domain=-2:2, smooth, variable=\x, black, thick] 
+				plot ({\x}, {-\x*\x}) node[right] {$y = -x^2$};
+
+			% Draw intersection points
+			\fill[blue] (0, 0) circle (6pt) node[below right] {};
+		\end{tikzpicture}
 		\label{fig:parametric_homotopy_instance1}
 	}
 	\hspace{0.01\linewidth}
 	\subfloat[
-		An instance of the polynomial system $F(x; p) = 0$ with $p = (1, 0, 0, 1, 0, 1)$.
+		An instance of the polynomial system $F(x; p) = 0$ with $p = (1, 0, 1, -1, 0, -1)$.
 	]{
-		\includegraphics[width=0.23\linewidth]{images/parametric_homotopy/instance2}
+		% \includegraphics[width=0.23\linewidth]{images/parametric_homotopy/instance2}
+		\begin{tikzpicture}[scale=0.3]
+			% Draw axes
+			\draw[->] (-3, 0) -- (3, 0) node[right] {$x$};
+			\draw[->] (0, -1) -- (0, 5) node[above] {$y$};
+
+			% Draw parabola y = x^2 - 1
+			\draw[domain=-2:2, smooth, variable=\x, black, thick] 
+				plot ({\x}, {\x*\x - 1}) node[right] {$y = x^2 - 1$};
+			% Draw parabola y = -x^2 + 1
+			\draw[domain=-2:2, smooth, variable=\x, black, thick] 
+				plot ({\x}, {-\x*\x + 1}) node[right] {$y = -x^2 + 1$};
+
+			% Draw intersection points
+			\fill[blue] (1, 0) circle (6pt) node[below right] {};
+			\fill[blue] (-1, 0) circle (6pt) node[below left] {};
+		\end{tikzpicture}
 		\label{fig:parametric_homotopy_instance2}
 	}
 	\caption{Parametric homotopy in polynomial systems. The first image shows a parabola instance of the family $y = p_1 x^2 + p_3$, the second shows the surface resulting from varying the parameter $p_3$, and the third and fourth images show two instances of the polynomial system $F(x; p) = 0$ with different parameter values.}
@@ -108,36 +148,47 @@ Consider a family of polynomial systems
 \[
 F(x; p) = 0,
 \]
-where \( x \in \mathbb{C}^n \) are the unknowns and \( p \in \mathbb{C}^m \) are parameters. Given at least one solution \( x_0 \) corresponding to a parameter value \( p_0 \) (Figure~\ref{fig:monodromy_original}), we project it into the surface defined by all possible parametrization~\ref{fig:monodromy_parameter_surface}, we construct a path in parameter space that starts and ends at \( p_0 \) (Figure~\ref{fig:monodromy_inconclusive}). By numerically tracking the solution \( x_0 \) along this loop (via homotopy continuation), we obtain a solution \( x_1 \) at \( p_0 \). In general, \( x_1 \) may differ from \( x_0 \), having traversed a different branch of the solution variety. Repeating this process along different loops allows the discovery of new solutions without prior knowledge of the entire solution set (Figure~\ref{fig:monodromy_conclusive}).
+where \( x \in \mathbb{C}^n \) are the unknowns and \( p \in \mathbb{C}^m \) are parameters. Given at least one solution \( x_0 \) corresponding to a parameter value \( p_0 \) (Figure~\ref{fig:monodromy_original}), we project it into the surface defined by all possible parametrization~\ref{fig:monodromy_parameter_surface}, we construct a path in parameter space that starts and ends at \( p_0 \) (Figure~\ref{fig:monodromy_midloop}). By numerically tracking the solution \( x_0 \) along this loop (via homotopy continuation), we obtain a solution \( x_1 \) at \( p_0 \). In general, \( x_1 \) may differ from \( x_0 \), having traversed a different branch of the solution variety. Repeating this process along different loops allows the discovery of new solutions without prior knowledge of the entire solution set (Figure~\ref{fig:monodromy_conclusive}).
 
 This method relies on the fact that the solution set over generic parameters forms a branched covering of parameter space, and monodromy paths induce permutations (forming the so-called \emph{monodromy group}) on the fiber of solutions above a generic parameter value. Under mild assumptions, if the monodromy group is transitive, sufficiently many loops will recover all solutions.
 
 Monodromy methods serve as a valuable complement to classical homotopy continuation, especially when computing all solutions via total-degree or multihomogeneous start systems is computationally prohibitive.
 
-For additional details on practical implementations, we refer to the monodromy functionality in \texttt{HomotopyContinuation.jl}~\cite{JuliaHomotopyContinuation}.
+For additional details on practical implementations, we refer to the monodromy functionality in \texttt{HomotopyContinuation.jl}~\cite{HomotopyContinuationJL}.
 
 \begin{figure}[hb]
 	\centering
 	\subfloat[Instance of a realization of the polynomial system family $F(x; p) = 0$.]{
-		\includegraphics[width=0.21\linewidth]{monodromy/original.png}
+		\begin{tikzpicture}
+			\node[anchor=south west, inner sep=0] (image) at (0,0) {\includegraphics[width=0.21\linewidth]{monodromy/original.png}};
+			\begin{scope}[x={(image.south east)}, y={(image.north west)}]
+				\node at (0.5, 0.17) {$F(x; p_0)$};
+				\node at (0.5,0.47) {$x_0$};
+			\end{scope}
+		\end{tikzpicture}
 		\label{fig:monodromy_original}
 	}
 	\hspace{0.01\linewidth}
 	\subfloat[Polynomial system family $F(x; p) = 0$ surface for different values of $p$]{
-		\includegraphics[width=0.21\linewidth]{monodromy/parameter_surface.png}
+		\begin{tikzpicture}
+			\node[anchor=south west, inner sep=0] (image) at (0,0) {\includegraphics[width=0.21\linewidth]{monodromy/parameter_surface.png}};
+			\begin{scope}[x={(image.south east)}, y={(image.north west)}]
+				\node at (0.5, 0.17) {$F(x; p)$};
+			\end{scope}
+		\end{tikzpicture}
 		\label{fig:monodromy_parameter_surface}
 	}
 	\hspace{0.01\linewidth}
-	\subfloat[Inconclusive loop in parameter space. The loop took place before the branching point.]{
-		\includegraphics[width=0.21\linewidth]{monodromy/inconclusive_monodromy.png}
-		\label{fig:monodromy_inconclusive}
+	\subfloat[Mid-loop in parameter space.]{
+		\includegraphics[width=0.21\linewidth]{monodromy/midloop.png}
+		\label{fig:monodromy_midloop}
 	}
 	\hspace{0.01\linewidth}
-	\subfloat[Conclusive loop in parameter space. The loop took place after the branching point, and a new surface area is explored]{
+	\subfloat[Conclusive loop in parameter space. Two new solutions are found.]{
 		\includegraphics[width=0.21\linewidth]{monodromy/successful_monodromy.png}
 		\label{fig:monodromy_conclusive}
 	}
 	\hspace{0.1cm}
-	\caption{Monodromy in polynomial system solving. The first image shows a realization of the polynomial system family, the second shows the parameter surface with the known solution $x_0$ highlighted in red, the third shows an inconclusive loop in parameter space, and the fourth shows a conclusive loop in parameter space.}
+	\caption{Monodromy in polynomial system solving. The first image shows a realization of the polynomial system family, the second shows the parameter surface with the known solution $x_0$ highlighted in green. After projecting the surface a circular loop in $x$, $p$ space (highlighted in blue) is constructed (third image). A flat circular loop in this space is not flat on the surface (highlighted in red), so the solution $x_1$ at the end of the loop might not be the same as $x_0$. The fourth image shows a conclusive loop in parameter space that finds two new solutions (highlighted in green).}
 	\label{fig:monodromy}
 \end{figure}

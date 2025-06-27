@@ -1,0 +1,33 @@
+\begin{table}[htb]
+\centering
+\begin{tabular}{rccccccc}
+\toprule
+\textbf{Scene} & {$f_x$} & {$f_y$} & {$c_x$} & {$c_y$} & {$\RR$} & {$\mathbf{t}$} & Reproj. \\
+\midrule
+Pipes & 2563.36 & 2924.82 & 518.66 & 1242.12 & \smallrowvec{$-107.94, -0.02, 15.73$} & \smallrowvec{$-0.17, -0.11, -3.01$} & ~ \\
+Pipes (gt) & 1500.00 & 2666.67 & 540.00 & 960.00 & \smallrowvec{$-75.47, 15.37, 3.92$} & \smallrowvec{$2.29, 10.29, 2.10$} & ~ \\
+\rowcolor{gray!15}
+Pipes ($\Delta$) & 42.48\% & 8.83\% & 4.12\% & 22.71\% & 14.43° & 0.36\% & 0.0043\\
+\midrule
+Roller coaster & 1741.12 & 1711.91 & 918.0 & 538.0 & \smallrowvec{$-12.31, -1.37, -2.15$} & \smallrowvec{$2.90, -0.36, -0.36$} & ~ \\
+Roller coaster (gt) & 1749.83 &  1751.29 &  960.0 &  540.0 & \smallrowvec{$-11.89, -1.50, -1.92$} & \smallrowvec{$2.69, 0.07, -0.14$} & ~ \\
+\rowcolor{gray!15}
+Roller coaster ($\Delta$) & 0.50\% & 2.30\% & 4.58\% & 0.37\% & 0.49° & 0.07\% & 0.0024 \\
+\midrule
+Markers & 1334.72 & 1234.91 & 848.93 & 960.00 & N/A & N/A & ~ \\
+Markers (gt) & 1632.60 & 1605.51 & 540.00 & 960.00 & N/A & N/A & ~ \\
+\rowcolor{gray!15}
+Markers ($\Delta$) & 22.32\% & 30.01\% & 36.39\% & 0.00\% & 2.90° & 0.29\% & 0.0042 \\
+\midrule
+Mean $\Delta$ & \pgfmathprintnumber[fixed,precision=2]{\meanfx}\% &
+              \pgfmathprintnumber[fixed,precision=2]{\meanfy}\% &
+              \pgfmathprintnumber[fixed,precision=2]{\meancx}\% &
+              \pgfmathprintnumber[fixed,precision=2]{\meancy}\% &
+            \pgfmathprintnumber[fixed,precision=2]{\meanr}° &
+            \pgfmathprintnumber[fixed,precision=2]{\meant}\% &
+            \pgfmathprintnumber[fixed,precision=4]{\meanrep} \\
+\bottomrule
+\end{tabular}
+\caption{Estimated and ground truth intrinsic parameters and camera poses for the three scenes. For multi-view scenes only the first view is reported. The deltas are computed as relative errors with respect to the ground truth values the same way as defined in \ref{eq:calibration_errors} and \ref{eq:pose_errors}. The skew parameter is zero in all cases. The markers case has no ground truth pose, so absolute values are not reported, only difference between COLMAP and our method relative motion.}
+\label{tab:scenes_compare}
+\end{table}

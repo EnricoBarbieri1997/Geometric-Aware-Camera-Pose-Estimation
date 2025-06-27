@@ -697,6 +697,7 @@ module Scene
 	function intrinsic_rotation_system_setup(
 		problems;
 		minimization = false,
+		intrinsic_configuration = IntrinsicParametersConfigurations.fₓ_fᵧ_skew_cₓ_cᵧ,
 	)
 			rotation_intrinsic_system = nothing
 			if (minimization)
@@ -710,9 +711,26 @@ module Scene
 			end
 			parameters = []
 			for problem in problems
+				lines = problem.lines
+				display(lines)
+				if (
+					!isIntrinsicEnabled.cₓ(intrinsic_configuration) &&
+					!isIntrinsicEnabled.cᵧ(intrinsic_configuration) &&
+					!isIntrinsicEnabled.skew(intrinsic_configuration)
+				)
+					known_intrinsic = [
+						1 0 0;
+						0 1 0;
+						0 0 1;
+					]
+					known_intrinsic[1, 2] = problem.camera.intrinsic[1, 2]
+					known_intrinsic[1, 3] = problem.camera.intrinsic[1, 3]
+					known_intrinsic[2, 3] = problem.camera.intrinsic[2, 3]
+					lines = lines * known_intrinsic
+				end
 				parameters = stack_homotopy_parameters(
 					parameters,
-					problem.lines,
+					lines,
 				)
 			end
 			parameters = convert(Vector{Float64}, parameters)

@@ -247,11 +247,14 @@ Based on this observation, we propose to post-correct physically invalid solutio
 A correction is valid if it does not change the absolute values of the intrinsic parameters and if $\CC^{-1}\RR$ is still a rotation, namely has unitary determinant and is orthogonal:
 \begin{equation}
 \begin{cases}
-  \det(\CC^{-1}\RR) = \det(\CC^{-1}) = \pm 1\\
-   (\CC^{-1}\RR) (\CC^{-1}\RR)^\top = \CC^{-1}\RR\RR^\top\CC^{-\top} = \II.
+  \det(\CC^{-1}\RR) = \det(\CC^{-1})\det(\RR) = \det(\CC^{-1}) = \pm 1\\
+   (\CC^{-1}\RR) (\CC^{-1}\RR)^\top = \CC^{-1}\RR\RR^\top\CC^{-\top} = \CC^{-1}\CC^{-\top} = \II.
   \end{cases}
 \end{equation}
-Note that we allow $\det(\CC)=-1$ because  a reflection might actually be needed to make the solution geometrically consistent. Using this property, we derive three corrections $\CC_{f_x},\CC_{f_y},\CC_{sf_y}  $
+Since $\RR$ is a rotation matrix, it is orthogonal and already satisfies both properties allowing for the substitutions made.
+Note that we allow $\det(\CC)=-1$ because  a reflection might actually be needed to make the solution geometrically consistent. 
+
+Using this property, we derive three corrections $\CC_{f_x},\CC_{f_y},\CC_{sf_y}  $
 \begin{equation}
   \CC_{f_x} = \begin{pmatrix}
                 -1 & 0 & 0 \\
@@ -269,9 +272,12 @@ Note that we allow $\det(\CC)=-1$ because  a reflection might actually be needed
                 0 & 0 & 1
             \end{pmatrix},
 \end{equation}
-to correct $f_x, f_y$ and, the skew $s$ and $f_y$ jointly respectively. Note that multiple corrections $\CC_1$, $CC_2$ can be applied to the same solution $(\KK,\RR)$ by nesting them into one another
+to correct $f_x, f_y$ and, the skew $s$ and $f_y$ jointly respectively.
+
+Note that multiple corrections $\CC_1$, $\CC_2$ can be applied to the same solution $(\KK,\RR)$ by nesting them into one another
 \begin{equation}
     \KK \CC_1 \CC_2 \CC_2^{-1} \CC_1^{-1}\RR = \KK' \CC_2 \CC_2^{-1} \RR'
 \end{equation}
 Since $\KK', \RR'$ still satisfy all the constraints above.
-Unfortunately, we can not find a rotation $C_s$ to correct the skew alone.
+
+Unfortunately, we can not find a rotation $\CC_s$ to correct the skew alone.
