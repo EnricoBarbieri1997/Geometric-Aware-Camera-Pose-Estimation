@@ -43,6 +43,7 @@ for each $(M,N)$ pair feasibility is reported in Table~\ref{tab:scene_configurat
 A single cylinder  $M=1$ does not allow for  solution, while beyond $M=6$ or $N=9$, $\mathcal{S}_1$ is always solvable. 
 
 \subsection{The synthetic starting system \texorpdfstring{$\mathcal{S}_0$}{S0}}
+\label{sec:synthetic_system}
 
 To construct the synthetic system $\mathcal{S}_0$, we begin by generating a set of $N$ synthetic cameras, denoted $\{\PP_i^{(0)} = \KK^{(0)}[\RR_i^{(0)}\,|\,\mathbf{t}_i^{(0)}]\}$, where both the intrinsic parameters $\KK^{(0)}$ and the extrinsic parameters $(\RR_i^{(0)}, \mathbf{t}_i^{(0)})$ are known. Given the 3D structure of the scene (\emph{i.e.}, the known cylinders), we project them into each synthetic view to compute the corresponding silhouette lines $\mathcal{L}_0 = \{l^{h(0)}_{ij}\}$.
 

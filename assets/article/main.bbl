@@ -14,6 +14,12 @@ John Canny.
 \newblock {\em IEEE Transactions on Pattern Analysis and Machine Intelligence},
   PAMI-8(6):679--698, 1986.
 
+\bibitem{chien2021gpubasedhomotopycontinuationminimal}
+Chiang-Heng Chien, Hongyi Fan, Ahmad Abdelfattah, Elias Tsigaridas, Stanimire
+  Tomov, and Benjamin Kimia.
+\newblock Gpu-based homotopy continuation for minimal problems in computer
+  vision, 2021.
+
 \bibitem{Crocco2016}
 M.~et~al. Crocco.
 \newblock Structure-from-motion with quadrics: A convex formulation.

@@ -1,0 +1,58 @@
+\subsection{Geometric constraints on cones and  silhouette lines}
+\label{sec:constraints}
+
+Following~\cite{gummeson22pose, gummeson24relative}, we will now describe geometric properties of cylinders and their image projections, which form the basis for the constraints in our systems.
+
+In three dimensioin projective space $\mathbb{P}^3$, a cylinder $\QQ$ is defined as a set of points $\mathbf{X} = (x, y, z, 1)^\top$ such that the following equation holds:
+\begin{equation}
+	\mathbf{X}^\top \QQ \mathbf{X} = 0,
+\end{equation}
+
+If $\QQ$ is full rank, this defines a proper quadric surface, if instead $\QQ$ is rank deficient, it defines a degenerate quadric surface, the most common examples are cones, and cylinders.
+
+Rather than working directly with $\QQ$, it is convenient to use the dual quadric $\QQ^* = \QQ^{-1}$, which encodes the set of all planes tangent to $\QQ$:
+\begin{equation}
+	\Pi^\top \QQ^* \Pi = 0,
+\end{equation}
+% See Figure~\ref{fig:quadric_surface_dual}.
+
+Even tho for a degenerate quadric the matrix $\QQ$ is rank deficient and $\QQ^{-1}$ is not defined we can still formulate the dual for degenerate quadrics directly in terms of the null-space of $\QQ$. 
+
+\paragraph{}A cylinder $\mathcal{C}$ can be interpreted as a cone with its vertex $\mathbf{V}$ lying on the plane at infinity. Algebraically, both cones and cylinders are represented by a singular quadric surface with matrix $\QQ$ such that a point $\mathbf{X}$ belongs to $\mathcal{C}$ if and only if $\mathbf{X}^\top \QQ \mathbf{X} = 0$.
+
+A cylinder is a generate quadric and as such the rank of it's matrix $\QQ$ is not full. The vertex $\mathbf{V}$ lies in the null-space of $\QQ$, that is, $\QQ \mathbf{V} = \mathbf{0}$. For cylinders, this vertex takes the form $\mathbf{V} = {(\mathbf{w}, 0)}^\top$ in homogeneous coordinates, where $\mathbf{w}$ defines the direction of the cylinder’s axis.
+
+Technically speaking, all planes containing $\mathbf{V}$ are tangent to $\QQ$ but not all of them uniquely define the surface $\QQ^*$. See Figure~\ref{fig:cone_plane_singlepoint}.
+To uniquely identify the dual quadric $\QQ^*$ in terms of the tangent planes two conditions must be satisfied:
+\begin{equation}
+	\begin{cases}
+		\Pi^\top \QQ^* \Pi = 0, \\
+		\Pi^\top \mathbf{V} = 0.
+	\end{cases}
+\end{equation}
+
+These two conditions can be formulated in terms of silhouette lines $l^h$. The backprojection of each silhouette line, given by $\PP^\top l^h$, defines a 3D plane that is tangent to the cylinder $\mathcal{C}$ and passes through the camera center. Moreover, since this tangent plane is  aligned with the axis of the cylinder, $\PP^\top l^h$ must contain the point at infinity $\mathbf{V}$ corresponding to the direction of the cylinder's axis. 
+As a result, each visible silhouette line $l^h$ induces two constraints on the camera parameters of the form:
+
+\begin{align}
+	l^{h \top} \PP \QQ^* \PP^\top l^h & = 0 \label{eq:dual_quadric_constraint} \\
+	l^{h \top} \PP \mathbf{V}         & = 0.\label{eq:vertex_constraint}
+\end{align}
+
+% \begin{figure}[h]
+% 	\centering
+% 	\subfloat{
+% 		\includegraphics[width=0.23\textwidth]{surface_planes/1.png}
+% 	}
+% 	\subfloat{
+% 		\includegraphics[width=0.23\textwidth]{surface_planes/2.png}
+% 	}
+% 	\subfloat{
+% 		\includegraphics[width=0.23\textwidth]{surface_planes/3.png}
+% 	}
+% 	\subfloat{
+% 		\includegraphics[width=0.23\textwidth]{surface_planes/4.png}
+% 	}
+% 	\caption{The dual quadric $\QQ^*$ of a cylinder $\mathcal{C}$ is defined by the set of all planes tangent to the cylinder. From left to right you can see when the number of planes increases the surface resembles the real one more and more. When the number of planes is infinite, the surface is exactly the dual quadric $\QQ^*$.}
+% 	\label{fig:quadric_surface_dual}
+% \end{figure}

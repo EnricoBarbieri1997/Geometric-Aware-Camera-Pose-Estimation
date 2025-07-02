@@ -1,0 +1,9 @@
+\section{Background}
+The core of our method relies on solving high degree, highly non-linear systems of polynomial equations derived from the geometric constraints between known 3D cylinders and observed image silhouettes. Due to their nonlinearity and their solution multiplicity, these systems are not easily tackled with traditional closed form methods, or linear numerical solvers. For that reason we decided to employ homotopy continuation.
+Homotopy continuation has been explored before in computer vision \cite{chien2021gpubasedhomotopycontinuationminimal}, but it's usage it's still uncommon, and it's theoretical foundation may be unfamiliar to many. Therefore, before diving deeper into using it for camera calibration and pose estimation in In Section~\ref{sec:method}, we dedicate this section to explain the various aspects of homotopy continuation.
+In Sections~\ref{sec:homotopy} through \ref{sec:monodromy} we present the three homotopy based techniques we use in our method. The first section is dedicated to the fundamental \textbf{homotopy continuation} theory, the other two sections into derived techniques based on it. The first being, \textbf{parametric homotopy}, which is particularly suited for our problem. The second being, \textbf{monodromy}, that will allow us to increase the convergence of our method.
+
+Finally in Section~\ref{sec:constraints} we will explain in detail quadric geometry and its role in the formulation of the polynomial systems we aim to solve.
+
+\input{chapters/background/homotopy.tex}
+\input{chapters/background/geometric_constraints}
