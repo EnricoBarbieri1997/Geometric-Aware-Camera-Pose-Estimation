@@ -5,14 +5,14 @@ Following~\cite{gummeson22pose, gummeson24relative}, we will now describe geomet
 
 In three dimensioin projective space $\mathbb{P}^3$, a cylinder $\QQ$ is defined as a set of points $\mathbf{X} = (x, y, z, 1)^\top$ such that the following equation holds:
 \begin{equation}
-	\mathbf{X}^\top \QQ \mathbf{X} = 0,
+	\mathbf{X}^\top \QQ \mathbf{X} = 0.
 \end{equation}
 
 If $\QQ$ is full rank, this defines a proper quadric surface, if instead $\QQ$ is rank deficient, it defines a degenerate quadric surface, the most common examples are cones, and cylinders.
 
 Rather than working directly with $\QQ$, it is convenient to use the dual quadric $\QQ^* = \QQ^{-1}$, which encodes the set of all planes tangent to $\QQ$:
 \begin{equation}
-	\Pi^\top \QQ^* \Pi = 0,
+	\Pi^\top \QQ^* \Pi = 0.
 \end{equation}
 % See Figure~\ref{fig:quadric_surface_dual}.
 
@@ -35,7 +35,7 @@ These two conditions can be formulated in terms of silhouette lines $l^h$. The b
 As a result, each visible silhouette line $l^h$ induces two constraints on the camera parameters of the form:
 
 \begin{align}
-	l^{h \top} \PP \QQ^* \PP^\top l^h & = 0 \label{eq:dual_quadric_constraint} \\
+	l^{h \top} \PP \QQ^* \PP^\top l^h & = 0, \label{eq:dual_quadric_constraint} \\
 	l^{h \top} \PP \mathbf{V}         & = 0.\label{eq:vertex_constraint}
 \end{align}
 

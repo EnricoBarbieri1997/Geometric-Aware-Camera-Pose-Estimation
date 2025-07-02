@@ -1,6 +1,6 @@
 \BOOKMARK [1][-]{section.1}{Introduction}{}% 1
-\BOOKMARK [1][-]{section.2}{Problem formulation}{}% 2
-\BOOKMARK [1][-]{section.3}{Related work}{}% 3
+\BOOKMARK [1][-]{section.2}{Problem Formulation}{}% 2
+\BOOKMARK [1][-]{section.3}{Related Work}{}% 3
 \BOOKMARK [2][-]{subsection.3.1}{Classical Camera Calibration with Geometric Primitives}{section.3}% 4
 \BOOKMARK [2][-]{subsection.3.2}{Calibration from Spheres and Surfaces of Revolution}{section.3}% 5
 \BOOKMARK [2][-]{subsection.3.3}{Pose Estimation from Cylindrical Features}{section.3}% 6
@@ -14,16 +14,16 @@
 \BOOKMARK [2][-]{subsection.4.3}{Monodromy}{section.4}% 14
 \BOOKMARK [2][-]{subsection.4.4}{Geometric constraints on cones and silhouette lines}{section.4}% 15
 \BOOKMARK [1][-]{section.5}{Method}{}% 16
-\BOOKMARK [2][-]{subsection.5.1}{The original target system S1}{section.5}% 17
-\BOOKMARK [2][-]{subsection.5.2}{The synthetic starting system S0}{section.5}% 18
-\BOOKMARK [2][-]{subsection.5.3}{Custom silhouette-based homotopy}{section.5}% 19
-\BOOKMARK [2][-]{subsection.5.4}{Iterating the procedure}{section.5}% 20
-\BOOKMARK [2][-]{subsection.5.5}{Handling spurious solutions}{section.5}% 21
+\BOOKMARK [2][-]{subsection.5.1}{The Original Target System S1}{section.5}% 17
+\BOOKMARK [2][-]{subsection.5.2}{The Synthetic Starting System S0}{section.5}% 18
+\BOOKMARK [2][-]{subsection.5.3}{Custom Silhouette-based Homotopy}{section.5}% 19
+\BOOKMARK [2][-]{subsection.5.4}{Iterating the Procedure}{section.5}% 20
+\BOOKMARK [2][-]{subsection.5.5}{Handling Spurious Solutions}{section.5}% 21
 \BOOKMARK [1][-]{section.6}{Experiments}{}% 22
-\BOOKMARK [2][-]{subsection.6.1}{Synthetic experiments}{section.6}% 23
-\BOOKMARK [2][-]{subsection.6.2}{Pipes: Results on rendered scene}{section.6}% 24
-\BOOKMARK [2][-]{subsection.6.3}{Results on real-world scenarios}{section.6}% 25
-\BOOKMARK [1][-]{section.7}{Practical applications}{}% 26
+\BOOKMARK [2][-]{subsection.6.1}{Synthetic Experiments}{section.6}% 23
+\BOOKMARK [2][-]{subsection.6.2}{Pipes: Results on Rendered Scene}{section.6}% 24
+\BOOKMARK [2][-]{subsection.6.3}{Results on Real-World Scenarios}{section.6}% 25
+\BOOKMARK [1][-]{section.7}{Practical Applications}{}% 26
 \BOOKMARK [2][-]{subsection.7.1}{Camera Calibration Rig}{section.7}% 27
 \BOOKMARK [2][-]{subsection.7.2}{Automatic Recalibration}{section.7}% 28
 \BOOKMARK [2][-]{subsection.7.3}{Extended Reality Applications}{section.7}% 29

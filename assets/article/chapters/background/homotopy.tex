@@ -1,20 +1,21 @@
 \subsection{Homotopy Continuation}
 \label{sec:homotopy}
 
-Homotopy continuation~\cite{HomotophyContinuationMethods} is a powerful numerical–symbolic method for solving systems of nonlinear (especially polynomial) based on a \emph{homotopy} function.
-A homotopy is a continuous deformation of one polynomial system into another. The process of going from a start system to a target system is called a \emph{path tracking}, and the values assumed by the system during the deformation are called \emph{solution paths}. Homotopy continuation allows us to find solutions to complex polynomial systems, starting from a simpler system with known solutions and continuously deforming it into the target system.
+Homotopy continuation~\cite{HomotophyContinuationMethods} is a powerful numerical–symbolic method for solving systems of nonlinear (especially polynomial) based on a \emph{homotopy} function. The name and the intuition come from topology theory.
+In topology, two continuous functions from one topological space to another are called homotopic if one can be continuously deformed into the other without breaking the continuity. In the context of polynomial systems, we can think of a polynomial system as a topological space, and a homotopy as a continuous deformation from one polynomial system to another.
+The process of going from a start system to a target system is called a \emph{homotopy}, the process of tracking how solutions evolve over this homotopy is called \emph{path tracking}, and the values assumed by the system during the deformation are called \emph{solution paths}. Homotopy continuation allows us to find solutions to complex polynomial systems, starting from a simpler system with known solutions and continuously deforming it into the target system.
 
 Formally, given a polynomial system \(F(\mathbf{x})=0\) to solve, and a polynomial system \(G(\mathbf{x})=0\) with known regular solutions \(\mathbf{x}\in\mathbb{C}^n\), a function \(H(\mathbf{x}(t),t)\) that goes from \(G\) to \(F\) is a homotopy if it satisfies
 
 \begin{gather}
-	H(\mathbf{x}(t),0)=G(\mathbf{x}(t)) \\
-	H(\mathbf{x}(t),1)=F(\mathbf{x}(t)) \\
+	H(\mathbf{x}(t),0)=G(\mathbf{x}(t)), \\
+	H(\mathbf{x}(t),1)=F(\mathbf{x}(t)), \\
 	H(\mathbf{x}(t),t) \text{ has the same number of isolated solutions } \text{ for all } t\in(0,1].
 \end{gather}
 
 A suitable choice for a homotopy function $H$ is the linear homotopy:
 \begin{equation}
-	H(\mathbf{x}(t),t) = (1-t)\,G(\mathbf{x}(t)) + t\,F(\mathbf{x}(t))
+	H(\mathbf{x}(t),t) = (1-t)\,G(\mathbf{x}(t)) + t\,F(\mathbf{x}(t)),
 	\label{eq:linear_homotopy}
 \end{equation}
 where \(t\in[0,1]\) is a parameter that controls the transition from \(G\) to \(F\).
@@ -25,14 +26,18 @@ The most common approach is to use a predictor-corrector method, where we first 
 
 For our predictor step, we can use Euler's method of the second order.
 To do so, we first need to differentiate Equation~\ref{eq:linear_homotopy} to form an ODE, and find the trajectory at each step
-\begin{gather}
-\frac{\partial H}{\partial t} = \frac{\partial H}{\partial \mathbf{x}} \frac{\partial \mathbf{x}}{\partial t} + \frac{\partial H}{\partial t} = 0 \\
-\dot{\mathbf{x}} = \frac{\partial \mathbf{x}}{\partial t} = -\left(\frac{\partial H}{\partial \mathbf{x}}\right)^{-1} \frac{\partial H}{\partial t}, \label{eq:homotopy_derivative}
-\end{gather}
+\begin{align}
+\frac{\partial H}{\partial t} &= 0, \\
+\frac{\partial H}{\partial \mathbf{x}} \frac{\partial \mathbf{x}}{\partial t} + \frac{\partial H}{\partial t} \frac{\partial t}{\partial t} &= 0, \label{eq:multivariable_chain_rule} \\
+\frac{\partial H}{\partial \mathbf{x}} \frac{\partial \mathbf{x}}{\partial t} + \frac{\partial H}{\partial t} &= 0, \\
+\frac{\partial \mathbf{x}}{\partial t} &= -\left(\frac{\partial H}{\partial \mathbf{x}}\right)^{-1} \frac{\partial H}{\partial t}. \label{eq:homotopy_derivative}
+\end{align}
 
-Once \(\dot{\mathbf{x}}\) is computed, we can predict the next value of \(\mathbf{x}\) as
+To compute Equation~\ref{eq:multivariable_chain_rule} we used the \emph{multivariable chain rule}, which states that the derivative of a function of multiple variables, which in turn are functions of the same underlying variable, can be expressed in terms of the sum of the standard chain rule applied to each of them. From now on the term \(\dot{\mathbf{x}} = \frac{\partial \mathbf{x}}{\partial t}\) is the derivative of the solution path \(\mathbf{x}(t)\) with respect to \(t\), and it represents the direction of the solution path at each step.
+
+The Equation~\ref{eq:homotopy_derivative} has general validity. A specific ODE solver needs to used depending on the problem at hand. Once \(\dot{\mathbf{x}}\) is computed, we can predict the next value of \(\mathbf{x}\) as
 \[
-\hat{\mathbf{x}}_{k+1} = \mathbf{x}_k + \Delta t_k \dot{\mathbf{x}}_k,
+\hat{\mathbf{x}}_{k+1} = \mathbf{x}_k + \Delta t_k \dot{\mathbf{x}}_k.
 \label{eq:predictor_step}
 \]
 
@@ -92,7 +97,7 @@ We then iterate the process until we reach $t=1$.
 \label{sec:parametric_homotopy}
 Homotopy continuation does not require polynomial systems $F(\mathbf{x})$, $G(\mathbf{x})$ to be from the same family. However in many practical applications, including our camera calibration and pose estimation scenario, a problem can be seen as an instance of a family. Instances of the same family share the same equations degree for each, the same number of variables, and the same number of equations, but differ based on the equations coefficients. If this is the case, and we can easily find a solution for an initial set of coefficients $\mathbf{p}_0$, we can instead define a homotopy:
 \[
-H(\mathbf{x}, \mathbf{p}, t) = \mathcal{S}(\mathbf{x}; (1-t)\mathbf{p}_0 + t\mathbf{p}_1) = 0
+H(\mathbf{x}, \mathbf{p}, t) = \mathcal{S}(\mathbf{x}; (1-t)\mathbf{p}_0 + t\mathbf{p}_1) = 0.
 \]
 
 Where using the previous \emph{Homotopy} notation the starting system $G(\mathbf{x}) = \mathcal{S}(\mathbf{x}; \mathbf{p}_0)$ and the target system $F(\mathbf{x}) = \mathcal{S}(\mathbf{x}; \mathbf{p}_1)$ are two instances of the same polynomial system $\mathcal{S}(\mathbf{x}; \mathbf{p})$, but with different coefficients $\mathbf{p}_0$ and $\mathbf{p}_1$. The homotopy deformation is done in the parameter space, allowing us to explore how solutions change as we vary the coefficients. Solutions can be tracked with the same methods as before.
@@ -223,7 +228,9 @@ This method relies on the fact that the solution set over generic parameters for
 
 Monodromy methods serve as a valuable complement to classical homotopy continuation, especially when computing all solutions via total-degree or multihomogeneous start systems is computationally prohibitive.
 
-For additional details on practical implementations, we refer to the monodromy functionality in \texttt{HomotopyContinuation.jl}~\cite{HomotopyContinuationJL}.
+For additional details on practical implementations, we refer to the monodromy functionality in
+
+\texttt{HomotopyContinuation.jl}~\cite{HomotopyContinuationJL}.
 
 \begin{figure}[hb]
 	\centering

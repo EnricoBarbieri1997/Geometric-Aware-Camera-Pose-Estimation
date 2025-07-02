@@ -2,7 +2,7 @@
 \label{sec:experiments}
 We implemented our solver in \textsc{Julia} and our code is available at \href{https://github.com/EnricoBarbieri1997/cylinder-based-homotopy-camera-calibration}{Github}. Accuracy and robustness are assessed in a synthetic controlled scenario, on a digital replica of a real setting, and in two real life scenarios from photographs.
 
-\subsection{Synthetic experiments}
+\subsection{Synthetic Experiments}
 
 We generated 50 different synthetic configurations consisting of $N = 2$ cameras and $M = 3$ cylinders. The cylinders are placed in general 3D positions, while all cameras share the same intrinsic matrix $\KK$ and are also positioned generically in space, with their optical axes oriented toward the barycenter of the cylinders.
 We evaluate the performance of our method on the two tasks of joint camera calibration and pose estimation, and pose estimation alone.
@@ -16,7 +16,7 @@ As regard camera calibration, we consider the relative errors $\Delta f, \Delta 
 Poses are evaluated in terms of a rotation error in degree $\Delta \RR$ and a transaltion error $\Delta \mathbf{t}$:
 \begin{equation}
  \Delta \RR = \cos^{-1}\left(\frac{\mathrm{trace}(\RR \overline{\RR}^\top) - 1}{2} \right),\quad
-  \Delta \mathbf{t} = \frac{||\mathbf{t}-\overline{\mathbf{t}}||}{||\overline{\mathbf{t}}||}
+  \Delta \mathbf{t} = \frac{||\mathbf{t}-\overline{\mathbf{t}}||}{||\overline{\mathbf{t}}||}.
     \label{eq:pose_errors}
 \end{equation}
 
@@ -163,7 +163,7 @@ Note that, as highlighted in Table~\ref{tab:soa}, our method is the only one cap
     \end{figure}
     
 
-\subsection{Pipes: Results on rendered scene}
+\subsection{Pipes: Results on Rendered Scene}
 
 We further evaluated the proposed methods on a digital replica of a real scene, composed of three pipes around a corner. This setting is interesting since edge detection and pairing is as close as possible to a real scenario while still knowing ground truth. The scene is shown in Figure~\ref{fig:pipes}.
 
@@ -189,7 +189,7 @@ For estimating the full camera parameters ($\KK, \RR,\mathbf{t}$), tracking all 
     \label{fig:pipes}
 \end{figure}
 
-\subsection{Results on real-world scenarios}
+\subsection{Results on Real-World Scenarios}
 
 We further evaluated the proposed methods on 2 real-world scenarios. The first one is the same setting from Gummeson \cite{gummeson22pose} composed of supporting poles for a roller coaster. The second one is an office scene with three cylindrical markers arranged on a desk(Figure~\ref{fig:homotopy}).
 
