@@ -1,0 +1,8 @@
+flowchart LR
+    A["Generate random synthetic camera"] --> SV("Generate&nbsp; $$N$$ &nbsp;views <br>&nbsp; $$𝓛_1$$")
+    RV(Real &nbsp; $$N$$ &nbsp;cameras <br> &nbsp;$$𝓛_0$$) --> CD
+    SV --> CD("Homotopic function&nbsp; $$T(t; 𝓛_0, 𝓛_1)$$")
+    CD --> H("Homotopy continuation")
+    H --> ENDIF{"RepError(S) &lt; &nbsp;$$ \varepsilon$$"}
+    ENDIF --> |Yes|CS("Correction step")
+    ENDIF --> |No|A
