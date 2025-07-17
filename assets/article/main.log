@@ -1,10 +1,10 @@
-This is pdfTeX, Version 3.14159265-2.6-1.40.21 (TeX Live 2020/Debian) (preloaded format=pdflatex 2025.6.19)  2 JUL 2025 14:48
+This is pdfTeX, Version 3.14159265-2.6-1.40.21 (TeX Live 2020/Debian) (preloaded format=pdflatex 2025.6.30)  17 JUL 2025 00:15
 entering extended mode
  restricted \write18 enabled.
  file:line:error style messages enabled.
  %&-line parsing enabled.
-**/workspaces/Geometric-Aware-Camera-Pose-Estimation/assets/article/main.tex
-(/workspaces/Geometric-Aware-Camera-Pose-Estimation/assets/article/main.tex
+**/workspaces/cylinder-based-homotopy-camera-calibration/assets/article/main.tex
+(/workspaces/cylinder-based-homotopy-camera-calibration/assets/article/main.tex
 LaTeX2e <2020-10-01> patch level 4
 L3 programming layer <2021-01-09> xparse <2020-03-03> (/usr/share/texlive/texmf-dist/tex/latex/base/article.cls
 Document Class: article 2020/04/10 v1.4m Standard LaTeX document class
@@ -61,9 +61,9 @@ Language: english 2017/06/06 v3.3r English support from the babel system
 Package babel Info: \l@canadian = using hyphenrules for english
 (babel)             (\language0) on input line 102.
 Package babel Info: \l@australian = using hyphenrules for ukenglish
-(babel)             (\language84) on input line 105.
+(babel)             (\language27) on input line 105.
 Package babel Info: \l@newzealand = using hyphenrules for ukenglish
-(babel)             (\language84) on input line 108.
+(babel)             (\language27) on input line 108.
 )) (/usr/share/texlive/texmf-dist/tex/latex/base/fontenc.sty
 Package: fontenc 2020/08/10 v2.0s Standard LaTeX package
 ) (/usr/share/texlive/texmf-dist/tex/latex/graphics/graphicx.sty
@@ -767,7 +767,7 @@ File: tikzlibraryangles.code.tex 2020/12/27 v3.1.8b (3.1.8b)
 File: tikzlibraryquotes.code.tex 2020/12/27 v3.1.8b (3.1.8b)
 ) (/usr/share/texlive/texmf-dist/tex/latex/tools/xspace.sty
 Package: xspace 2014/10/28 v1.13 Space after command names (DPC,MH)
-) (/workspaces/Geometric-Aware-Camera-Pose-Estimation/assets/article/configuration_files/config.tex (/usr/share/texlive/texmf-dist/tex/latex/geometry/geometry.sty
+) (/workspaces/cylinder-based-homotopy-camera-calibration/assets/article/configuration_files/config.tex (/usr/share/texlive/texmf-dist/tex/latex/geometry/geometry.sty
 Package: geometry 2020/01/02 v5.9 Page Geometry
  (/usr/share/texlive/texmf-dist/tex/generic/iftex/ifvtex.sty
 Package: ifvtex 2019/10/25 v1.7 ifvtex legacy package. Use iftex instead.
@@ -788,7 +788,7 @@ Package: ifvtex 2019/10/25 v1.7 ifvtex legacy package. Use iftex instead.
 \c@theorem=\count345
 \c@proposition=\count346
 \c@algsubstate=\count347
-) (/workspaces/Geometric-Aware-Camera-Pose-Estimation/assets/article/abstract.tex) (/workspaces/Geometric-Aware-Camera-Pose-Estimation/assets/article/main.aux)
+) (/workspaces/cylinder-based-homotopy-camera-calibration/assets/article/abstract.tex) (/workspaces/cylinder-based-homotopy-camera-calibration/assets/article/main.aux)
 \openout1 = `main.aux'.
 
 LaTeX Font Info:    Checking defaults for OML/cmm/m/it on input line 168.
@@ -850,7 +850,7 @@ Package: gettitlestring 2019/12/15 v1.6 Cleanup title references (HO)
 LaTeX Info: Redefining \ref on input line 168.
 LaTeX Info: Redefining \pageref on input line 168.
 LaTeX Info: Redefining \nameref on input line 168.
- (/workspaces/Geometric-Aware-Camera-Pose-Estimation/assets/article/main.out) (/workspaces/Geometric-Aware-Camera-Pose-Estimation/assets/article/main.out)
+ (/workspaces/cylinder-based-homotopy-camera-calibration/assets/article/main.out) (/workspaces/cylinder-based-homotopy-camera-calibration/assets/article/main.out)
 \@outlinefile=\write7
 \openout7 = `main.out'.
 
@@ -889,12 +889,12 @@ LaTeX Info: Redefining \nameref on input line 168.
 * \@reversemarginfalse
 * (1in=72.27pt=25.4mm, 1cm=28.453pt)
 
-(/workspaces/Geometric-Aware-Camera-Pose-Estimation/assets/article/configuration_files/title_page.tex
+(/workspaces/cylinder-based-homotopy-camera-calibration/assets/article/configuration_files/title_page.tex
 Package epstopdf Info: Source file: <images//logo_polimi_ing_indinf.eps>
-(epstopdf)                    date: 2025-06-17 12:24:05
+(epstopdf)                    date: 2025-06-30 12:16:48
 (epstopdf)                    size: 1016894 bytes
 (epstopdf)             Output file: <images//logo_polimi_ing_indinf-eps-converted-to.pdf>
-(epstopdf)                    date: 2025-06-17 12:24:05
+(epstopdf)                    date: 2025-06-30 12:16:48
 (epstopdf)                    size: 81860 bytes
 (epstopdf)             Command: <repstopdf --outfile=images//logo_polimi_ing_indinf-eps-converted-to.pdf images//logo_polimi_ing_indinf.eps>
 (epstopdf)             \includegraphics on input line 5.
@@ -953,17 +953,17 @@ File: umsa.fd 2013/01/14 v3.01 AMS symbols A
 LaTeX Font Info:    Trying to load font information for U+msb on input line 36.
  (/usr/share/texlive/texmf-dist/tex/latex/amsfonts/umsb.fd
 File: umsb.fd 2013/01/14 v3.01 AMS symbols B
-)) (/workspaces/Geometric-Aware-Camera-Pose-Estimation/assets/article/chapters/introduction.tex
+)) (/workspaces/cylinder-based-homotopy-camera-calibration/assets/article/chapters/introduction.tex
 <images/header_image/teaser.pdf, id=133, 2213.26875pt x 700.6175pt>
 File: images/header_image/teaser.pdf Graphic file (type pdf)
 <use images/header_image/teaser.pdf>
 Package pdftex.def Info: images/header_image/teaser.pdf  used on input line 6.
 (pdftex.def)             Requested size: 483.69687pt x 153.11003pt.
 Package epstopdf Info: Source file: <images//raggiera_polimi.eps>
-(epstopdf)                    date: 2025-06-17 12:24:05
+(epstopdf)                    date: 2025-06-30 12:16:48
 (epstopdf)                    size: 1813066 bytes
 (epstopdf)             Output file: <images//raggiera_polimi-eps-converted-to.pdf>
-(epstopdf)                    date: 2025-06-17 12:24:05
+(epstopdf)                    date: 2025-06-30 12:16:48
 (epstopdf)                    size: 40408 bytes
 (epstopdf)             Command: <repstopdf --outfile=images//raggiera_polimi-eps-converted-to.pdf images//raggiera_polimi.eps>
 (epstopdf)             \includegraphics on input line 17.
@@ -975,7 +975,7 @@ Package pdftex.def Info: images//raggiera_polimi-eps-converted-to.pdf  used on i
 (pdftex.def)             Requested size: 262.90492pt x 262.90266pt.
  [1
 
-{/var/lib/texmf/fonts/map/pdftex/updmap/pdftex.map} </workspaces/Geometric-Aware-Camera-Pose-Estimation/assets/article/images//raggiera_polimi-eps-converted-to.pdf> </workspaces/Geometric-Aware-Camera-Pose-Estimation/assets/article/images//logo_polimi_ing_indinf-eps-converted-to.pdf>] [2 </workspaces/Geometric-Aware-Camera-Pose-Estimation/assets/article/images/header_image/teaser.pdf>] [3] [4]) (/workspaces/Geometric-Aware-Camera-Pose-Estimation/assets/article/chapters/problem_formulation.tex
+{/var/lib/texmf/fonts/map/pdftex/updmap/pdftex.map} </workspaces/cylinder-based-homotopy-camera-calibration/assets/article/images//raggiera_polimi-eps-converted-to.pdf> </workspaces/cylinder-based-homotopy-camera-calibration/assets/article/images//logo_polimi_ing_indinf-eps-converted-to.pdf>] [2 </workspaces/cylinder-based-homotopy-camera-calibration/assets/article/images/header_image/teaser.pdf>] [3] [4]) (/workspaces/cylinder-based-homotopy-camera-calibration/assets/article/chapters/problem_formulation.tex
 <images/backprojection.png, id=322, 1226.5825pt x 1092.08pt>
 File: images/backprojection.png Graphic file (type png)
 <use images/backprojection.png>
@@ -986,7 +986,7 @@ File: images/cone_planes.png Graphic file (type png)
 <use images/cone_planes.png>
 Package pdftex.def Info: images/cone_planes.png  used on input line 52.
 (pdftex.def)             Requested size: 212.82779pt x 212.81236pt.
- (/workspaces/Geometric-Aware-Camera-Pose-Estimation/assets/article/tables/scene_configurations.tex) (/workspaces/Geometric-Aware-Camera-Pose-Estimation/assets/article/tables/configurations.tex)) (/workspaces/Geometric-Aware-Camera-Pose-Estimation/assets/article/chapters/related_work.tex [5] [6 </workspaces/Geometric-Aware-Camera-Pose-Estimation/assets/article/images/backprojection.png> </workspaces/Geometric-Aware-Camera-Pose-Estimation/assets/article/images/cone_planes.png>] [7] (/workspaces/Geometric-Aware-Camera-Pose-Estimation/assets/article/tables/comparison.tex)) (/workspaces/Geometric-Aware-Camera-Pose-Estimation/assets/article/chapters/background/index.tex [8] (/workspaces/Geometric-Aware-Camera-Pose-Estimation/assets/article/chapters/background/homotopy.tex [9]
+ (/workspaces/cylinder-based-homotopy-camera-calibration/assets/article/tables/scene_configurations.tex) (/workspaces/cylinder-based-homotopy-camera-calibration/assets/article/tables/configurations.tex)) (/workspaces/cylinder-based-homotopy-camera-calibration/assets/article/chapters/related_work.tex [5] [6 </workspaces/cylinder-based-homotopy-camera-calibration/assets/article/images/backprojection.png> </workspaces/cylinder-based-homotopy-camera-calibration/assets/article/images/cone_planes.png>] [7] (/workspaces/cylinder-based-homotopy-camera-calibration/assets/article/tables/comparison.tex)) (/workspaces/cylinder-based-homotopy-camera-calibration/assets/article/chapters/background/index.tex [8] (/workspaces/cylinder-based-homotopy-camera-calibration/assets/article/chapters/background/homotopy.tex [9]
 <images/homotopy_predictor_corrector.png, id=443, 1836.8625pt x 1000.73875pt>
 File: images/homotopy_predictor_corrector.png Graphic file (type png)
 <use images/homotopy_predictor_corrector.png>
@@ -994,7 +994,7 @@ Package pdftex.def Info: images/homotopy_predictor_corrector.png  used on input 
 (pdftex.def)             Requested size: 411.14528pt x 223.99599pt.
  [10]
 Package hyperref Info: bookmark level for unknown algorithm defaults to 0 on input line 73.
- [11 </workspaces/Geometric-Aware-Camera-Pose-Estimation/assets/article/images/homotopy_predictor_corrector.png>]
+ [11 </workspaces/cylinder-based-homotopy-camera-calibration/assets/article/images/homotopy_predictor_corrector.png>]
 Underfull \hbox (badness 1655) in paragraph at lines 146--146
 [][]\T1/cmr/m/n/9 (a)[][] []| A parabola in-
  []
@@ -1024,7 +1024,7 @@ Underfull \hbox (badness 3417) in paragraph at lines 175--175
 \T1/cmr/m/n/9 the poly-no-mial sys-tem
  []
 
-[12 </workspaces/Geometric-Aware-Camera-Pose-Estimation/assets/article/images/parametric_homotopy/family_surface.png>]
+[12 </workspaces/cylinder-based-homotopy-camera-calibration/assets/article/images/parametric_homotopy/family_surface.png>]
 LaTeX Font Info:    Trying to load font information for T1+cmtt on input line 233.
  (/usr/share/texlive/texmf-dist/tex/latex/base/t1cmtt.fd
 File: t1cmtt.fd 2019/12/16 v2.5j Standard LaTeX font definitions
@@ -1049,7 +1049,7 @@ File: images//monodromy/successful_monodromy.png Graphic file (type png)
 <use images//monodromy/successful_monodromy.png>
 Package pdftex.def Info: images//monodromy/successful_monodromy.png  used on input line 266.
 (pdftex.def)             Requested size: 101.57959pt x 101.57062pt.
-) (/workspaces/Geometric-Aware-Camera-Pose-Estimation/assets/article/chapters/background/geometric_constraints.tex [13 </workspaces/Geometric-Aware-Camera-Pose-Estimation/assets/article/images//monodromy/original.png> </workspaces/Geometric-Aware-Camera-Pose-Estimation/assets/article/images//monodromy/parameter_surface.png> </workspaces/Geometric-Aware-Camera-Pose-Estimation/assets/article/images//monodromy/midloop.png> </workspaces/Geometric-Aware-Camera-Pose-Estimation/assets/article/images//monodromy/successful_monodromy.png>])) (/workspaces/Geometric-Aware-Camera-Pose-Estimation/assets/article/chapters/method.tex
+) (/workspaces/cylinder-based-homotopy-camera-calibration/assets/article/chapters/background/geometric_constraints.tex [13 </workspaces/cylinder-based-homotopy-camera-calibration/assets/article/images//monodromy/original.png> </workspaces/cylinder-based-homotopy-camera-calibration/assets/article/images//monodromy/parameter_surface.png> </workspaces/cylinder-based-homotopy-camera-calibration/assets/article/images//monodromy/midloop.png> </workspaces/cylinder-based-homotopy-camera-calibration/assets/article/images//monodromy/successful_monodromy.png>])) (/workspaces/cylinder-based-homotopy-camera-calibration/assets/article/chapters/method.tex
 
 Package hyperref Warning: Token not allowed in a PDF string (PDFDocEncoding):
 (hyperref)                removing `math shift' on input line 13.
@@ -1067,7 +1067,7 @@ Overfull \hbox (21.17717pt too wide) in paragraph at lines 141--142
 []\T1/cmr/m/n/10 Rotation $\OT1/cmss/m/n/10 R[]$ \T1/cmr/m/n/10 for each cam-era is picked with a \T1/cmr/m/it/10 look at \T1/cmr/m/n/10 func-tion pointed at the world ori-gin $\OT1/cmr/bx/n/10 o \OT1/cmr/m/n/10 = []$
  []
 
-[17] [18]) (/workspaces/Geometric-Aware-Camera-Pose-Estimation/assets/article/chapters/experiments.tex [19]
+[17] [18]) (/workspaces/cylinder-based-homotopy-camera-calibration/assets/article/chapters/experiments.tex [19]
 <images/compares/delta_f.pdf, id=717, 324.2174pt x 271.26959pt>
 File: images/compares/delta_f.pdf Graphic file (type pdf)
 <use images/compares/delta_f.pdf>
@@ -1114,7 +1114,7 @@ Overfull \hbox (14.52216pt too wide) in paragraph at lines 184--188
  [][][][] 
  []
 
-[21 </workspaces/Geometric-Aware-Camera-Pose-Estimation/assets/article/images/compares/delta_f.pdf> </workspaces/Geometric-Aware-Camera-Pose-Estimation/assets/article/images/compares/delta_uv.pdf> </workspaces/Geometric-Aware-Camera-Pose-Estimation/assets/article/images/compares/delta_skew.pdf> </workspaces/Geometric-Aware-Camera-Pose-Estimation/assets/article/images/compares/delta_r.pdf> </workspaces/Geometric-Aware-Camera-Pose-Estimation/assets/article/images/compares/delta_t.pdf> </workspaces/Geometric-Aware-Camera-Pose-Estimation/assets/article/images/compares/success_rate.pdf> </workspaces/Geometric-Aware-Camera-Pose-Estimation/assets/article/images/scenes/pipes/camera_1.png> </workspaces/Geometric-Aware-Camera-Pose-Estimation/assets/article/images/scenes/pipes/camera_2.png>]
+[21 </workspaces/cylinder-based-homotopy-camera-calibration/assets/article/images/compares/delta_f.pdf> </workspaces/cylinder-based-homotopy-camera-calibration/assets/article/images/compares/delta_uv.pdf> </workspaces/cylinder-based-homotopy-camera-calibration/assets/article/images/compares/delta_skew.pdf> </workspaces/cylinder-based-homotopy-camera-calibration/assets/article/images/compares/delta_r.pdf> </workspaces/cylinder-based-homotopy-camera-calibration/assets/article/images/compares/delta_t.pdf> </workspaces/cylinder-based-homotopy-camera-calibration/assets/article/images/compares/success_rate.pdf> </workspaces/cylinder-based-homotopy-camera-calibration/assets/article/images/scenes/pipes/camera_1.png> </workspaces/cylinder-based-homotopy-camera-calibration/assets/article/images/scenes/pipes/camera_2.png>]
 <images/scenes/roller_coaster/rollercoaster_gummeson.png, id=940, 3854.4pt x 2168.1pt>
 File: images/scenes/roller_coaster/rollercoaster_gummeson.png Graphic file (type png)
 <use images/scenes/roller_coaster/rollercoaster_gummeson.png>
@@ -1130,7 +1130,7 @@ Overfull \hbox (14.52216pt too wide) in paragraph at lines 208--212
  [][][][] 
  []
 
-(/workspaces/Geometric-Aware-Camera-Pose-Estimation/assets/article/tables/scenes_compare.tex
+(/workspaces/cylinder-based-homotopy-camera-calibration/assets/article/tables/scenes_compare.tex
 LaTeX Font Info:    Trying to load font information for T1+cmss on input line 7.
  (/usr/share/texlive/texmf-dist/tex/latex/base/t1cmss.fd
 File: t1cmss.fd 2019/12/16 v2.5j Standard LaTeX font definitions
@@ -1139,7 +1139,7 @@ Overfull \hbox (18.38438pt too wide) in paragraph at lines 3--31
  [][] 
  []
 
-)) (/workspaces/Geometric-Aware-Camera-Pose-Estimation/assets/article/chapters/applications/index.tex [22 </workspaces/Geometric-Aware-Camera-Pose-Estimation/assets/article/images/scenes/roller_coaster/rollercoaster_gummeson.png> </workspaces/Geometric-Aware-Camera-Pose-Estimation/assets/article/images/scenes/roller_coaster/rollercoaster_ours.png>] (/workspaces/Geometric-Aware-Camera-Pose-Estimation/assets/article/chapters/applications/camera_calibration_rig.tex
+)) (/workspaces/cylinder-based-homotopy-camera-calibration/assets/article/chapters/applications/index.tex [22 </workspaces/cylinder-based-homotopy-camera-calibration/assets/article/images/scenes/roller_coaster/rollercoaster_gummeson.png> </workspaces/cylinder-based-homotopy-camera-calibration/assets/article/images/scenes/roller_coaster/rollercoaster_ours.png>] (/workspaces/cylinder-based-homotopy-camera-calibration/assets/article/chapters/applications/camera_calibration_rig.tex
 <images//applications/camera_rig/3dprint.png, id=974, 642.4pt x 642.4pt>
 File: images//applications/camera_rig/3dprint.png Graphic file (type png)
 <use images//applications/camera_rig/3dprint.png>
@@ -1185,7 +1185,7 @@ Overfull \hbox (3.64833pt too wide) in paragraph at lines 23--49
 [][]  [][]  [][] 
  []
 
-) (/workspaces/Geometric-Aware-Camera-Pose-Estimation/assets/article/chapters/applications/automatic_recalibration.tex [23] [24 </workspaces/Geometric-Aware-Camera-Pose-Estimation/assets/article/images//applications/camera_rig/3dprint.png> </workspaces/Geometric-Aware-Camera-Pose-Estimation/assets/article/images//applications/camera_rig/setup.png> </workspaces/Geometric-Aware-Camera-Pose-Estimation/assets/article/images//applications/camera_rig/photo.png> </workspaces/Geometric-Aware-Camera-Pose-Estimation/assets/article/images//applications/camera_rig/edge_detector.png> </workspaces/Geometric-Aware-Camera-Pose-Estimation/assets/article/images//applications/camera_rig/match.png> </workspaces/Geometric-Aware-Camera-Pose-Estimation/assets/article/images//applications/camera_rig/homotopy.png>]) (/workspaces/Geometric-Aware-Camera-Pose-Estimation/assets/article/chapters/applications/extended_reality.tex
+) (/workspaces/cylinder-based-homotopy-camera-calibration/assets/article/chapters/applications/automatic_recalibration.tex [23] [24 </workspaces/cylinder-based-homotopy-camera-calibration/assets/article/images//applications/camera_rig/3dprint.png> </workspaces/cylinder-based-homotopy-camera-calibration/assets/article/images//applications/camera_rig/setup.png> </workspaces/cylinder-based-homotopy-camera-calibration/assets/article/images//applications/camera_rig/photo.png> </workspaces/cylinder-based-homotopy-camera-calibration/assets/article/images//applications/camera_rig/edge_detector.png> </workspaces/cylinder-based-homotopy-camera-calibration/assets/article/images//applications/camera_rig/match.png> </workspaces/cylinder-based-homotopy-camera-calibration/assets/article/images//applications/camera_rig/homotopy.png>]) (/workspaces/cylinder-based-homotopy-camera-calibration/assets/article/chapters/applications/extended_reality.tex
 <images//applications/extended_reality/frame1.png, id=1011, 650.43pt x 1156.32pt>
 File: images//applications/extended_reality/frame1.png Graphic file (type png)
 <use images//applications/extended_reality/frame1.png>
@@ -1216,11 +1216,11 @@ Overfull \hbox (6.07066pt too wide) in paragraph at lines 81--98
 [][][][][][][][][][] 
  []
 
-)) (/workspaces/Geometric-Aware-Camera-Pose-Estimation/assets/article/chapters/conclusions.tex [25] [26 </workspaces/Geometric-Aware-Camera-Pose-Estimation/assets/article/images//applications/extended_reality/frame1.png> </workspaces/Geometric-Aware-Camera-Pose-Estimation/assets/article/images//applications/extended_reality/frame3.png> </workspaces/Geometric-Aware-Camera-Pose-Estimation/assets/article/images//applications/extended_reality/frame4.png> </workspaces/Geometric-Aware-Camera-Pose-Estimation/assets/article/images//applications/extended_reality/frame5.png> </workspaces/Geometric-Aware-Camera-Pose-Estimation/assets/article/images//applications/extended_reality/frame6.png>]) (/workspaces/Geometric-Aware-Camera-Pose-Estimation/assets/article/main.bbl [27] [28]) [29] (/workspaces/Geometric-Aware-Camera-Pose-Estimation/assets/article/chapters/appendix_a.tex) (/workspaces/Geometric-Aware-Camera-Pose-Estimation/assets/article/chapters/appendix_b.tex) [30
+)) (/workspaces/cylinder-based-homotopy-camera-calibration/assets/article/chapters/conclusions.tex [25] [26 </workspaces/cylinder-based-homotopy-camera-calibration/assets/article/images//applications/extended_reality/frame1.png> </workspaces/cylinder-based-homotopy-camera-calibration/assets/article/images//applications/extended_reality/frame3.png> </workspaces/cylinder-based-homotopy-camera-calibration/assets/article/images//applications/extended_reality/frame4.png> </workspaces/cylinder-based-homotopy-camera-calibration/assets/article/images//applications/extended_reality/frame5.png> </workspaces/cylinder-based-homotopy-camera-calibration/assets/article/images//applications/extended_reality/frame6.png>]) (/workspaces/cylinder-based-homotopy-camera-calibration/assets/article/main.bbl [27] [28]) [29] (/workspaces/cylinder-based-homotopy-camera-calibration/assets/article/chapters/appendix_a.tex) (/workspaces/cylinder-based-homotopy-camera-calibration/assets/article/chapters/appendix_b.tex) [30
 
-] (/workspaces/Geometric-Aware-Camera-Pose-Estimation/assets/article/abstract_it.tex) [31
+] (/workspaces/cylinder-based-homotopy-camera-calibration/assets/article/abstract_it.tex) [31
 
-] (/workspaces/Geometric-Aware-Camera-Pose-Estimation/assets/article/main.aux)
+] (/workspaces/cylinder-based-homotopy-camera-calibration/assets/article/main.aux)
 
 LaTeX Font Warning: Size substitutions with differences
 (Font)              up to 0.4641pt have occurred.
@@ -1230,14 +1230,14 @@ Package rerunfilecheck Info: File `main.out' has not changed.
  ) 
 Here is how much of TeX's memory you used:
  29051 strings out of 479304
- 565612 string characters out of 5869779
- 992790 words of memory out of 5000000
+ 565876 string characters out of 5869779
+ 992789 words of memory out of 5000000
  45205 multiletter control sequences out of 15000+600000
  440537 words of font info for 123 fonts, out of 8000000 for 9000
  1141 hyphenation exceptions out of 8191
- 86i,18n,88p,1217b,1054s stack positions out of 5000i,500n,10000p,200000b,80000s
+ 86i,18n,88p,1221b,1054s stack positions out of 5000i,500n,10000p,200000b,80000s
 {/usr/share/texmf/fonts/enc/dvips/cm-super/cm-super-ts1.enc}{/usr/share/texmf/fonts/enc/dvips/cm-super/cm-super-t1.enc}</usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmbx10.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmbx12.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmbx7.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmbx8.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmbx9.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmex10.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi10.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi12.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi5.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi6.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi7.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi8.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi9.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmr10.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmr12.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmr5.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmr6.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmr7.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmr8.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmr9.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmss10.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmss12.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmss8.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmss9.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy10.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy6.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy7.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy8.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy9.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/symbols/msbm10.pfb></usr/share/texmf/fonts/type1/public/cm-super/sfbi1000.pfb></usr/share/texmf/fonts/type1/public/cm-super/sfbx0800.pfb></usr/share/texmf/fonts/type1/public/cm-super/sfbx1000.pfb></usr/share/texmf/fonts/type1/public/cm-super/sfbx1095.pfb></usr/share/texmf/fonts/type1/public/cm-super/sfbx1200.pfb></usr/share/texmf/fonts/type1/public/cm-super/sfbx1440.pfb></usr/share/texmf/fonts/type1/public/cm-super/sfcc1000.pfb></usr/share/texmf/fonts/type1/public/cm-super/sfrm0800.pfb></usr/share/texmf/fonts/type1/public/cm-super/sfrm0900.pfb></usr/share/texmf/fonts/type1/public/cm-super/sfrm1000.pfb></usr/share/texmf/fonts/type1/public/cm-super/sfrm1095.pfb></usr/share/texmf/fonts/type1/public/cm-super/sfrm1200.pfb></usr/share/texmf/fonts/type1/public/cm-super/sfss0600.pfb></usr/share/texmf/fonts/type1/public/cm-super/sfti0900.pfb></usr/share/texmf/fonts/type1/public/cm-super/sfti1000.pfb></usr/share/texmf/fonts/type1/public/cm-super/sftt1000.pfb></usr/share/texmf/fonts/type1/public/cm-super/sfxc0900.pfb></usr/share/texlive/texmf-dist/fonts/type1/urw/zapfding/uzdr.pfb>
-Output written on /workspaces/Geometric-Aware-Camera-Pose-Estimation/assets/article/main.pdf (31 pages, 35960127 bytes).
+Output written on /workspaces/cylinder-based-homotopy-camera-calibration/assets/article/main.pdf (31 pages, 35962788 bytes).
 PDF statistics:
  1313 PDF objects out of 1440 (max. 8388607)
  1014 compressed objects within 11 object streams
