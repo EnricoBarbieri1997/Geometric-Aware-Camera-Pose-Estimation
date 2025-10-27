@@ -124,11 +124,11 @@ function equations()
     ]
     # camera_rotations_raw = [
     #     [271 // 12, 123 // 8, -11 // 16], # [3π / 4, 0, 5π / 4],
-    #     [-32 // 5, 1881 // 13, 271 // 12]  # [π / 3, 0, 3π / 4]
+    #     [13//25, 44//35, -70//29]
     # ]
     camera_rotations_raw = [
         [271 / 12, 123 / 8, -11 / 16], # [3π / 4, 0, 5π / 4],
-        [-32 / 5, 1881 / 13, 271 / 12]  # [π / 3, 0, 3π / 4]
+        [13 / 25, 44 / 35, -70 / 29]
     ]
     camera_rotations = [
         build_rotation_matrix(camera_rotations_raw[1]..., false),
@@ -180,7 +180,7 @@ function equations()
                 display(line)
                 a = -line[1] / line[2]
                 b = -line[3] / line[2]
-                if camera_index == 1
+                if camera_index == 2
                     draw_lines!(ax, x, a .* x .+ b, color=colors[cylinder_index])
                 end
             end
