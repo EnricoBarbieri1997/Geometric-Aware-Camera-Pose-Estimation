@@ -170,6 +170,7 @@ function equations()
     ax = Axis(f[1, 1]; aspect=DataAspect())
     xlims!(ax, -4000, 1000)
     ylims!(ax, -4000, 1000)
+    colors = [:red, :green, :blue]
 
     for camera_index in 1:2
         for cylinder_index in 1:3
@@ -180,7 +181,7 @@ function equations()
                 a = -line[1] / line[2]
                 b = -line[3] / line[2]
                 if camera_index == 1
-                    draw_lines!(ax, x, a .* x .+ b)
+                    draw_lines!(ax, x, a .* x .+ b, color=colors[cylinder_index])
                 end
             end
         end
