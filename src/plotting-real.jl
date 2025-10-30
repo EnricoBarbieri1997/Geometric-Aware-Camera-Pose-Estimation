@@ -15,8 +15,8 @@ using JSON
 
 function add_2d_axis!()
     index = length(ax2_array) + 1
-    row = ceil(Int, index / 2)
-    col = index % 2
+    col = ceil(Int, index / 2)
+    row = index % 2
     if col == 0
         col = 2
     end
@@ -86,13 +86,13 @@ function initfigure()
     scatter!(ax3, (0, -30, 0), color = :green, markersize = 10, alpha=0.5)
     scatter!(ax3, (0, 0, 30), color = :blue, markersize = 10)
     scatter!(ax3, (0, 0, -30), color = :blue, markersize = 10, alpha=0.5)
-    rowsize!(f.layout, 1, Relative(2/3))
-    colsize!(f.layout, 1, Relative(2/3))
+    # rowsize!(f.layout, 1, Relative(2/3))
+    # colsize!(f.layout, 1, Relative(2/3))
     grid_2d = f[1, 2] = GridLayout()
     Label(grid_2d[:, :, Top()], "Conics")
     ax2_array = []
     add_2d_axis!()
-    camera_roation_layout = f[2, :] = GridLayout()
+    # camera_roation_layout = f[2, :] = GridLayout()
     camera_rotation_axes = []
     cameras = []
 
