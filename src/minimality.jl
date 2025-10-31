@@ -141,12 +141,12 @@ function equations()
     #     [13//25, 44//35, -70//29]
     # ]
     camera_rotations_raw = [
-        [271 / 12, 123 / 8, -11 / 16],
-        [13 / 25, 44 / 35, -70 / 29]
+        [1, 1, 1],
+        [1, 3, 1]
     ]
     camera_rotations = [
-        build_rotation_matrix(camera_rotations_raw[1]..., false),
-        build_rotation_matrix(camera_rotations_raw[2]..., false),
+        build_rotation_matrix(camera_rotations_raw[1]..., true),
+        build_rotation_matrix(camera_rotations_raw[2]..., true),
     ]
     display("Camera rotations")
     display(camera_rotations)
@@ -181,7 +181,7 @@ function equations()
         ca.euler_rotation = rad2deg.(eulerangles_from_rotationmatrix(camera_rotations[camera_index]))
         ca.intrinsic = real_intrinsics
         plot_3dcamera(ca)
-        cylinders_3d_to_view = []
+        cylinders_3d_to_view::Vector{CylinderProperties} = []
         for cylinder_index in 1:3
             cy = CylinderProperties()
             cy.transform = cylinders_transform_matrices[cylinder_index]
