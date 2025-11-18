@@ -1,9 +1,8 @@
-module Minimality
+module MinimalityOld
 
 using LinearAlgebra: cross, dot, norm, normalize, diagm, inv, hcat, vcat, rank
-using ..Geometry: Circle, Line, get_cylinder_contours
-using ..Space: build_rotation_matrix
-using ..Camera: CameraProperties, lookat_rotation, build_camera_matrix
+using ..Geometry: Circle, Line
+using ..Camera: CameraProperties
 using ..Cylinder: CylinderProperties, standard_and_dual as standard_and_dual_cylinder
 using ..Utils: eulerangles_from_rotationmatrix
 using Rotations
@@ -19,80 +18,98 @@ function toZero(val)
     return val
 end
 
-# function get_tangentpoints_circle_point(circle::Circle, point::Vector{<:Number})
-#     variation = point - circle.center
-#     d = norm(variation)
-#     r = circle.radius
+function build_rotation_matrix(x, y, z, include_normalization = false)
+    # R parametrized by x, y, z
+    # https://en.wikipedia.org/wiki/Cayley_transform#Examples
+    # 4.1.2 https://www.cv-foundation.org/openaccess/content_cvpr_2016/papers/Kukelova_Efficient_Intersection_of_CVPR_2016_paper.pdf
+    k = 1 + x^2 + y^2 + z^2
+    Rₚ = [
+            1 + x^2 - y^2 - z^2     2*x*y - 2*z        2*y + 2*x*z;
+            2*z + 2*x*y             1 - x^2 + y^2 - z^2  2*y*z - 2*x;
+            2*x*z - 2*y             2*x + 2*y*z        1 - x^2 - y^2 + z^2
+    ]
 
-#     if d <= r
-#         throw(TangentLineNotFound("The point is inside the circle"))
-#     end
-#     if (d / r - 1) < 1E-8
-#         throw(TangentLineNotFound("The point is on the circle"))
-#     end
+    if (include_normalization)
+            Rₚ = (1 // k) * Rₚ
+    end
 
-#     R = sqrt(d^2 - r^2)
-#     rho = r / d
-#     ad = rho^2 * d
-#     bd = rho * R / d * d
-#     axis = normalize(circle.axis)
+    return Rₚ
+end
 
-#     adv = normalize(variation)
-#     if !isnothing(axis)
-#         bdv = normalize(cross(axis, adv))
-#     else
-#         bdv = normalize(adv .* [1, -1])
-#     end
+function get_tangentpoints_circle_point(circle::Circle, point::Vector{<:Number})
+    variation = point - circle.center
+    d = norm(variation)
+    r = circle.radius
 
-#     T1 = circle.center + ad * adv + bd * bdv
-#     T2 = circle.center + ad * adv - bd * bdv
+    if d <= r
+        throw(TangentLineNotFound("The point is inside the circle"))
+    end
+    if (d / r - 1) < 1E-8
+        throw(TangentLineNotFound("The point is on the circle"))
+    end
 
-#     T1 = rationalize.(toZero.(T1); tol=1E-6)
-#     T2 = rationalize.(toZero.(T2); tol=1E-6)
-#     return T1, T2
+    R = sqrt(d^2 - r^2)
+    rho = r / d
+    ad = rho^2 * d
+    bd = rho * R / d * d
+    axis = normalize(circle.axis)
 
-#     throw(TangentLineNotFound("No tangent line possible"))
-# end
+    adv = normalize(variation)
+    if !isnothing(axis)
+        bdv = normalize(cross(axis, adv))
+    else
+        bdv = normalize(adv .* [1, -1])
+    end
 
-# function build_camera_matrix(intrinsic, rotation, translation; use_rotation_as_is=false, use_translation_as_is=false)
-#     r₁ = rotation
-#     if (!use_rotation_as_is)
-#         r₁ = r₁' # inv(r)
-#     end
-#     t₁ = translation
-#     if (!use_translation_as_is)
-#         t₁ = -r₁ * translation
-#     end
-#     m = hcat(intrinsic, zeros(Rational, 3)) * vcat(hcat(r₁, t₁), [0 0 0 1])
-#     return m ./ m[3, 4]
-# end
+    T1 = circle.center + ad * adv + bd * bdv
+    T2 = circle.center + ad * adv - bd * bdv
 
-# function project_point_into_line(point::Vector{<:Number}, line::Line)::Vector{<:Number}
-#     direction = rationalize.(line.direction / norm(line.direction))
-#     # direction = line.direction / norm(line.direction)
-#     origin = line.origin
-#     v = point - origin
-#     return origin + dot(v, direction) * direction
-# end
+    T1 = rationalize.(toZero.(T1); tol=1E-6)
+    T2 = rationalize.(toZero.(T2); tol=1E-6)
+    return T1, T2
 
-# function get_cylinder_contours(cylinder_axis, camera_position, camera_matrix)
-#     radius = 1
-#     cylinder_axis = cylinder_axis[1:3]
-#     circlecenter = project_point_into_line(camera_position, Line([0, 0, 0], cylinder_axis))
-#     tangentpoint₁, tangentpoint₂ = get_tangentpoints_circle_point(
-#         Circle(circlecenter, radius, cylinder_axis),
-#         camera_position
-#     )
+    throw(TangentLineNotFound("No tangent line possible"))
+end
 
-#     projected_tangentpoint₁ = (camera_matrix * [tangentpoint₁; 1])
-#     projected_tangentpoint₂ = (camera_matrix * [tangentpoint₂; 1])
-#     projected_cylinderaxis = (camera_matrix * [cylinder_axis; 0])
+function build_camera_matrix(intrinsic, rotation, translation; use_rotation_as_is=false, use_translation_as_is=false)
+    r₁ = rotation
+    if (!use_rotation_as_is)
+        r₁ = r₁' # inv(r)
+    end
+    t₁ = translation
+    if (!use_translation_as_is)
+        t₁ = -r₁ * translation
+    end
+    m = hcat(intrinsic, zeros(Rational, 3)) * vcat(hcat(r₁, t₁), [0 0 0 1])
+    return m ./ m[3, 4]
+end
 
-#     contour₁ = cross(projected_tangentpoint₁, projected_tangentpoint₁ + projected_cylinderaxis)
-#     contour₂ = cross(projected_tangentpoint₂, projected_tangentpoint₂ + projected_cylinderaxis)
+function project_point_into_line(point::Vector{<:Number}, line::Line)::Vector{<:Number}
+    direction = rationalize.(line.direction / norm(line.direction))
+    # direction = line.direction / norm(line.direction)
+    origin = line.origin
+    v = point - origin
+    return origin + dot(v, direction) * direction
+end
 
-#     return (contour₁, contour₂)
-# end
+function get_cylinder_contours(cylinder_axis, camera_position, camera_matrix)
+    radius = 1
+    cylinder_axis = cylinder_axis[1:3]
+    circlecenter = project_point_into_line(camera_position, Line([0, 0, 0], cylinder_axis))
+    tangentpoint₁, tangentpoint₂ = get_tangentpoints_circle_point(
+        Circle(circlecenter, radius, cylinder_axis),
+        camera_position
+    )
+
+    projected_tangentpoint₁ = (camera_matrix * [tangentpoint₁; 1])
+    projected_tangentpoint₂ = (camera_matrix * [tangentpoint₂; 1])
+    projected_cylinderaxis = (camera_matrix * [cylinder_axis; 0])
+
+    contour₁ = cross(projected_tangentpoint₁, projected_tangentpoint₁ + projected_cylinderaxis)
+    contour₂ = cross(projected_tangentpoint₂, projected_tangentpoint₂ + projected_cylinderaxis)
+
+    return (contour₁, contour₂)
+end
 
 function equations()
     real_intrinsics::Matrix{Rational} = [
@@ -132,19 +149,20 @@ function equations()
     end
 
     cameras_positions = [
-        [5.0, 3.0, -10.0],
-        [-6.0, -7.0, 10.0]
+        [4, 4, -10],
+        [-4, 4, -10]
+    ]
+    # camera_rotations_raw = [
+    #     [271 // 12, 123 // 8, -11 // 16], # [3π / 4, 0, 5π / 4],
+    #     [13//25, 44//35, -70//29]
+    # ]
+    camera_rotations_raw = [
+        [0, 0, 0],
+        [0, 0, 0]
     ]
     camera_rotations = [
-        lookat_rotation(cameras_positions[1], [0.0, 0.0, 0.0]),
-        lookat_rotation(cameras_positions[2], [0.0, 0.0, 0.0])
-    ]
-    camera_rotations_raw = [
-        Rotations.params(QuatRotation(camera_rotations[1])),
-        Rotations.params(QuatRotation(camera_rotations[2]))
-    ]
-    camera_rotations_raw = [
-        (camera_rotation ./ camera_rotation[1])[2:end] for camera_rotation in camera_rotations_raw
+        build_rotation_matrix(camera_rotations_raw[1]..., false),
+        build_rotation_matrix(camera_rotations_raw[2]..., false),
     ]
     display("Camera rotations")
     display(camera_rotations)
@@ -164,7 +182,6 @@ function equations()
     display(points_at_infinity)
     display("-----------------------")
     lines = zeros(Rational, 2, 3, 2, 3)
-    # lines = zeros(Float64, 2, 3, 2, 3)
 
     f = initfigure()
     axx = [
@@ -191,14 +208,10 @@ function equations()
             push!(cylinders_3d_to_view, cy)
 
             line1, line2 = get_cylinder_contours(
-                cy,
-                ca
+                points_at_infinity[cylinder_index],
+                cameras_positions[camera_index],
+                camera_matrices[camera_index]
             )
-            # line1, line2 = get_cylinder_contours(
-            #     points_at_infinity[cylinder_index],
-            #     cameras_positions[camera_index],
-            #     camera_matrices[camera_index]
-            # )
             lines[camera_index, cylinder_index, 1, :] = line1
             lines[camera_index, cylinder_index, 2, :] = line2
         end
