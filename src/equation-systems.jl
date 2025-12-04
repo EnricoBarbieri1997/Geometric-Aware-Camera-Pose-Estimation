@@ -92,8 +92,16 @@ module EquationSystems
 			lines::Array{Float64, 2},
 			noise_free_lines::Array{Float64, 2},
 			points_at_infinity::Array{Float64, 2},
-			dualquadrics::Array{Float64, 3}
+			dualquadrics::Array{Float64, 3},
+			intrinsic_configuration::UInt8 = IntrinsicParameters.focal_length_x | IntrinsicParameters.focal_length_y | IntrinsicParameters.skew | IntrinsicParameters.principal_point_x | IntrinsicParameters.principal_point_y
 		)
+			println(typeof(camera))
+			println(typeof(lines))
+			println(typeof(noise_free_lines))
+			println(typeof(points_at_infinity))
+			println(typeof(dualquadrics))
+			println(typeof(intrinsic_configuration))
+			
 			return CylinderCameraContoursProblem(
 				camera,
 				lines,
@@ -104,7 +112,7 @@ module EquationSystems
 				CylinderCameraContoursProblemValidationData(
 					[], [], [], []
 				),
-				IntrinsicParameters.focal_length_x | IntrinsicParameters.focal_length_y | IntrinsicParameters.skew | IntrinsicParameters.principal_point_x | IntrinsicParameters.principal_point_y
+				intrinsic_configuration
 			)
 		end
 	end
@@ -178,8 +186,6 @@ module EquationSystems
 			0 0 factor;
 		]
 
-		display(intrinsic)
-
 		for (index, problem) in enumerate(problems)
 			lines_count = size(problem.lines)[1]
 			Rparams = [
@@ -201,7 +207,6 @@ module EquationSystems
 		end
 
 		a = System(system_to_solve, variables = variables, parameters = parameters)
-		display(degree.(a))
 		return a
 	end
 

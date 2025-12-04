@@ -712,7 +712,6 @@ module Scene
 			parameters = []
 			for problem in problems
 				lines = problem.lines
-				display(lines)
 				if (
 					!isIntrinsicEnabled.cₓ(intrinsic_configuration) &&
 					!isIntrinsicEnabled.cᵧ(intrinsic_configuration) &&
