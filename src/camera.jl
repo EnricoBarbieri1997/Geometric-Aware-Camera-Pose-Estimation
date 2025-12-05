@@ -143,7 +143,7 @@ module Camera
 		return xaxis, yaxis, zaxis
 	end
 
-	function lookat_rotation(camera_pos::Vector{Number}, target_pos::Vector{Float64}, up::Vector{Float64} = [0.0, 0.0, 1.0])
+	function lookat_rotation(camera_pos::Union{Vector{Float64},Vector{Number}}, target_pos::Vector{Float64}, up::Vector{Float64} = [0.0, 0.0, 1.0])
 		forward = normalize(target_pos - camera_pos)        # camera Z axis (pointing into the scene)
 		right = normalize(cross(forward, up))               # camera X axis
 		down = -normalize(cross(right, forward))             # camera Y axis (but downward in image plane)

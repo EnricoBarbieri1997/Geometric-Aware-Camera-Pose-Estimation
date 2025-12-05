@@ -186,18 +186,22 @@ module EquationSystems
 			0 0 factor;
 		]
 
+		intrinsic_count = count_ones(UInt8(intrinsic_configuration))
+		extrinsic_count = size(problems)[1] * 3
+		lines_count = intrinsic_count + extrinsic_count
+
 		for (index, problem) in enumerate(problems)
-			lines_count = size(problem.lines)[1]
+			lines_to_pick = min(size(problem.lines)[1], lines_count - ceil(Int64, size(parameters)[1] / 3))
 			Rparams = [
 				Variable("R$(index)", i) for i in 1:3
 			]
 			R = build_rotation_matrix(Rparams..., false)
 			lines = reshape([
 				Variable("lines$(index)", i, j)
-				for i in 1:lines_count, j in 1:3
-			], lines_count, 3)
+				for i in 1:lines_to_pick, j in 1:3
+			], lines_to_pick, 3)
 
-			for line_index in 1:lines_count
+			for line_index in 1:lines_to_pick
 				equation = lines[line_index, :]' * intrinsic * R * problem.points_at_infinity[line_index, :]
 				push!(system_to_solve, equation)
 			end

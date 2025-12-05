@@ -1,17 +1,73 @@
 module SolutionGenerator
     export generate_configurations, generate_parameter_solution_pair, generate_all
-    using ..Geometry: get_cylinder_contours
+    using ..Geometry: get_cylinder_contours, homogeneous_anglebetween
     using ..Space: transformation
     using ..Cylinder: CylinderProperties, standard_and_dual as standard_and_dual_cylinder
     using ..Camera: CameraProperties, lookat_rotation
-    using ..Scene: SceneData, InstanceConfiguration, intrinsic_rotation_system_setup
+    using ..Scene: SceneData, InstanceConfiguration, intrinsic_rotation_system_setup, create_scene_instances_and_problems, plot_reconstructed_scene, plot_scene
     using ..EquationSystems.Problems: CylinderCameraContoursProblem, CylinderCameraContoursProblemValidationData
     using ..EquationSystems.Problems.IntrinsicParameters: Configurations as IntrinsicParametersConfigurations
     using ..Utils: eulerangles_from_rotationmatrix
+    using ..Plotting: plot_2dcylinders
     using LinearAlgebra, Serialization 
     using HomotopyContinuation, Rotations
 
     ASSERTS_ENABLED = false
+    CAMERAS_POOL_SIZE = 8
+
+    function solve_by_similarity()
+        intrinsic_configuration = IntrinsicParametersConfigurations.fₓ_fᵧ_cₓ_cᵧ
+        cylinders:: Vector{CylinderProperties} = canonical_cylinder_rig()
+
+        scene, original_problems = create_scene_instances_and_problems(;
+            cylinders_setup=cylinders,
+            number_of_cylinders = 3,
+		    number_of_instances = 2,
+            use_all_lines = true,
+            intrinsic_configuration,
+        )
+
+        plot_scene(scene, original_problems)
+
+        pairs = camera_pairs_by_similarity(scene.instances[1].conics_contours, scene.instances[2].conics_contours)
+
+        for pair in pairs
+            display(pair[1])
+            display(pair[2])
+            continue
+            reference_start = deserialize("./tmp/start_solutions/parameters_solution_pairs/$(pair[1]).jls")
+            problems = original_problems[pair[3:4]]
+            display(pair[1])
+            display(pair[3:4])
+            display(camera_indices_by_similarity(scene.instances[1].conics_contours)[1][1])
+            display(camera_indices_by_similarity(scene.instances[2].conics_contours)[1][1])
+
+            ids = parse.(Int, split(pair[1], "_"))
+            cv_1 = deserialize("./tmp/start_solutions/camera_view_pairs/$(ids[1]).jls")
+            cv_2 = deserialize("./tmp/start_solutions/camera_view_pairs/$(ids[2]).jls")
+
+            plot_2dcylinders(cv_1.view; axindex = 1)
+            plot_2dcylinders(cv_2.view; axindex = 2)
+
+            break
+
+            rotation_intrinsic_system, parameters = intrinsic_rotation_system_setup(
+                problems;
+                intrinsic_configuration
+            )
+
+            result = solve(
+                rotation_intrinsic_system,
+                reference_start.solutions;
+                start_parameters = reference_start.parameters,
+                target_parameters = parameters,
+            )
+
+            @info result
+        end
+
+        display(scene.figure)
+    end
 
     function generate_configurations()
         quadrants_directions::Array{Vector{Float64}} = [
@@ -44,23 +100,7 @@ module SolutionGenerator
 
         views::Array{Array{Float64, 3}} = []
         for camera in cameras
-            conics_contours = Array{Float64}(undef, 3, 2, 3)
-            for (i, cylinder) in enumerate(cylinders)
-                lines = get_cylinder_contours(
-                    cylinder,
-                    camera
-                )
-                for (j, line) in enumerate(lines)
-                    conics_contours[i, j, :] = line
-
-                    if (ASSERTS_ENABLED)
-                        @assert line' * conics[i].dual_matrix * line ≃ 0 "(3) Line of projected singular plane $(1) belongs to the dual conic $(1)"
-                        @assert line' * camera.matrix * cylinders[i].singular_point ≃ 0 "(8) Line $(j) of conic $(i) passes through the projected singular point"
-                        err = (line' * camera.matrix * cylinders[i].dual_matrix * camera.matrix' * line)
-                        @assert err ≃ 0 "(9) Line $(j) of conic $(i) is tangent to the projected cylinder. $(err)"
-                    end
-                end
-            end
+            conics_contours = get_view(camera, cylinders)
             push!(views, conics_contours)
         end
 
@@ -71,7 +111,7 @@ module SolutionGenerator
     end
 
     function generate_parameter_solution_pair(index::String)
-        intrinsic_configuration = IntrinsicParametersConfigurations.focal_length_x | IntrinsicParametersConfigurations.focal_length_y | IntrinsicParametersConfigurations.principal_point_x | IntrinsicParametersConfigurations.principal_point_y
+        intrinsic_configuration = IntrinsicParametersConfigurations.fₓ_fᵧ_cₓ_cᵧ
 
         cylinders = canonical_cylinder_rig()
         camera_index_1, camera_index_2 = parse.(Int, split(index, "_"))
@@ -88,18 +128,7 @@ module SolutionGenerator
             return instance
         end, [camera_view_pair_1, camera_view_pair_2])
 
-        points_at_infinity::Matrix{Float64} = zeros(Float64, 6, 3)
-        for (i, cylinder) in enumerate(cylinders)
-            doubled_index = (i-1)*2+1
-            points_at_infinity[doubled_index, :] = normalize(cylinder.singular_point[1:3])
-            points_at_infinity[doubled_index+1, :] = normalize(cylinder.singular_point[1:3])
-        end
-        dualquadrics::Array{Float64, 3} = zeros(Float64, 6, 4, 4)
-        for (i, cylinder) in enumerate(cylinders)
-            doubled_index = (i-1)*2+1
-            dualquadrics[doubled_index, :, :] = cylinder.dual_matrix ./ cylinder.dual_matrix[4, 4]
-            dualquadrics[doubled_index+1, :, :] = cylinder.dual_matrix ./ cylinder.dual_matrix[4, 4]
-        end
+        points_at_infinity, dualquadrics = points_at_infinity_dualquadrics(cylinders)
 
         problems::Vector{CylinderCameraContoursProblem} = []
         validation_data = CylinderCameraContoursProblemValidationData(
@@ -148,8 +177,8 @@ module SolutionGenerator
 
     function generate_all()
         generate_configurations()
-        for i in 1:7
-            for j in i+1:8
+        for i in 1:(CAMERAS_POOL_SIZE-1)
+            for j in i+1:CAMERAS_POOL_SIZE
                 if (i == 1 && j == 2) # Only during testing because we already have this one
                     continue
                 end
@@ -159,6 +188,61 @@ module SolutionGenerator
         end
     end
 
+    function camera_indices_by_similarity(view)
+        camera_scores = fill(typemax(Float64), CAMERAS_POOL_SIZE)
+        for camera_index in 1:CAMERAS_POOL_SIZE
+            try
+                camera_view_pair = deserialize("./tmp/start_solutions/camera_view_pairs/$(camera_index).jls")
+                view_stored = camera_view_pair.view
+                score = 0.0
+                for i in 1:3
+                    for j in 1:2
+                        line_stored = view_stored[i,j,:]
+                        line_target = view[i,j,:]
+
+                        score += abs(homogeneous_anglebetween(line_stored, line_target))
+                    end
+                end
+                camera_scores[camera_index] = score
+            catch e
+                display("Error in camera $(camera_index)")
+                Base.showerror(stdout, e)
+				Base.show_backtrace(stdout, catch_backtrace())
+            end
+        end
+        sorted_indices = sortperm(camera_scores, rev=true)
+        merged = [
+            [sorted_index, camera_scores[i]] for (i, sorted_index) in enumerate(sorted_indices)
+        ]
+        return merged
+    end
+    function camera_pairs_by_similarity(view_1, view_2)
+        indices_1 = camera_indices_by_similarity(view_1)
+        indices_2 = camera_indices_by_similarity(view_2)
+
+        done_indices = []
+        pairs = []
+
+        for index_1 in indices_1
+            for index_2 in indices_2
+                if index_1[1] == index_2[1]
+                    continue
+                end
+                pair = [Int64(index_1[1]), Int64(index_2[1])]
+                indices_to_pick = sort(pair)
+                view_pair = pair[1] == indices_to_pick[1] ? [1, 2] : [2, 1]
+                score = index_1[2] + index_2[2]
+                index = join(indices_to_pick, "_")
+                
+                if !(index in done_indices)
+                    push!(pairs, [index, score, view_pair[1], view_pair[2]])
+                    push!(done_indices, index)
+                end
+            end
+        end
+
+        return sort(pairs, by = x -> x[2])
+    end
     struct CameraViewPair
         index::Int
         camera::CameraProperties
@@ -215,4 +299,41 @@ module SolutionGenerator
         return cylinders
     end
 
+    function points_at_infinity_dualquadrics(cylinders)
+        points_at_infinity::Matrix{Float64} = zeros(Float64, 6, 3)
+        for (i, cylinder) in enumerate(cylinders)
+            doubled_index = (i-1)*2+1
+            points_at_infinity[doubled_index, :] = normalize(cylinder.singular_point[1:3])
+            points_at_infinity[doubled_index+1, :] = normalize(cylinder.singular_point[1:3])
+        end
+        dualquadrics::Array{Float64, 3} = zeros(Float64, 6, 4, 4)
+        for (i, cylinder) in enumerate(cylinders)
+            doubled_index = (i-1)*2+1
+            dualquadrics[doubled_index, :, :] = cylinder.dual_matrix ./ cylinder.dual_matrix[4, 4]
+            dualquadrics[doubled_index+1, :, :] = cylinder.dual_matrix ./ cylinder.dual_matrix[4, 4]
+        end
+
+        return points_at_infinity, dualquadrics
+    end
+
+    function get_view(cylinders, camera)
+        conics_contours = Array{Float64}(undef, 3, 2, 3)
+        for (i, cylinder) in enumerate(cylinders)
+            lines = get_cylinder_contours(
+                cylinder,
+                camera
+            )
+            for (j, line) in enumerate(lines)
+                conics_contours[i, j, :] = line
+
+                if (ASSERTS_ENABLED)
+                    @assert line' * conics[i].dual_matrix * line ≃ 0 "(3) Line of projected singular plane $(1) belongs to the dual conic $(1)"
+                    @assert line' * camera.matrix * cylinders[i].singular_point ≃ 0 "(8) Line $(j) of conic $(i) passes through the projected singular point"
+                    err = (line' * camera.matrix * cylinders[i].dual_matrix * camera.matrix' * line)
+                    @assert err ≃ 0 "(9) Line $(j) of conic $(i) is tangent to the projected cylinder. $(err)"
+                end
+            end
+        end
+        return conics_contours
+    end
 end

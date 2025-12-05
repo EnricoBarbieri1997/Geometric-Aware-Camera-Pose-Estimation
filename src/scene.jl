@@ -58,12 +58,14 @@ module Scene
 
 	function create_scene_instances_and_problems(;
 		random_seed = 7,
+		cylinders_setup::Union{Nothing, Vector{CylinderProperties}} = nothing,
 		cylinders_random_seed = random_seed,
 		number_of_cylinders = 4,
 		number_of_instances = 5,
 		noise = 0,
 		intrinsic_configuration = IntrinsicParametersConfigurations.fₓ_fᵧ_skew_cₓ_cᵧ,
 		plot = true,
+		use_all_lines = false,
 	)
 			Random.seed!(cylinders_random_seed)
 
@@ -73,7 +75,10 @@ module Scene
 			end
 
 			cylinders = []
-			for i in 1:number_of_cylinders
+			if !isnothing(cylinders_setup)
+				cylinders = cylinders_setup
+			else
+				for i in 1:number_of_cylinders
 					cylinder = CylinderProperties()
 					position = normalize(rand(Float64, 3)) * rand_in_range(0.0, 3.0)
 					rotation = rand_in_range((-90, 90), 3)
@@ -106,6 +111,7 @@ module Scene
 						# @assert ((dual_singular_plane' * cylinder.singular_point) ≃ 0 && (dual_singular_plane' * cylinder.dual_matrix * dual_singular_plane) ≃ 0) "(7) Singular plane / point and dual quadric constraints $(i)"
 						# @assert cylinder.singular_point[4] ≃ 0 "(10) Singular point is at infinity $(i)"
 					end
+				end
 			end
 
 			scene.cylinders = cylinders
@@ -213,7 +219,7 @@ module Scene
 						noisy_conic_contours[i, 2, :] = noisy_line_2 ./ noisy_line_2[3]
 					end
 
-					numberoflines_tosolvefor = numberoflines_tosolvefor_perinstance + (instance_number <= number_of_extra_picks ? 1 : 0)
+					numberoflines_tosolvefor = use_all_lines ? number_of_cylinders * 2 : (numberoflines_tosolvefor_perinstance + (instance_number <= number_of_extra_picks ? 1 : 0))
 
 					lines = Matrix{Float64}(undef, numberoflines_tosolvefor, 3)
 					noise_free_lines = Matrix{Float64}(undef, numberoflines_tosolvefor, 3)
@@ -710,8 +716,12 @@ module Scene
 				)
 			end
 			parameters = []
+			intrinsic_count = count_ones(UInt8(intrinsic_configuration))
+			extrinsic_count = size(problems)[1] * 3
+			lines_count = intrinsic_count + extrinsic_count
 			for problem in problems
-				lines = problem.lines
+				lines_to_pick = min(size(problem.lines)[1], lines_count - ceil(Int64, size(parameters)[1] / 3))
+				lines = problem.lines[1:lines_to_pick, :]
 				if (
 					!isIntrinsicEnabled.cₓ(intrinsic_configuration) &&
 					!isIntrinsicEnabled.cᵧ(intrinsic_configuration) &&
