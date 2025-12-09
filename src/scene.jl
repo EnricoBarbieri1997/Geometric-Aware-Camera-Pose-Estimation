@@ -120,11 +120,11 @@ module Scene
 
 			instances = []
 
-			focal_length_x = 2250
-			focal_length_y = 2666.666667
+			focal_length_x = 2666.6666
+			focal_length_y = 1500
 			skew = 0
-			principal_point_x = 540
-			principal_point_y = 960
+			principal_point_x = 960
+			principal_point_y = 540
 
 			if (isIntrinsicEnabled.fₓ(intrinsic_configuration))
 				focal_length_x = rand_in_range(2500.0, 3000.0)

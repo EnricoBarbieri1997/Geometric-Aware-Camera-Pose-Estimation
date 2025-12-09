@@ -141,7 +141,7 @@ module EquationSystems
 		end
 
 		default_intrinsic = problems[1].camera.intrinsic
-		fᵧ = default_intrinsic[2, 2]
+		fᵧ = 1500.0 # default_intrinsic[2, 2]
 		# default_intrinsic = default_intrinsic ./ fᵧ
 		factor = parameters_factor = 1 / fᵧ
 		fₓ = default_intrinsic[1, 1]

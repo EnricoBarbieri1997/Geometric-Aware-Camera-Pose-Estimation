@@ -7,54 +7,143 @@ module SolutionGenerator
     using ..Scene: SceneData, InstanceConfiguration, intrinsic_rotation_system_setup, create_scene_instances_and_problems, plot_reconstructed_scene, plot_scene
     using ..EquationSystems.Problems: CylinderCameraContoursProblem, CylinderCameraContoursProblemValidationData
     using ..EquationSystems.Problems.IntrinsicParameters: Configurations as IntrinsicParametersConfigurations
-    using ..Utils: eulerangles_from_rotationmatrix
-    using ..Plotting: plot_2dcylinders
+    using ..Utils: eulerangles_from_rotationmatrix, rand_in_range
+    using ..Plotting: initfigure, plot_2dcylinders
     using LinearAlgebra, Serialization 
     using HomotopyContinuation, Rotations
+    using Random
 
     ASSERTS_ENABLED = false
     CAMERAS_POOL_SIZE = 8
 
     function solve_by_similarity()
+        Random.seed!(785687)
         intrinsic_configuration = IntrinsicParametersConfigurations.fₓ_fᵧ_cₓ_cᵧ
         cylinders:: Vector{CylinderProperties} = canonical_cylinder_rig()
 
-        scene, original_problems = create_scene_instances_and_problems(;
-            cylinders_setup=cylinders,
-            number_of_cylinders = 3,
-		    number_of_instances = 2,
-            use_all_lines = true,
-            intrinsic_configuration,
+        intrinsics = [
+            rand_in_range(2500.0, 2700.0)  0.0  rand_in_range(950.0, 970.0);   # fₓ, skew, cₓ
+            0.0  rand_in_range(1400.0, 1600.0)  rand_in_range(530.0, 550.0);   # 0, fᵧ, cᵧ
+            0.0  0.0  1.0                                                      # bottom row
+        ]
+
+        cameras:: Vector{CameraProperties} = []
+        for i in 1:2
+            dir = normalize(Random.randn(3))
+            camera = CameraProperties()
+            camera.position = dir * rand_in_range(10.0, 15.0)
+            rotation_matrix = lookat_rotation(camera.position, [0.0, 0.0, 0.0])
+            camera.quaternion_rotation = QuatRotation(rotation_matrix)
+			camera.euler_rotation = rad2deg.(eulerangles_from_rotationmatrix(rotation_matrix))
+            camera.intrinsic = intrinsics
+            push!(cameras, camera)
+        end
+
+        views::Array{Array{Float64, 3}} = []
+        for camera in cameras
+            conics_contours = get_view(cylinders, camera)
+            push!(views, conics_contours)
+        end
+
+        camera_view_pairs = [
+            CameraViewPair(1, cameras[1], views[1]),
+            CameraViewPair(2, cameras[2], views[2]),
+        ]
+
+        scene = SceneData()
+        scene.figure = initfigure()
+        scene.cylinders = cylinders
+        
+        scene.instances = map(camera_view_pair -> begin
+            instance = InstanceConfiguration()
+            instance.camera = camera_view_pair.camera
+            instance.conics_contours = camera_view_pair.view
+            return instance
+        end, camera_view_pairs)
+
+        points_at_infinity, dualquadrics = points_at_infinity_dualquadrics(cylinders)
+
+        original_problems::Vector{CylinderCameraContoursProblem} = []
+        validation_data = CylinderCameraContoursProblemValidationData(
+            Matrix{Float64}(undef, 0, 3),
+            Matrix{Float64}(undef, 0, 3),
+            Array{Float64}(undef, 0, 4, 4),
+            Vector{Float64}(undef, 6)
         )
+        for (i, camera_view_pair) in enumerate(camera_view_pairs)
+            lines = reshape(camera_view_pair.view, 6, 3)
+            if (i == 2)
+                lines = lines[1:4, :]
+            end
+            problem = CylinderCameraContoursProblem(
+                camera_view_pair.camera,
+                lines,
+                lines,
+                points_at_infinity,
+                dualquadrics,
+                collect(1:size(lines)[1]),
+                validation_data,
+                UInt8(intrinsic_configuration)
+            )
+            push!(original_problems, problem)
+        end
 
         plot_scene(scene, original_problems)
 
         pairs = camera_pairs_by_similarity(scene.instances[1].conics_contours, scene.instances[2].conics_contours)
 
         for pair in pairs
-            display(pair[1])
-            display(pair[2])
-            continue
             reference_start = deserialize("./tmp/start_solutions/parameters_solution_pairs/$(pair[1]).jls")
             problems = original_problems[pair[3:4]]
-            display(pair[1])
-            display(pair[3:4])
-            display(camera_indices_by_similarity(scene.instances[1].conics_contours)[1][1])
-            display(camera_indices_by_similarity(scene.instances[2].conics_contours)[1][1])
 
             ids = parse.(Int, split(pair[1], "_"))
             cv_1 = deserialize("./tmp/start_solutions/camera_view_pairs/$(ids[1]).jls")
             cv_2 = deserialize("./tmp/start_solutions/camera_view_pairs/$(ids[2]).jls")
 
-            plot_2dcylinders(cv_1.view; axindex = 1)
-            plot_2dcylinders(cv_2.view; axindex = 2)
-
-            break
+            plot_2dcylinders(cv_1.view; axindex = 1, linestyle = :dash,)
+            plot_2dcylinders(cv_2.view; axindex = 2, linestyle = :dash,)
 
             rotation_intrinsic_system, parameters = intrinsic_rotation_system_setup(
                 problems;
+                minimization = false,
                 intrinsic_configuration
             )
+
+            display("Total degree solution")
+            tdsol = solve(
+                rotation_intrinsic_system;
+                start_system = :total_degree,
+                target_parameters = parameters,
+            )
+            display(tdsol)
+
+            # display(rotation_intrinsic_system)
+            # display(evaluate(rotation_intrinsic_system, reference_start.solutions[1], reference_start.parameters
+            # ))
+
+            rot1 = Rotations.params(scene.instances[1].camera.quaternion_rotation)
+            rot1 = rot1 / rot1[1]
+            rot1 = rot1[2:4]
+            rot2 = Rotations.params(scene.instances[2].camera.quaternion_rotation)
+            rot2 = rot2 / rot2[1]
+            rot2 = rot2[2:4]
+
+            intrinsics = scene.instances[1].camera.intrinsic
+            solution = [
+                intrinsics[1, 1],
+                intrinsics[2, 2],
+                intrinsics[1, 3],
+                intrinsics[2, 3],
+                rot1...,
+                rot2...,
+            ]
+            # display(pair[3:4])
+            display("Known solution")
+            display(solution; )
+
+            # display(evaluate(rotation_intrinsic_system, solution, parameters))
+
+            break
 
             result = solve(
                 rotation_intrinsic_system,
@@ -100,7 +189,7 @@ module SolutionGenerator
 
         views::Array{Array{Float64, 3}} = []
         for camera in cameras
-            conics_contours = get_view(camera, cylinders)
+            conics_contours = get_view(cylinders, camera)
             push!(views, conics_contours)
         end
 
@@ -150,7 +239,7 @@ module SolutionGenerator
                 dualquadrics,
                 collect(1:size(lines)[1]),
                 validation_data,
-                intrinsic_configuration
+                UInt8(intrinsic_configuration)
             )
             push!(problems, problem)
         end
@@ -163,6 +252,8 @@ module SolutionGenerator
         )
 
         sol = solutions(result)
+        # additional_solutions = solutions(monodromy_solve(system, sol, parameters))
+        # sol = vcat(sol, additional_solutions)
         if length(sol) < 128
             display("Warning: The number of solutions found is less than expected: $(length(sol)) < 128 for index $(index)")
         end
@@ -171,6 +262,9 @@ module SolutionGenerator
             parameters,
             sol
         )
+
+        display(system)
+        display(evaluate(system, sol[1], parameters))
 
         serialize("./tmp/start_solutions/parameters_solution_pairs/$(index).jls", parameters_solutions_pair)
     end
