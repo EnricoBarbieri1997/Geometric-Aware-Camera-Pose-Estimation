@@ -31,8 +31,12 @@ module SolutionGenerator
         for i in 1:2
             dir = normalize(Random.randn(3))
             camera = CameraProperties()
-            camera.position = dir * rand_in_range(10.0, 15.0)
-            rotation_matrix = lookat_rotation(camera.position, [0.0, 0.0, 0.0])
+            # camera.position = dir * rand_in_range(10.0, 15.0)
+            camera.position = [10.0, 10.0, 0.0]
+            if i == 2
+                camera.position = camera.position * -1
+            end
+            rotation_matrix = QuatRotation(1, 1, 1, 0) # lookat_rotation(camera.position, [0.0, 0.0, 0.0])
             camera.quaternion_rotation = QuatRotation(rotation_matrix)
 			camera.euler_rotation = rad2deg.(eulerangles_from_rotationmatrix(rotation_matrix))
             camera.intrinsic = intrinsics
@@ -90,6 +94,40 @@ module SolutionGenerator
 
         plot_scene(scene, original_problems)
 
+        rotation_intrinsic_system, parameters = intrinsic_rotation_system_setup(
+            original_problems;
+            minimization = false,
+            intrinsic_configuration
+        )
+
+        rot1 = Rotations.params(scene.instances[1].camera.quaternion_rotation)
+        display(scene.instances[1].camera.quaternion_rotation)
+        display(rot1)
+        rot1 = rot1 / rot1[1]
+        rot1 = rot1[2:4]
+        rot2 = Rotations.params(scene.instances[2].camera.quaternion_rotation)
+        rot2 = rot2 / rot2[1]
+        rot2 = rot2[2:4]
+
+        intrinsics = scene.instances[1].camera.intrinsic
+        solution = [
+            intrinsics[1, 1],
+            intrinsics[2, 2],
+            intrinsics[1, 3],
+            intrinsics[2, 3],
+            rot1...,
+            rot2...,
+        ]
+        # display(pair[3:4])
+        display("Known solution")
+        display(solution; )
+
+        display(evaluate(rotation_intrinsic_system, solution, parameters))
+
+        display(scene.figure)
+
+        return
+
         pairs = camera_pairs_by_similarity(scene.instances[1].conics_contours, scene.instances[2].conics_contours)
 
         for pair in pairs
@@ -100,8 +138,8 @@ module SolutionGenerator
             cv_1 = deserialize("./tmp/start_solutions/camera_view_pairs/$(ids[1]).jls")
             cv_2 = deserialize("./tmp/start_solutions/camera_view_pairs/$(ids[2]).jls")
 
-            plot_2dcylinders(cv_1.view; axindex = 1, linestyle = :dash,)
-            plot_2dcylinders(cv_2.view; axindex = 2, linestyle = :dash,)
+            # plot_2dcylinders(cv_1.view; axindex = 1, linestyle = :dash,)
+            # plot_2dcylinders(cv_2.view; axindex = 2, linestyle = :dash,)
 
             rotation_intrinsic_system, parameters = intrinsic_rotation_system_setup(
                 problems;
@@ -109,41 +147,13 @@ module SolutionGenerator
                 intrinsic_configuration
             )
 
-            display("Total degree solution")
-            tdsol = solve(
-                rotation_intrinsic_system;
-                start_system = :total_degree,
-                target_parameters = parameters,
-            )
-            display(tdsol)
-
-            # display(rotation_intrinsic_system)
-            # display(evaluate(rotation_intrinsic_system, reference_start.solutions[1], reference_start.parameters
-            # ))
-
-            rot1 = Rotations.params(scene.instances[1].camera.quaternion_rotation)
-            rot1 = rot1 / rot1[1]
-            rot1 = rot1[2:4]
-            rot2 = Rotations.params(scene.instances[2].camera.quaternion_rotation)
-            rot2 = rot2 / rot2[1]
-            rot2 = rot2[2:4]
-
-            intrinsics = scene.instances[1].camera.intrinsic
-            solution = [
-                intrinsics[1, 1],
-                intrinsics[2, 2],
-                intrinsics[1, 3],
-                intrinsics[2, 3],
-                rot1...,
-                rot2...,
-            ]
-            # display(pair[3:4])
-            display("Known solution")
-            display(solution; )
-
-            # display(evaluate(rotation_intrinsic_system, solution, parameters))
-
-            break
+            # display("Total degree solution")
+            # tdsol = solve(
+            #     rotation_intrinsic_system;
+            #     start_system = :total_degree,
+            #     target_parameters = parameters,
+            # )
+            # display(tdsol)
 
             result = solve(
                 rotation_intrinsic_system,
