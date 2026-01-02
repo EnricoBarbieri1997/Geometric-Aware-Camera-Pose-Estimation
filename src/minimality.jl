@@ -3,7 +3,7 @@ module Minimality
 using LinearAlgebra: cross, dot, norm, normalize, diagm, inv, hcat, vcat, rank
 using ..Geometry: Circle, Line
 using ..Space: build_rotation_matrix
-using ..Camera: CameraProperties, lookat_rotation
+using ..Camera: CameraProperties
 using ..Cylinder: CylinderProperties, standard_and_dual as standard_and_dual_cylinder
 using ..Utils: eulerangles_from_rotationmatrix
 using Rotations

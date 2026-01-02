@@ -3,7 +3,7 @@ module Scene
 	using ..CylindersBasedCameraResectioning: ASSERTS_ENABLED, IMAGE_HEIGHT, IMAGE_WIDTH
 	using ..Geometry: Line, cylinder_rotation_from_axis, homogeneous_line_from_points, homogeneous_to_line, line_to_homogenous, homogeneous_line_intercept, get_cylinder_contours, get_cylinder_contours_raw
 	using ..Space: RotDeg, transformation, random_transformation, identity_transformation, build_rotation_matrix, position_rotation
-	using ..Camera: CameraProperties, IntrinsicParameters, build_intrinsic_matrix, build_camera_matrix, lookat_rotation, random_camera_lookingat_center, is_in_front_of_camera
+	using ..Camera: CameraProperties, IntrinsicParameters, build_intrinsic_matrix, build_camera_matrix, random_camera_lookingat_center, is_in_front_of_camera
 	using ..Printing: print_camera_differences
 	using ..Plotting: initfigure, get_or_add_2d_axis!, clean_plots!, plot_2dpoints, plot_line_2d, plot_image_background, Plot3dCameraInput, plot_3dcamera, plot_3dcamera_rotation, plot_3dcylinders, plot_2dcylinders
 	using ..EquationSystems: stack_homotopy_parameters, build_intrinsic_rotation_conic_system, build_intrinsic_rotation_translation_conic_system, build_camera_matrix_conic_system, build_intrinsic_rotation_translation_conic_system_calibrated
