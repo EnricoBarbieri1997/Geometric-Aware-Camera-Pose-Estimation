@@ -62,11 +62,13 @@ module Plotting
         # Base.showerror(stdout, error("Plotting not available in this environment."))
     end
 
-    if GUI_ENABLED && Base.find_package("GLMakie") !== nothing
+    const PROVIDE_IMPLEMENTATION = @isdefined(TESTS) && GUI_ENABLED
+
+    if PROVIDE_IMPLEMENTATION && Base.find_package("GLMakie") !== nothing
         include("plotting-real.jl")
     end
 
-    const Figure = if GUI_ENABLED
+    const Figure = if PROVIDE_IMPLEMENTATION
         Makie.Figure
     else
         function (; kwargs...)
@@ -74,7 +76,7 @@ module Plotting
         end
     end
 
-    const Axis = if GUI_ENABLED
+    const Axis = if PROVIDE_IMPLEMENTATION
         Makie.Axis
     else
         function (; kwargs...)
@@ -82,7 +84,7 @@ module Plotting
         end
     end
 
-    const lift = if GUI_ENABLED
+    const lift = if PROVIDE_IMPLEMENTATION
         Makie.lift
     else
         function (v::Any)
@@ -90,7 +92,7 @@ module Plotting
         end
     end
 
-    const lines! = if GUI_ENABLED
+    const lines! = if PROVIDE_IMPLEMENTATION
         Makie.lines!
     else
         function (ax::Any, x::Any, y::Any; kwargs...)
@@ -98,7 +100,7 @@ module Plotting
         end
     end
 
-    const image! = if GUI_ENABLED
+    const image! = if PROVIDE_IMPLEMENTATION
         Makie.image!
     else
         function (ax::Any, img::Any; kwargs...)
@@ -106,7 +108,7 @@ module Plotting
         end
     end
 
-    const on = if GUI_ENABLED
+    const on = if PROVIDE_IMPLEMENTATION
         Makie.on
     else
         function (ax::Any, event::Any; kwargs...)
@@ -114,7 +116,7 @@ module Plotting
         end
     end
 
-    const events = if GUI_ENABLED
+    const events = if PROVIDE_IMPLEMENTATION
         Makie.events
     else
         function (ax::Any, event::Any; kwargs...)
@@ -122,7 +124,7 @@ module Plotting
         end
     end
 
-    const Point2f = if GUI_ENABLED
+    const Point2f = if PROVIDE_IMPLEMENTATION
         Makie.Point2f
     else
         function (x::Float64, y::Float64)
@@ -130,7 +132,7 @@ module Plotting
         end
     end
 
-    const Observable = if GUI_ENABLED
+    const Observable = if PROVIDE_IMPLEMENTATION
         Makie.Observable
     else
         function (x::Any)
@@ -138,7 +140,7 @@ module Plotting
         end
     end
 
-    const ispressed = if GUI_ENABLED
+    const ispressed = if PROVIDE_IMPLEMENTATION
         Makie.ispressed
     else
         function (x::Any)
@@ -146,7 +148,7 @@ module Plotting
         end
     end
     
-    const Mouse = if GUI_ENABLED
+    const Mouse = if PROVIDE_IMPLEMENTATION
         Makie.Mouse
     else
         function (x::Any)

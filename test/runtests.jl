@@ -1,4 +1,5 @@
-using CylindersBasedCameraResectioning
+const TESTS = true
+
 using Test
 
 @testset "Cylinder camera resectioning" begin
