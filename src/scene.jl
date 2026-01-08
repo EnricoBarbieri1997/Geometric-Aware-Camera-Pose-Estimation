@@ -728,9 +728,9 @@ module Scene
 					!isIntrinsicEnabled.skew(intrinsic_configuration)
 				)
 					known_intrinsic = [
-						1 0 0;
-						0 1 0;
-						0 0 1;
+						1.0 0.0 0.0;
+						0.0 1.0 0.0;
+						0.0 0.0 1.0;
 					]
 					known_intrinsic[1, 2] = problem.camera.intrinsic[1, 2]
 					known_intrinsic[1, 3] = problem.camera.intrinsic[1, 3]

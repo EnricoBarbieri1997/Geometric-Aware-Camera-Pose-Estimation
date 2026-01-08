@@ -62,6 +62,7 @@ module EquationSystems
 					fᵧ = UInt8(focal_length_y)
 					skew = UInt8(skew_val)
 					fₓ_fᵧ = focal_length_x | focal_length_y
+					cₓ_cᵧ = principal_point_x | principal_point_y
 					fₓ_fᵧ_skew = focal_length_x | focal_length_y | skew_val
 					fₓ_fᵧ_skew_cₓ = focal_length_x | focal_length_y | skew_val | principal_point_x
 					fₓ_fᵧ_skew_cᵧ = focal_length_x | focal_length_y | skew_val | principal_point_y
@@ -141,14 +142,12 @@ module EquationSystems
 		end
 
 		default_intrinsic = problems[1].camera.intrinsic
-		fᵧ = 1500.0 # default_intrinsic[2, 2]
-		# default_intrinsic = default_intrinsic ./ fᵧ
-		factor = parameters_factor = 1 / fᵧ
-		fₓ = default_intrinsic[1, 1]
-		fᵧ = 1
-		skew = default_intrinsic[1, 2]
-		cₓ = default_intrinsic[1, 3]
-		cᵧ = default_intrinsic[2, 3]
+		factor =  1.0 # / 3000.0
+		fₓ = default_intrinsic[1, 1] * factor
+		fᵧ = default_intrinsic[2, 2] * factor
+		skew = default_intrinsic[1, 2] * factor
+		cₓ = default_intrinsic[1, 3] * factor
+		cᵧ = default_intrinsic[2, 3] * factor
 
 		system_to_solve = []
 		variables::Vector{HomotopyContinuation.ModelKit.Variable} = []
@@ -160,12 +159,8 @@ module EquationSystems
 			push!(variables, fₓ)
 		end
 		if Problems.IntrinsicParameters.has.fᵧ(intrinsic_configuration)
-			@var factor
-			fᵧ = 1
-			if (!Problems.IntrinsicParameters.has.fₓ(intrinsic_configuration))
-				fₓ = 1
-			end
-			push!(variables, factor)
+			@var fᵧ
+			push!(variables, fᵧ)
 		end
 		if Problems.IntrinsicParameters.has.skew(intrinsic_configuration)
 			@var skew
@@ -181,8 +176,8 @@ module EquationSystems
 		end
 
 		intrinsic = [
-			fₓ (skew / parameters_factor) (cₓ / parameters_factor);
-			0 fᵧ (cᵧ / parameters_factor);
+			fₓ skew cₓ;
+			0 fᵧ cᵧ;
 			0 0 factor;
 		]
 
@@ -203,6 +198,8 @@ module EquationSystems
 
 			for line_index in 1:lines_to_pick
 				equation = lines[line_index, :]' * intrinsic * R * problem.points_at_infinity[line_index, :]
+				# display(equation)
+				# display(problem.points_at_infinity[line_index, :])
 				push!(system_to_solve, equation)
 			end
 

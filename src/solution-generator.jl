@@ -31,12 +31,12 @@ module SolutionGenerator
         for i in 1:2
             dir = normalize(Random.randn(3))
             camera = CameraProperties()
-            # camera.position = dir * rand_in_range(10.0, 15.0)
-            camera.position = [10.0, 10.0, 0.0]
-            if i == 2
-                camera.position = camera.position * -1
-            end
-            rotation_matrix = QuatRotation(1, 1, 1, 0) # lookat_rotation(camera.position, [0.0, 0.0, 0.0])
+            camera.position = dir * rand_in_range(10.0, 15.0)
+            # camera.position = [10.0, 10.0, 0.0]
+            # if i == 2
+            #     camera.position = camera.position * -1
+            # end
+            rotation_matrix = lookat_rotation(camera.position, [0.0, 0.0, 0.0])
             camera.quaternion_rotation = QuatRotation(rotation_matrix)
 			camera.euler_rotation = rad2deg.(eulerangles_from_rotationmatrix(rotation_matrix))
             camera.intrinsic = intrinsics
@@ -76,6 +76,9 @@ module SolutionGenerator
         )
         for (i, camera_view_pair) in enumerate(camera_view_pairs)
             lines = reshape(camera_view_pair.view, 6, 3)
+            # if (i == 1)
+            #     lines = lines[1:4, :]
+            # end
             if (i == 2)
                 lines = lines[1:4, :]
             end
@@ -101,8 +104,6 @@ module SolutionGenerator
         )
 
         rot1 = Rotations.params(scene.instances[1].camera.quaternion_rotation)
-        display(scene.instances[1].camera.quaternion_rotation)
-        display(rot1)
         rot1 = rot1 / rot1[1]
         rot1 = rot1[2:4]
         rot2 = Rotations.params(scene.instances[2].camera.quaternion_rotation)
@@ -110,11 +111,12 @@ module SolutionGenerator
         rot2 = rot2[2:4]
 
         intrinsics = scene.instances[1].camera.intrinsic
+        factor = 1.0 # / 3000.0
         solution = [
-            intrinsics[1, 1],
-            intrinsics[2, 2],
-            intrinsics[1, 3],
-            intrinsics[2, 3],
+            intrinsics[1, 1] * factor,
+            intrinsics[2, 2] * factor,
+            intrinsics[1, 3] * factor,
+            intrinsics[2, 3] * factor,
             rot1...,
             rot2...,
         ]
@@ -122,9 +124,13 @@ module SolutionGenerator
         display("Known solution")
         display(solution; )
 
-        display(evaluate(rotation_intrinsic_system, solution, parameters))
+        eq = expressions(rotation_intrinsic_system)[1]
+        display(eq)
+        display(original_problems[1].lines[1, :])
 
-        display(scene.figure)
+        # display(evaluate(rotation_intrinsic_system, solution, parameters))
+
+        # display(scene.figure)
 
         return
 
@@ -427,7 +433,8 @@ module SolutionGenerator
                 cylinder,
                 camera
             )
-            for (j, line) in enumerate(lines)
+            for (j, _line) in enumerate(lines)
+                line = normalize(_line)
                 conics_contours[i, j, :] = line
 
                 if (ASSERTS_ENABLED)
