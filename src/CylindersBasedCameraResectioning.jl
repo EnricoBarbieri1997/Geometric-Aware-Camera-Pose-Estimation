@@ -10,7 +10,6 @@ module CylindersBasedCameraResectioning
     using ..EquationSystems.Problems.IntrinsicParameters: Configurations as IntrinsicParametersConfigurations
     using ..Plotting
 	using ..Printing: print_camera_differences, print_relative_motion_errors
-    using ..Camera: build_camera_matrix
     using ..Homotopies: ParameterHomotopy as MyParameterHomotopy
 
     using HomotopyContinuation, Observables, Random, Serialization
