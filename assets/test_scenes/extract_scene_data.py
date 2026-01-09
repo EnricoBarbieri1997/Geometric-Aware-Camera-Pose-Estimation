@@ -92,7 +92,7 @@ scene_data = {
     "camera": {
         "position": list(camera.matrix_world.translation),
         "euler_rotation": [math.degrees(rad) for rad in camera.matrix_world.to_euler('XYZ')],
-        "quaternion": list(camera.matrix_world.to_quaternion()),
+        "quaternion_rotation": list(camera.matrix_world.to_quaternion()),
         "intrinsics": camera_utils.scene_camera_intrinsics().tolist()
     }
 }
