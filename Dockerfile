@@ -1,4 +1,4 @@
-FROM julia:1.11.5-bookworm
+FROM julia:1.11.7-bookworm
 COPY ./Project.toml /app/Project.toml
 COPY ./Manifest.toml /app/Manifest.toml
 COPY ./src /app/src
