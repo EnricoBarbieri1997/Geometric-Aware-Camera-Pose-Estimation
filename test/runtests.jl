@@ -9,6 +9,9 @@ using Test
     @testset "Geometry" begin
         include("geometry_tests.jl")
     end
+    @testset "Data representation" begin
+        include("data_representation_tests.jl")
+    end
     @testset "Equation Systems" begin
         include("equation_system_tests.jl")
     end

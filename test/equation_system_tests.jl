@@ -77,10 +77,10 @@ using Rotations
     end
     parameters = convert(Vector{Float64}, parameters)
 
-    rot1 = Rotations.params(cameras[1].quaternion_rotation)
+    rot1 = Rotations.params(cameras[1].rotation_matrix)
     rot1 = rot1 / rot1[1]
     rot1 = rot1[2:4]
-    rot2 = Rotations.params(cameras[2].quaternion_rotation)
+    rot2 = Rotations.params(cameras[2].rotation_matrix)
     rot2 = rot2 / rot2[1]
     rot2 = rot2[2:4]
 

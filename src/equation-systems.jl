@@ -198,8 +198,6 @@ function build_intrinsic_rotation_conic_system(
 
         for line_index in 1:lines_to_pick
             equation = lines[line_index, :]' * intrinsic * R * problem.points_at_infinity[line_index, :]
-            # display(equation)
-            # display(problem.points_at_infinity[line_index, :])
             push!(system_to_solve, equation)
         end
 

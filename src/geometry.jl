@@ -1,6 +1,7 @@
 module Geometry
-	export Plane, Line, Point, Circle, TangentLineNotFound, homogeneous_line_from_points, issame_line, rotation_between_lines, cylinder_rotation_from_axis, homogeneous_to_line, line_to_homogenous, homogeneous_line_intercept, homogeneous_anglebetween, project_point_into_line, plane_basis, project_point_into_plane, get_tangentpoints_circle_point, get_cylinder_contours, get_cylinder_contours_raw
+	export Plane, Line, Point, Circle, TangentLineNotFound, homogeneous_line_from_points, issame_line, rotation_between_lines, cylinder_rotation_from_axis, homogeneous_to_line, line_to_homogenous, homogeneous_line_intercept, homogeneous_anglebetween, project_point_into_line, plane_basis, project_point_into_plane, get_tangentpoints_circle_point, get_cylinder_contours, get_cylinder_contours_raw, get_view
 
+	using ..CylindersBasedCameraResectioning: ASSERTS_ENABLED
 	using ..Utils
 	using ..Space: position_rotation
 	using ..Camera: CameraProperties
@@ -224,6 +225,28 @@ module Geometry
 		contour₂ = cross(projected_tangentpoint₂, projected_tangentpoint₂ + projected_cylinderaxis)
 
 		return (contour₁, contour₂)
+	end
+
+	function get_view(cylinders, camera)
+		conics_contours = Array{Float64}(undef, 3, 2, 3)
+		for (i, cylinder) in enumerate(cylinders)
+			lines = get_cylinder_contours(
+				cylinder,
+				camera
+			)
+			for (j, _line) in enumerate(lines)
+				line = normalize(_line)
+				conics_contours[i, j, :] = line
+
+				if (ASSERTS_ENABLED)
+					@assert line' * conics[i].dual_matrix * line ≃ 0 "(3) Line of projected singular plane $(1) belongs to the dual conic $(1)"
+					@assert line' * camera.matrix * cylinders[i].singular_point ≃ 0 "(8) Line $(j) of conic $(i) passes through the projected singular point"
+					err = (line' * camera.matrix * cylinders[i].dual_matrix * camera.matrix' * line)
+					@assert err ≃ 0 "(9) Line $(j) of conic $(i) is tangent to the projected cylinder. $(err)"
+				end
+			end
+		end
+		return conics_contours
 	end
 
 	function linesfromconic(cc, vp)

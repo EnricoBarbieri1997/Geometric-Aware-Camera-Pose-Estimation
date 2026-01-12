@@ -25,6 +25,8 @@ end
 function Base.getproperty(obj::CameraProperties, name::Symbol)
     if name == :matrix
         return build_camera_matrix(obj.intrinsic ./ obj.intrinsic[2, 2], obj.quaternion_rotation, obj.position)
+    elseif name == :rotation_matrix
+        return obj.quaternion_rotation'
     else
         return getfield(obj, name)
     end

@@ -1,7 +1,6 @@
 module SolutionGenerator
 export generate_configurations, generate_parameter_solution_pair, generate_all
-using ..CylindersBasedCameraResectioning: ASSERTS_ENABLED
-using ..Geometry: get_cylinder_contours, homogeneous_anglebetween
+using ..Geometry: get_view, homogeneous_anglebetween
 using ..Cylinder: CylinderProperties, CalibrationRigs, points_at_infinity_dualquadrics
 using ..Camera: CameraProperties, CameraViewPair, lookat_rotation
 using ..Scene: SceneData, InstanceConfiguration, intrinsic_rotation_system_setup, create_scene_instances_and_problems, plot_reconstructed_scene, plot_scene
@@ -357,27 +356,5 @@ struct ParameterSolutionsPair
     index::String
     parameters::Vector{Float64}
     solutions::Vector{Vector{Number}}
-end
-
-function get_view(cylinders, camera)
-    conics_contours = Array{Float64}(undef, 3, 2, 3)
-    for (i, cylinder) in enumerate(cylinders)
-        lines = get_cylinder_contours(
-            cylinder,
-            camera
-        )
-        for (j, _line) in enumerate(lines)
-            line = normalize(_line)
-            conics_contours[i, j, :] = line
-
-            if (ASSERTS_ENABLED)
-                @assert line' * conics[i].dual_matrix * line ≃ 0 "(3) Line of projected singular plane $(1) belongs to the dual conic $(1)"
-                @assert line' * camera.matrix * cylinders[i].singular_point ≃ 0 "(8) Line $(j) of conic $(i) passes through the projected singular point"
-                err = (line' * camera.matrix * cylinders[i].dual_matrix * camera.matrix' * line)
-                @assert err ≃ 0 "(9) Line $(j) of conic $(i) is tangent to the projected cylinder. $(err)"
-            end
-        end
-    end
-    return conics_contours
 end
 end
