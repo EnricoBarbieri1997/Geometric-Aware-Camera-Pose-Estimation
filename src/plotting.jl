@@ -36,9 +36,6 @@ module Plotting
     function plot_2dpoints(points; axindex=1)
         # Base.showerror(stdout, error("Plotting not available in this environment."))
     end
-    function plot_line_2d(line; color=:black, linestyle=:solid, axindex=1)
-        # Base.showerror(stdout, error("Plotting not available in this environment."))
-    end
     function plot_3dcamera(camera::Any, color=:black)
         # Base.showerror(stdout, error("Plotting not available in this environment."))
     end
@@ -46,9 +43,6 @@ module Plotting
         # Base.showerror(stdout, error("Plotting not available in this environment."))
     end
     function plot_3dcylinders(cylindersInfo::Any; axindex=1)
-        # Base.showerror(stdout, error("Plotting not available in this environment."))
-    end
-    function plot_cylinders_contours(contours::Any; linestyle=:solid)
         # Base.showerror(stdout, error("Plotting not available in this environment."))
     end
     function plot_2dcylinders(conic_contours; linestyle=:solid, alpha=1, axindex=1)
@@ -153,6 +147,12 @@ module Plotting
     else
         function (x::Any)
             # error("Plotting not available in this environment.")
+        end
+    end
+
+    module OneOf
+        function lines(conic_contours; figure=Figure())
+            # Base.showerror(stdout, error("Plotting not available in this environment."))
         end
     end
 end

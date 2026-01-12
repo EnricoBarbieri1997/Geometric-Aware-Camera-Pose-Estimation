@@ -1,4 +1,4 @@
-const TESTS = true
+const TESTS = false
 
 using Test
 

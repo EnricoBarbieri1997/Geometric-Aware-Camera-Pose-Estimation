@@ -282,44 +282,8 @@ function plot_2dpoints(points; axindex = 1)
     end
 end
 
-function plot_line_2d(line:: Line; color = :black, linestyle = :solid, axindex = 1)
-    slope = line.direction[2] / line.direction[1]
-    intercept = line.origin[2] - slope * line.origin[1]
-
-    y = function (x) return slope * x + intercept end
-    xs = 0:1:1080
-    ys = y.(xs)
-    lines!(ax2_array[axindex], xs, ys, color = color, linestyle=linestyle)
-end
-
-function plot_cylinders_contours(contours::Vector{Vector{Line}}; linestyle = :solid)
-    for (i, contour) in enumerate(contours)
-        for line in contour
-            plot_line_2d(line, color = colors[i], linestyle = linestyle)
-        end
-    end
-end
-
-function plot_2dcylinders(conic_contours; linestyle = :solid, alpha = 1, axindex = 1, fake = false)
-    y = function (x, l) return (-(l[1] * x + l[3]) / l[2]) end
-    for i in 1:(size(conic_contours)[1])
-        for j in 1:(size(conic_contours)[2])
-            line = conic_contours[i, j, :]
-            if line == [0, 0, 0] continue end
-            if line[2] == 0
-                x = -line[3]/line[1]
-                lines!(ax2_array[axindex], [x, x], [0, -IMAGE_HEIGHT], color = (colors[i], alpha), linestyle=linestyle, linewidth=4)
-            else
-                y1 = function (x) return y(x, line) end
-                xs = 0:IMAGE_WIDTH:IMAGE_WIDTH
-                ys1 = y1.(xs)
-                if fake
-                    xs = xs .- 80
-                end
-                lines!(ax2_array[axindex], xs, -ys1, color = (colors[i], alpha), linestyle=linestyle, linewidth=4)
-            end
-        end
-    end
+function plot_2dcylinders(conic_contours; linestyle = :solid, alpha = 1, axindex = 1)
+    Base.lines(ax2_array[axindex], conic_contours; linestyle=linestyle, alpha=alpha)
 end
 
 function plot_image_background(img; axindex = 1)
@@ -390,4 +354,36 @@ function save_2d_figures(path, scene, problems; scene_file_path, raw_3d = false,
         # resize_to_layout!(figure2d)
         save(joinpath(path, "$(prefix)$(i).png"), figure2d)
     end
+end
+
+module OneOf
+using ..Base
+using Makie: Figure, Axis, DataAspect
+function lines(lines)
+    figure = Figure()
+    ax = Axis(figure[1, 1]; aspect = DataAspect())
+    Base.lines(ax, lines)
+    display(figure)
+end
+end
+
+module Base
+function lines(ax, lines; linestyle = :solid, alpha = 1)
+    y = function (x, l) return (-(l[1] * x + l[3]) / l[2]) end
+    for i in 1:(size(lines)[1])
+        for j in 1:(size(lines)[2])
+            line = lines[i, j, :]
+            if line == [0, 0, 0] continue end
+            if line[2] == 0
+                x = -line[3]/line[1]
+                lines!(ax, [x, x], [0, -IMAGE_HEIGHT], color = (colors[i], alpha), linestyle=linestyle, linewidth=4)
+            else
+                y1 = function (x) return y(x, line) end
+                xs = 0:IMAGE_WIDTH:IMAGE_WIDTH
+                ys1 = y1.(xs)
+                lines!(ax, xs, -ys1, color = (colors[i], alpha), linestyle=linestyle, linewidth=4)
+            end
+        end
+    end
+end
 end

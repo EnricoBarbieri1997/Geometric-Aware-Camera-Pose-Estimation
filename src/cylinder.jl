@@ -62,8 +62,7 @@ function origin_centered_cylinder(euler_rotation)
     position = [0.0, 0.0, 0.0]
     cylinder.euler_rotation = euler_rotation
     cylinder.transform = transformation(position, cylinder.euler_rotation)
-    radius = [1.0, 1.0]
-    cylinder.radiuses = [radius[1], radius[1]]
+    cylinder.radiuses = [1.0, 1.0]
 
     axis = cylinder.transform * [0; 0; 1; 0]
     axis = axis ./ axis[3]
