@@ -86,6 +86,14 @@ function lookat_rotation(camera_pos::Union{Vector{Float64},Vector{Number}}, targ
     return R_cam_to_world
 end
 
+function lookat_quaternion(camera_pos::Union{Vector{Float64},Vector{Number}}, target_pos::Vector{Float64}, up::Vector{Float64}=[0.0, 0.0, 1.0])
+    forward = normalize(target_pos - camera_pos)
+    diff = forward - up
+    diff = diff ./ 2
+    rotation_axis = normalize(up + diff)
+    return QuatRotation(1 + d, u...)
+end
+
 function lookat_matrix(eye, at, up)
     xaxis, yaxis, zaxis = lookat_axis(eye, at, up)
 
@@ -98,7 +106,7 @@ end
 function random_camera_lookingat_center()
     camera_translationdirection = normalize(rand_in_range(-1.0, 1.0, 3))
     camera_translation = camera_translationdirection * rand_in_range(20.0, 30.0)
-    camera_object_rotation = lookat_rotation(camera_translation, [0.0, 0.0, 0.0])
+    camera_object_rotation = lookat_quaternion(camera_translation, [0.0, 0.0, 0.0])
     return camera_translation, camera_object_rotation
 end
 

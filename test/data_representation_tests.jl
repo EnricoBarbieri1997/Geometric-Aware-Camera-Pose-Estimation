@@ -1,6 +1,6 @@
 using CylindersBasedCameraResectioning.Space: build_rotation_matrix
 using CylindersBasedCameraResectioning.Cylinder: CalibrationRigs, points_at_infinity_dualquadrics, get_view
-using CylindersBasedCameraResectioning.Camera: CameraProperties, lookat_rotation, random_camera_lookingat_center
+using CylindersBasedCameraResectioning.Camera: CameraProperties, lookat_quaternion, random_camera_lookingat_center
 using CylindersBasedCameraResectioning.IO: read_axis_rig_lines, read_camera
 
 using LinearAlgebra: I
@@ -20,10 +20,10 @@ intrinsic = [
     quaternion_camera_rotation = QuatRotation(rotation_matrix)
     euler_rotation = rad2deg.(eulerangles_from_rotationmatrix(rotation_matrix))
     camera1 = CameraProperties(
-            position = position,
-            euler_rotation = euler_rotation,
-            quaternion_rotation = quaternion_camera_rotation,
-            intrinsic = Matrix(I, 3, 3),
+        position=position,
+        euler_rotation=euler_rotation,
+        quaternion_rotation=quaternion_camera_rotation,
+        intrinsic=Matrix(I, 3, 3),
     )
     lines_view_1 = get_view(cylinders, camera1)
 
@@ -44,14 +44,14 @@ end
     cylinders = CalibrationRigs.axis_rig()
     points_at_infinity, dualquadrics = points_at_infinity_dualquadrics(cylinders)
     position = [10.0, 10.0, -10.0]
-    rotation_matrix = lookat_rotation(position, [0.0, 0.0, 0.0])
+    rotation_matrix = lookat_quaternion(position, [0.0, 0.0, 0.0])
     quaternion_camera_rotation = QuatRotation(rotation_matrix)
     euler_rotation = rad2deg.(eulerangles_from_rotationmatrix(rotation_matrix))
     camera1 = CameraProperties(
-            position = position,
-            euler_rotation = euler_rotation,
-            quaternion_rotation = quaternion_camera_rotation,
-            intrinsic = Matrix(I, 3, 3),
+        position=position,
+        euler_rotation=euler_rotation,
+        quaternion_rotation=quaternion_camera_rotation,
+        intrinsic=Matrix(I, 3, 3),
     )
     lines_view_1 = get_view(cylinders, camera1)
 
@@ -74,13 +74,15 @@ end
     position, rotation_matrix = random_camera_lookingat_center()
     display(position)
     quaternion_camera_rotation = QuatRotation(rotation_matrix)
-    euler_rotation = rad2deg.(eulerangles_from_rotationmatrix(rotation_matrix))
+    display(quaternion_camera_rotation)
+    display(RotXYZ(rotation_matrix))
+    euler_rotation = rad2deg.(Rotations.params(RotXYZ(rotation_matrix)))
     display(euler_rotation)
     camera1 = CameraProperties(
-            position = position,
-            euler_rotation = euler_rotation,
-            quaternion_rotation = quaternion_camera_rotation,
-            intrinsic = Matrix(I, 3, 3),
+        position=position,
+        euler_rotation=euler_rotation,
+        quaternion_rotation=quaternion_camera_rotation,
+        intrinsic=Matrix(I, 3, 3),
     )
     lines_view_1 = get_view(cylinders, camera1)
 
@@ -104,10 +106,10 @@ end
     quaternion_camera_rotation = QuatRotation(rotation_matrix)
     euler_rotation = rad2deg.(eulerangles_from_rotationmatrix(rotation_matrix))
     camera1 = CameraProperties(
-            position = position,
-            euler_rotation = euler_rotation,
-            quaternion_rotation = quaternion_camera_rotation,
-            intrinsic = intrinsic,
+        position=position,
+        euler_rotation=euler_rotation,
+        quaternion_rotation=quaternion_camera_rotation,
+        intrinsic=intrinsic,
     )
     lines_view_1 = get_view(cylinders, camera1)
 
@@ -167,10 +169,10 @@ end
     points_at_infinity, dualquadrics = points_at_infinity_dualquadrics(cylinders)
     position, rotation_matrix = random_camera_lookingat_center()
     camera1 = CameraProperties(
-            position = position,
-            euler_rotation = rad2deg.(eulerangles_from_rotationmatrix(rotation_matrix)),
-            quaternion_rotation = QuatRotation(rotation_matrix),
-            intrinsic = intrinsic,
+        position=position,
+        euler_rotation=rad2deg.(eulerangles_from_rotationmatrix(rotation_matrix)),
+        quaternion_rotation=QuatRotation(rotation_matrix),
+        intrinsic=intrinsic,
     )
     lines_view_1 = get_view(cylinders, camera1)
 
