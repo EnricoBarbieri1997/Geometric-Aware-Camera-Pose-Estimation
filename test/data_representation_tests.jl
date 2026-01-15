@@ -1,10 +1,12 @@
 using CylindersBasedCameraResectioning.Space: build_rotation_matrix
-using CylindersBasedCameraResectioning.Cylinder: CalibrationRigs, points_at_infinity_dualquadrics, get_view
+using CylindersBasedCameraResectioning.Geometry: get_view
+using CylindersBasedCameraResectioning.Cylinder: CalibrationRigs, points_at_infinity_dualquadrics
 using CylindersBasedCameraResectioning.Camera: CameraProperties, lookat_quaternion, random_camera_lookingat_center
 using CylindersBasedCameraResectioning.IO: read_axis_rig_lines, read_camera
 
 using LinearAlgebra: I
 using Rotations
+using Random
 
 intrinsic = [
     2666.6666666666665 0.0 960.0;
@@ -69,13 +71,12 @@ end
 end
 
 @testset "calibrated_random_position" begin
+    Random.seed!(42)
     cylinders = CalibrationRigs.axis_rig()
     points_at_infinity, dualquadrics = points_at_infinity_dualquadrics(cylinders)
     position, rotation_matrix = random_camera_lookingat_center()
     display(position)
     quaternion_camera_rotation = QuatRotation(rotation_matrix)
-    display(quaternion_camera_rotation)
-    display(RotXYZ(rotation_matrix))
     euler_rotation = rad2deg.(Rotations.params(RotXYZ(rotation_matrix)))
     display(euler_rotation)
     camera1 = CameraProperties(

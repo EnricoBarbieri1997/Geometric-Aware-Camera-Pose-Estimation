@@ -1,7 +1,7 @@
 module Camera
 export CameraProperties, CameraViewPair, IntrinsicParameters, build_camera_matrix, build_intrinsic_matrix, build_camera_matrix, lookat_rotation, is_in_front_of_camera
 
-using ..Space: RotDeg
+using ..Space: RotDeg, get_any_perpendicular
 using ..Utils: rand_in_range
 
 using Rotations
@@ -86,12 +86,27 @@ function lookat_rotation(camera_pos::Union{Vector{Float64},Vector{Number}}, targ
     return R_cam_to_world
 end
 
-function lookat_quaternion(camera_pos::Union{Vector{Float64},Vector{Number}}, target_pos::Vector{Float64}, up::Vector{Float64}=[0.0, 0.0, 1.0])
-    forward = normalize(target_pos - camera_pos)
-    diff = forward - up
-    diff = diff ./ 2
-    rotation_axis = normalize(up + diff)
-    return QuatRotation(1 + d, u...)
+function lookat_quaternion(camera_pos::Union{Vector{Float64},Vector{Number}}, target_pos::Vector{Float64}; up::Vector{Float64}=[0.0, 1.0, 0.0], use_model_front::Bool=true)
+    forward = target_pos - camera_pos
+    p_target = forward
+    v_z = normalize(p_target)
+    if (!use_model_front)
+        v_z = -v_z
+    end
+    v_x = cross(up, v_z)
+    if (isapprox(v_x, zeros(3)))
+        v_x = get_any_perpendicular(up)
+    end
+    v_x = normalize(v_x)
+    v_y = cross(v_z, v_x)
+
+    basis = Matrix{Float64}(undef, 3, 3)
+    basis[:, 1] = v_x
+    basis[:, 2] = v_y
+    basis[:, 3] = v_z
+    rot = RotMatrix3(basis)
+    rot = QuatRotation(rot)
+    return rot
 end
 
 function lookat_matrix(eye, at, up)
@@ -112,8 +127,6 @@ end
 
 function is_in_front_of_camera(camera)
     position = camera.position
-    rotation = camera.euler_rotation
-    pitch, yaw, roll = deg2rad.(rotation)
     forward = camera.quaternion_rotation * [0, 0, 1]
     to_origin = -position
     return dot(forward, to_origin) > 0

@@ -1,152 +1,152 @@
 module Geometry
-	export Plane, Line, Point, Circle, TangentLineNotFound, homogeneous_line_from_points, issame_line, rotation_between_lines, cylinder_rotation_from_axis, homogeneous_to_line, line_to_homogenous, homogeneous_line_intercept, homogeneous_anglebetween, project_point_into_line, plane_basis, project_point_into_plane, get_tangentpoints_circle_point, get_cylinder_contours, get_cylinder_contours_raw, get_view
+export Plane, Line, Point, Circle, TangentLineNotFound, homogeneous_line_from_points, issame_line, rotation_between_lines, cylinder_rotation_from_axis, homogeneous_to_line, line_to_homogenous, homogeneous_line_intercept, homogeneous_anglebetween, project_point_into_line, plane_basis, project_point_into_plane, get_tangentpoints_circle_point, get_cylinder_contours, get_cylinder_contours_raw, get_view
 
-	using ..CylindersBasedCameraResectioning: ASSERTS_ENABLED
-	using ..Utils
-	using ..Space: position_rotation
-	using ..Camera: CameraProperties
-	using ..Cylinder: CylinderProperties
-	using LinearAlgebra: Diagonal, cross, dot, norm, normalize, pinv, svd
-	using Rotations: RotMatrix, AngleAxis, RotXYZ, params as rotations_params
-	using Polynomials: Polynomial, roots
+using ..CylindersBasedCameraResectioning: ASSERTS_ENABLED
+using ..Utils
+using ..Space: position_rotation
+using ..Camera: CameraProperties
+using ..Cylinder: CylinderProperties
+using LinearAlgebra: Diagonal, cross, dot, norm, normalize, pinv, svd
+using Rotations: RotMatrix, AngleAxis, RotXYZ, params as rotations_params
+using Polynomials: Polynomial, roots
 
-	struct Point
-		x::Number
-		y::Number
-	end
-	struct Line
-		origin::Vector{<:Number}
-		direction::Vector{<:Number}
-	end
-	struct Plane
-		origin::Vector{<:Number}
-		normal::Vector{<:Number}
-	end
-	struct Circle
-		center::Vector{<:Number}
-		radius::Number
-		axis::Union{Vector{<:Number}, Nothing}
-	end
+struct Point
+    x::Number
+    y::Number
+end
+struct Line
+    origin::Vector{<:Number}
+    direction::Vector{<:Number}
+end
+struct Plane
+    origin::Vector{<:Number}
+    normal::Vector{<:Number}
+end
+struct Circle
+    center::Vector{<:Number}
+    radius::Number
+    axis::Union{Vector{<:Number},Nothing}
+end
 
-	struct TangentLineNotFound <: Exception
-		msg::String
-	end
+struct TangentLineNotFound <: Exception
+    msg::String
+end
 
-	function homogeneous_line_from_points(p1, p2)
-			# Convert to homogeneous coordinates
-			if length(p1) == 2
-				p1 = [p1[1], p1[2], 1.0]
-				p2 = [p2[1], p2[2], 1.0]
-			end
+function homogeneous_line_from_points(p1, p2)
+    # Convert to homogeneous coordinates
+    if length(p1) == 2
+        p1 = [p1[1], p1[2], 1.0]
+        p2 = [p2[1], p2[2], 1.0]
+    end
 
-			# Line is the cross product of the two points
-			l = cross(p1, p2)
+    # Line is the cross product of the two points
+    l = cross(p1, p2)
 
-			return l  # line coefficients [a, b, c] such that ax + by + c = 0
-	end
+    return l  # line coefficients [a, b, c] such that ax + by + c = 0
+end
 
-	function issame_line(line₁::Line, line₂::Line, digits=6)
-		direction_factors = line₁.direction ./ line₂.direction
-		direction_factors = normalize(direction_factors)
-		direction_factors = round.(direction_factors; digits=digits)
-		issame_direction = allequal(direction_factors)
-		if !issame_direction
-			return false
-		end
+function issame_line(line₁::Line, line₂::Line, digits=6)
+    direction_factors = line₁.direction ./ line₂.direction
+    direction_factors = normalize(direction_factors)
+    direction_factors = round.(direction_factors; digits=digits)
+    issame_direction = allequal(direction_factors)
+    if !issame_direction
+        return false
+    end
 
-		origin_factors = (line₁.origin - line₂.origin) ./ line₁.direction
-		origin_factors = normalize(origin_factors)
-		origin_factors = round.(origin_factors; digits=digits)
-		return allequal(origin_factors)
-	end
+    origin_factors = (line₁.origin - line₂.origin) ./ line₁.direction
+    origin_factors = normalize(origin_factors)
+    origin_factors = round.(origin_factors; digits=digits)
+    return allequal(origin_factors)
+end
 
-	# x*l[1] + y*l[2] + l[3] = 0
-	# y = -l[1]/l[2] * x - l[3]/l[2]
-	function homogeneous_to_line(homogenous_line::Vector{<:Number})
-		m = - homogenous_line[1] / homogenous_line[2]
-		q = - homogenous_line[3] / homogenous_line[2]
-		origin = [0, q]
-		direction = [1, m + q] - origin
-		return Line(origin, direction)
-	end
+# x*l[1] + y*l[2] + l[3] = 0
+# y = -l[1]/l[2] * x - l[3]/l[2]
+function homogeneous_to_line(homogenous_line::Vector{<:Number})
+    m = -homogenous_line[1] / homogenous_line[2]
+    q = -homogenous_line[3] / homogenous_line[2]
+    origin = [0, q]
+    direction = [1, m + q] - origin
+    return Line(origin, direction)
+end
 
-	function line_to_homogenous(line::Line)
-		homogenous_line = cross([line.origin; 1], [line.origin; 1] + [line.direction*1; 0])
-		return homogenous_line ./ homogenous_line[3]
-	end
+function line_to_homogenous(line::Line)
+    homogenous_line = cross([line.origin; 1], [line.origin; 1] + [line.direction * 1; 0])
+    return homogenous_line ./ homogenous_line[3]
+end
 
-	function homogeneous_line_intercept(x, line)
-		return -line[1]/line[2] * x - line[3]/line[2]
-	end
+function homogeneous_line_intercept(x, line)
+    return -line[1] / line[2] * x - line[3] / line[2]
+end
 
-	function homogeneous_anglebetween(a, b)
-		return atan((b[1]*a[2]-a[1]*b[2])/(a[1]*b[1]+a[2]*b[2]))
-	end
+function homogeneous_anglebetween(a, b)
+    return atan((b[1] * a[2] - a[1] * b[2]) / (a[1] * b[1] + a[2] * b[2]))
+end
 
-	function project_point_into_line(point::Vector{<:Number}, line::Line)::Vector{<:Number}
-		direction = line.direction / norm(line.direction)
-		origin = line.origin
-		v = point - origin
-		return origin + dot(v, direction) * direction
-	end
+function project_point_into_line(point::Vector{<:Number}, line::Line)::Vector{<:Number}
+    direction = line.direction / norm(line.direction)
+    origin = line.origin
+    v = point - origin
+    return origin + dot(v, direction) * direction
+end
 
-	function project_point_into_plane(point::Vector{<:Number}, plane::Plane)
-		normal = plane.normal
-		origin = plane.origin
-		v = point - origin
-		d = dot(v, normal)
-		return point - d * normal
-	end
+function project_point_into_plane(point::Vector{<:Number}, plane::Plane)
+    normal = plane.normal
+    origin = plane.origin
+    v = point - origin
+    d = dot(v, normal)
+    return point - d * normal
+end
 
-	function rotation_between_lines(line₁::Vector{Float64}, line₂::Vector{Float64})
-		# vertical axis (source)
-		v1 = normalize(line₁)
+function rotation_between_lines(line₁::Vector{Float64}, line₂::Vector{Float64})
+    # vertical axis (source)
+    v1 = normalize(line₁)
 
-		# your target axis (example)
-		v2 = normalize(line₂)  # make sure it's normalized
+    # your target axis (example)
+    v2 = normalize(line₂)  # make sure it's normalized
 
-		# compute rotation axis: cross product
-		axis = cross(v1, v2)
+    # compute rotation axis: cross product
+    axis = cross(v1, v2)
 
-		# compute angle: arccos of dot product
-		angle = acos(clamp(dot(v1, v2), -1.0, 1.0))
+    # compute angle: arccos of dot product
+    angle = acos(clamp(dot(v1, v2), -1.0, 1.0))
 
-		# handle the case when vectors are parallel or anti-parallel
-		if isapprox(norm(axis), 0.0)
-				if dot(v1, v2) > 0
-						rot = one(RotMatrix{3})
-				else
-						# 180-degree rotation around any perpendicular axis
-						rot = AngleAxis(π, 1.0, 0.0, 0.0)  # choose X axis arbitrarily
-				end
-		else
-				axis = normalize(axis)
-				rot = AngleAxis(angle, axis...)
-		end
+    # handle the case when vectors are parallel or anti-parallel
+    if isapprox(norm(axis), 0.0)
+        if dot(v1, v2) > 0
+            rot = one(RotMatrix{3})
+        else
+            # 180-degree rotation around any perpendicular axis
+            rot = AngleAxis(π, 1.0, 0.0, 0.0)  # choose X axis arbitrarily
+        end
+    else
+        axis = normalize(axis)
+        rot = AngleAxis(angle, axis...)
+    end
 
-		# now rot is the rotation you want
+    # now rot is the rotation you want
 
-		# if you want Euler angles (for example RotXYZ convention)
-		euler = RotXYZ(rot)
-		return rotations_params(euler)
-	end
+    # if you want Euler angles (for example RotXYZ convention)
+    euler = RotXYZ(rot)
+    return rotations_params(euler)
+end
 
-	function plane_through_3_points(p1::Vector{<:Number}, p2::Vector{<:Number}, p3::Vector{<:Number})
-		# Create a plane through three points
-		v1 = p2 - p1
-		v2 = p3 - p1
-		normal = cross(v1, v2)
-		return Plane(p1, normal)
-	end
+function plane_through_3_points(p1::Vector{<:Number}, p2::Vector{<:Number}, p3::Vector{<:Number})
+    # Create a plane through three points
+    v1 = p2 - p1
+    v2 = p3 - p1
+    normal = cross(v1, v2)
+    return Plane(p1, normal)
+end
 
-	function plane_to_homogeneous(plane::Plane)
-		# Convert a plane to homogeneous coordinates
-		normal = plane.normal
-		d = -dot(normal, plane.origin)
-		return [normal; d]
-	end
+function plane_to_homogeneous(plane::Plane)
+    # Convert a plane to homogeneous coordinates
+    normal = plane.normal
+    d = -dot(normal, plane.origin)
+    return [normal; d]
+end
 
-	function plane_basis(plane::Plane)
+function plane_basis(plane::Plane)
     # Normal vector
     a, b, c = plane.normal
 
@@ -161,95 +161,95 @@ module Geometry
         error("Invalid normal vector: all coefficients are zero.")
     end
 
-		v2 = cross(plane.normal, v1)
+    v2 = cross(plane.normal, v1)
     return [normalize(v1); 0], [normalize(v2); 0]
-	end
+end
 
-	function cylinder_rotation_from_axis(axis::Vector{<:Number})
-		# Create a rotation matrix that aligns the Z-axis with the given axis
-		# Assuming axis is a unit vector
-		axis = normalize(axis)
-		z_axis = [0.0, 0.0, 1.0]
-		rotation = rotation_between_lines(z_axis, axis)
-		return rotation
-	end
+function cylinder_rotation_from_axis(axis::Vector{<:Number})
+    # Create a rotation matrix that aligns the Z-axis with the given axis
+    # Assuming axis is a unit vector
+    axis = normalize(axis)
+    z_axis = [0.0, 0.0, 1.0]
+    rotation = rotation_between_lines(z_axis, axis)
+    return rotation
+end
 
-	function get_tangentpoints_circle_point(circle::Circle, point::Vector{<:Number})
-		variation = point - circle.center
-		d = norm(variation)
-		r = circle.radius
+function get_tangentpoints_circle_point(circle::Circle, point::Vector{<:Number})
+    variation = point - circle.center
+    d = norm(variation)
+    r = circle.radius
 
-		if d <= r
-			throw(TangentLineNotFound("The point is inside the circle"))
-		end
-		if (d/r-1) ≃ 1E-8
-			throw(TangentLineNotFound("The point is on the circle"))
-		end
+    if d <= r
+        throw(TangentLineNotFound("The point is inside the circle"))
+    end
+    if (d / r - 1) ≃ 1E-8
+        throw(TangentLineNotFound("The point is on the circle"))
+    end
 
-		R = sqrt(d^2 - r^2)
-		rho = r/d
-		ad = rho^2 * d
-		bd = rho * R / d * d
-		axis = normalize(circle.axis)
-		
-		adv = normalize(variation)
-		if !isnothing(axis)
-			bdv = normalize(cross(axis, adv))
-		else
-			bdv = normalize(adv .* [1, -1])
-		end
+    R = sqrt(d^2 - r^2)
+    rho = r / d
+    ad = rho^2 * d
+    bd = rho * R / d * d
+    axis = normalize(circle.axis)
 
-		T1 = circle.center + ad * adv + bd * bdv
-		T2 = circle.center + ad * adv - bd * bdv
-		return T1, T2
+    adv = normalize(variation)
+    if !isnothing(axis)
+        bdv = normalize(cross(axis, adv))
+    else
+        bdv = normalize(adv .* [1, -1])
+    end
 
-		throw(TangentLineNotFound("No tangent line possible"))
-	end
+    T1 = circle.center + ad * adv + bd * bdv
+    T2 = circle.center + ad * adv - bd * bdv
+    return T1, T2
 
-	function get_cylinder_contours(cylinder::CylinderProperties, camera::CameraProperties)
-		camera_center = camera.position
-		camera_matrix = camera.matrix
-		center, _ = position_rotation(cylinder.transform)
-		axis = cylinder.singular_point[1:3]
-		radius = cylinder.radiuses[1]
-		circlecenter = project_point_into_line(camera_center, Line(center, axis))
-		tangentpoint₁, tangentpoint₂ = get_tangentpoints_circle_point(
-			Circle(circlecenter, radius, axis),
-			camera_center
-		)
-		projected_tangentpoint₁ = camera_matrix * [tangentpoint₁; 1]
-		projected_tangentpoint₂ = camera_matrix * [tangentpoint₂; 1]
-		projected_cylinderaxis = camera_matrix * [axis; 0]
+    throw(TangentLineNotFound("No tangent line possible"))
+end
 
-		contour₁ = cross(projected_tangentpoint₁, projected_tangentpoint₁ + projected_cylinderaxis)
-		contour₂ = cross(projected_tangentpoint₂, projected_tangentpoint₂ + projected_cylinderaxis)
+function get_cylinder_contours(cylinder::CylinderProperties, camera::CameraProperties)
+    camera_center = camera.position
+    camera_matrix = camera.matrix
+    center, _ = position_rotation(cylinder.transform)
+    axis = cylinder.singular_point[1:3]
+    radius = cylinder.radiuses[1]
+    circlecenter = project_point_into_line(camera_center, Line(center, axis))
+    tangentpoint₁, tangentpoint₂ = get_tangentpoints_circle_point(
+        Circle(circlecenter, radius, axis),
+        camera_center
+    )
+    projected_tangentpoint₁ = camera_matrix * [tangentpoint₁; 1]
+    projected_tangentpoint₂ = camera_matrix * [tangentpoint₂; 1]
+    projected_cylinderaxis = camera_matrix * [axis; 0]
 
-		return (contour₁, contour₂)
-	end
+    contour₁ = cross(projected_tangentpoint₁, projected_tangentpoint₁ + projected_cylinderaxis)
+    contour₂ = cross(projected_tangentpoint₂, projected_tangentpoint₂ + projected_cylinderaxis)
 
-	function get_view(cylinders, camera)
-		conics_contours = Array{Float64}(undef, 3, 2, 3)
-		for (i, cylinder) in enumerate(cylinders)
-			lines = get_cylinder_contours(
-				cylinder,
-				camera
-			)
-			for (j, _line) in enumerate(lines)
-				line = normalize(_line)
-				conics_contours[i, j, :] = line
+    return (contour₁, contour₂)
+end
 
-				if (ASSERTS_ENABLED)
-					@assert line' * conics[i].dual_matrix * line ≃ 0 "(3) Line of projected singular plane $(1) belongs to the dual conic $(1)"
-					@assert line' * camera.matrix * cylinders[i].singular_point ≃ 0 "(8) Line $(j) of conic $(i) passes through the projected singular point"
-					err = (line' * camera.matrix * cylinders[i].dual_matrix * camera.matrix' * line)
-					@assert err ≃ 0 "(9) Line $(j) of conic $(i) is tangent to the projected cylinder. $(err)"
-				end
-			end
-		end
-		return conics_contours
-	end
+function get_view(cylinders, camera)
+    conics_contours = Array{Float64}(undef, 3, 2, 3)
+    for (i, cylinder) in enumerate(cylinders)
+        lines = get_cylinder_contours(
+            cylinder,
+            camera
+        )
+        for (j, _line) in enumerate(lines)
+            line = normalize(_line)
+            conics_contours[i, j, :] = line
 
-	function linesfromconic(cc, vp)
+            if (ASSERTS_ENABLED)
+                @assert line' * conics[i].dual_matrix * line ≃ 0 "(3) Line of projected singular plane $(1) belongs to the dual conic $(1)"
+                @assert line' * camera.matrix * cylinders[i].singular_point ≃ 0 "(8) Line $(j) of conic $(i) passes through the projected singular point"
+                err = (line' * camera.matrix * cylinders[i].dual_matrix * camera.matrix' * line)
+                @assert err ≃ 0 "(9) Line $(j) of conic $(i) is tangent to the projected cylinder. $(err)"
+            end
+        end
+    end
+    return conics_contours
+end
+
+function linesfromconic(cc, vp)
     # Convert 3x3 conic matrix to 6-vector form if needed
     if length(cc) == 9
         cc = cc[[1, 2, 3, 5, 6, 9]]
@@ -269,11 +269,11 @@ module Geometry
     vpz = vp[3, :]
 
     # Compute discriminant and line directions
-    C2 = c4 .* vpx.^2 .- 2 .* c2 .* vpx .* vpy .+ c1 .* vpy.^2
-    C1 = 2 .* c3 .* vpy.^2 .- 2 .* c5 .* vpx .* vpy .+ 2 .* c4 .* vpx .* vpz .- 2 .* c2 .* vpy .* vpz
-    C0 = c6 .* vpy.^2 .- 2 .* c5 .* vpy .* vpz .+ c4 .* vpz.^2
+    C2 = c4 .* vpx .^ 2 .- 2 .* c2 .* vpx .* vpy .+ c1 .* vpy .^ 2
+    C1 = 2 .* c3 .* vpy .^ 2 .- 2 .* c5 .* vpx .* vpy .+ 2 .* c4 .* vpx .* vpz .- 2 .* c2 .* vpy .* vpz
+    C0 = c6 .* vpy .^ 2 .- 2 .* c5 .* vpy .* vpz .+ c4 .* vpz .^ 2
 
-    discrim = sqrt.(C1.^2 .- 4 .* C0 .* C2)
+    discrim = sqrt.(C1 .^ 2 .- 4 .* C0 .* C2)
 
     lx1 = .-(C1 .- discrim) ./ (2 .* C2)
     lx2 = .-(C1 .+ discrim) ./ (2 .* C2)
@@ -285,10 +285,10 @@ module Geometry
     ll2 = vcat(lx2', ly2', ones(eltype(lx2), 1, nc))
 
     return ll1, ll2
-	end
+end
 
 
-	function get_cylinder_contours_raw(CC, VP, P)
+function get_cylinder_contours_raw(CC, VP, P)
     # If CC is a 4x4 matrix, convert it to vectorized form
     if length(CC) == 16
         CC = CC[[1, 2, 3, 4, 6, 7, 8, 11, 12, 16]]
@@ -311,38 +311,38 @@ module Geometry
     cc = zeros(eltype(CC), 6, nc)
 
     for i in 1:nc
-        cc[1, i] = p1*(C1[i]*p1 + C2[i]*p4 + C3[i]*p7 + C4[i]*p10) +
-                   p4*(C2[i]*p1 + C5[i]*p4 + C6[i]*p7 + C7[i]*p10) +
-                   p7*(C3[i]*p1 + C6[i]*p4 + C8[i]*p7 + C9[i]*p10) +
-                   p10*(C4[i]*p1 + C7[i]*p4 + C9[i]*p7 + C10[i]*p10)
+        cc[1, i] = p1 * (C1[i] * p1 + C2[i] * p4 + C3[i] * p7 + C4[i] * p10) +
+                   p4 * (C2[i] * p1 + C5[i] * p4 + C6[i] * p7 + C7[i] * p10) +
+                   p7 * (C3[i] * p1 + C6[i] * p4 + C8[i] * p7 + C9[i] * p10) +
+                   p10 * (C4[i] * p1 + C7[i] * p4 + C9[i] * p7 + C10[i] * p10)
 
-        cc[2, i] = p1*(C1[i]*p2 + C2[i]*p5 + C3[i]*p8 + C4[i]*p11) +
-                   p4*(C2[i]*p2 + C5[i]*p5 + C6[i]*p8 + C7[i]*p11) +
-                   p7*(C3[i]*p2 + C6[i]*p5 + C8[i]*p8 + C9[i]*p11) +
-                   p10*(C4[i]*p2 + C7[i]*p5 + C9[i]*p8 + C10[i]*p11)
+        cc[2, i] = p1 * (C1[i] * p2 + C2[i] * p5 + C3[i] * p8 + C4[i] * p11) +
+                   p4 * (C2[i] * p2 + C5[i] * p5 + C6[i] * p8 + C7[i] * p11) +
+                   p7 * (C3[i] * p2 + C6[i] * p5 + C8[i] * p8 + C9[i] * p11) +
+                   p10 * (C4[i] * p2 + C7[i] * p5 + C9[i] * p8 + C10[i] * p11)
 
-        cc[3, i] = p1*(C1[i]*p3 + C2[i]*p6 + C3[i]*p9 + C4[i]*p12) +
-                   p4*(C2[i]*p3 + C5[i]*p6 + C6[i]*p9 + C7[i]*p12) +
-                   p7*(C3[i]*p3 + C6[i]*p6 + C8[i]*p9 + C9[i]*p12) +
-                   p10*(C4[i]*p3 + C7[i]*p6 + C9[i]*p9 + C10[i]*p12)
+        cc[3, i] = p1 * (C1[i] * p3 + C2[i] * p6 + C3[i] * p9 + C4[i] * p12) +
+                   p4 * (C2[i] * p3 + C5[i] * p6 + C6[i] * p9 + C7[i] * p12) +
+                   p7 * (C3[i] * p3 + C6[i] * p6 + C8[i] * p9 + C9[i] * p12) +
+                   p10 * (C4[i] * p3 + C7[i] * p6 + C9[i] * p9 + C10[i] * p12)
 
-        cc[4, i] = p2*(C1[i]*p2 + C2[i]*p5 + C3[i]*p8 + C4[i]*p11) +
-                   p5*(C2[i]*p2 + C5[i]*p5 + C6[i]*p8 + C7[i]*p11) +
-                   p8*(C3[i]*p2 + C6[i]*p5 + C8[i]*p8 + C9[i]*p11) +
-                   p11*(C4[i]*p2 + C7[i]*p5 + C9[i]*p8 + C10[i]*p11)
+        cc[4, i] = p2 * (C1[i] * p2 + C2[i] * p5 + C3[i] * p8 + C4[i] * p11) +
+                   p5 * (C2[i] * p2 + C5[i] * p5 + C6[i] * p8 + C7[i] * p11) +
+                   p8 * (C3[i] * p2 + C6[i] * p5 + C8[i] * p8 + C9[i] * p11) +
+                   p11 * (C4[i] * p2 + C7[i] * p5 + C9[i] * p8 + C10[i] * p11)
 
-        cc[5, i] = p2*(C1[i]*p3 + C2[i]*p6 + C3[i]*p9 + C4[i]*p12) +
-                   p5*(C2[i]*p3 + C5[i]*p6 + C6[i]*p9 + C7[i]*p12) +
-                   p8*(C3[i]*p3 + C6[i]*p6 + C8[i]*p9 + C9[i]*p12) +
-                   p11*(C4[i]*p3 + C7[i]*p6 + C9[i]*p9 + C10[i]*p12)
+        cc[5, i] = p2 * (C1[i] * p3 + C2[i] * p6 + C3[i] * p9 + C4[i] * p12) +
+                   p5 * (C2[i] * p3 + C5[i] * p6 + C6[i] * p9 + C7[i] * p12) +
+                   p8 * (C3[i] * p3 + C6[i] * p6 + C8[i] * p9 + C9[i] * p12) +
+                   p11 * (C4[i] * p3 + C7[i] * p6 + C9[i] * p9 + C10[i] * p12)
 
-        cc[6, i] = p3*(C1[i]*p3 + C2[i]*p6 + C3[i]*p9 + C4[i]*p12) +
-                   p6*(C2[i]*p3 + C5[i]*p6 + C6[i]*p9 + C7[i]*p12) +
-                   p9*(C3[i]*p3 + C6[i]*p6 + C8[i]*p9 + C9[i]*p12) +
-                   p12*(C4[i]*p3 + C7[i]*p6 + C9[i]*p9 + C10[i]*p12)
+        cc[6, i] = p3 * (C1[i] * p3 + C2[i] * p6 + C3[i] * p9 + C4[i] * p12) +
+                   p6 * (C2[i] * p3 + C5[i] * p6 + C6[i] * p9 + C7[i] * p12) +
+                   p9 * (C3[i] * p3 + C6[i] * p6 + C8[i] * p9 + C9[i] * p12) +
+                   p12 * (C4[i] * p3 + C7[i] * p6 + C9[i] * p9 + C10[i] * p12)
     end
 
     ll1, ll2 = linesfromconic(cc, vp)
     return ll1, ll2
-	end
+end
 end
