@@ -86,15 +86,15 @@ function lookat_rotation(camera_pos::Union{Vector{Float64},Vector{Number}}, targ
     return R_cam_to_world
 end
 
-function lookat_quaternion(camera_pos::Union{Vector{Float64},Vector{Number}}, target_pos::Vector{Float64}; up::Vector{Float64}=[0.0, 1.0, 0.0], use_model_front::Bool=true)
-    forward = target_pos - camera_pos
-    p_target = forward
+function lookat_quaternion(camera_pos::Union{Vector{Float64},Vector{Number}}, target_pos::Vector{Float64}; up::Vector{Float64}=[0.0, 0.0, 1.0], use_model_front::Bool=true)
+    p_target = target_pos - camera_pos
     v_z = normalize(p_target)
     if (!use_model_front)
         v_z = -v_z
     end
-    v_x = cross(up, v_z)
+    v_x = cross(v_z, up)
     if (isapprox(v_x, zeros(3)))
+        display("Hua")
         v_x = get_any_perpendicular(up)
     end
     v_x = normalize(v_x)
@@ -120,7 +120,7 @@ end
 
 function random_camera_lookingat_center()
     camera_translationdirection = normalize(rand_in_range(-1.0, 1.0, 3))
-    camera_translation = camera_translationdirection * rand_in_range(20.0, 30.0)
+    camera_translation = camera_translationdirection * rand_in_range(16.0, 18.0)
     camera_object_rotation = lookat_quaternion(camera_translation, [0.0, 0.0, 0.0])
     return camera_translation, camera_object_rotation
 end

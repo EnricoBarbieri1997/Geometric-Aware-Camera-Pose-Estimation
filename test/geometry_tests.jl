@@ -53,7 +53,7 @@ end
             target_line = target_lines[i][j]
             target_line = target_line ./ target_line[3]
 
-            @test norm(line - target_line) < 1e-5
+            @test norm(line - target_line) ≈ 0.0
         end
     end
 end

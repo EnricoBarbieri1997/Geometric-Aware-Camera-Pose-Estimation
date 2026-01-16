@@ -39,7 +39,7 @@ intrinsic = [
         end
     end
 
-    @test isapprox(error, 0.0; atol=1e-6)
+    @test error ≃ 0.0
 end
 
 @testset "calibrated_fixed_position" begin
@@ -47,15 +47,15 @@ end
     points_at_infinity, dualquadrics = points_at_infinity_dualquadrics(cylinders)
     position = [10.0, 10.0, -10.0]
     rotation_matrix = lookat_quaternion(position, [0.0, 0.0, 0.0])
-    quaternion_camera_rotation = QuatRotation(rotation_matrix)
     euler_rotation = rad2deg.(eulerangles_from_rotationmatrix(rotation_matrix))
     camera1 = CameraProperties(
         position=position,
         euler_rotation=euler_rotation,
-        quaternion_rotation=quaternion_camera_rotation,
+        quaternion_rotation=rotation_matrix,
         intrinsic=Matrix(I, 3, 3),
     )
     lines_view_1 = get_view(cylinders, camera1)
+    display(lines_view_1)
 
     error = 0.0
 
@@ -67,18 +67,15 @@ end
         end
     end
 
-    @test isapprox(error, 0.0; atol=1e-6)
+    @test error ≃ 0.0
 end
 
 @testset "calibrated_random_position" begin
     Random.seed!(42)
     cylinders = CalibrationRigs.axis_rig()
     points_at_infinity, dualquadrics = points_at_infinity_dualquadrics(cylinders)
-    position, rotation_matrix = random_camera_lookingat_center()
-    display(position)
-    quaternion_camera_rotation = QuatRotation(rotation_matrix)
-    euler_rotation = rad2deg.(Rotations.params(RotXYZ(rotation_matrix)))
-    display(euler_rotation)
+    position, quaternion_camera_rotation = random_camera_lookingat_center()
+    euler_rotation = rad2deg.(eulerangles_from_rotationmatrix(quaternion_camera_rotation))
     camera1 = CameraProperties(
         position=position,
         euler_rotation=euler_rotation,
@@ -97,7 +94,7 @@ end
         end
     end
 
-    @test isapprox(error, 0.0; atol=1e-6)
+    @test error ≃ 0.0
 end
 
 @testset "uncalibrated" begin
@@ -124,7 +121,7 @@ end
         end
     end
 
-    @test isapprox(error, 0.0; atol=1e-6)
+    @test error ≃ 0.0
 end
 
 @testset "using_camera_matrix" begin
@@ -143,7 +140,7 @@ end
         end
     end
 
-    @test isapprox(error, 0.0; atol=1e-6)
+    @test error ≃ 0.0
 end
 
 @testset "external_uncalibrated" begin
@@ -162,7 +159,7 @@ end
         end
     end
 
-    @test isapprox(error, 0.0; atol=1e-6)
+    @test error ≃ 0.0
 end
 
 @testset "cayley_rotation" begin
@@ -193,7 +190,7 @@ end
         end
     end
 
-    @test isapprox(error, 0.0; atol=1e-6)
+    @test error ≃ 0.0
 end
 
 @testset "external_cayley_rotation" begin
@@ -218,5 +215,5 @@ end
         end
     end
 
-    @test isapprox(error, 0.0; atol=1e-6)
+    @test error ≃ 0.0
 end
