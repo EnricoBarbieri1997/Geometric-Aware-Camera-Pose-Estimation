@@ -93,13 +93,15 @@ for (k, camera) in enumerate(cameras):
         # cv.waitKey()
         cylinder_contours[ax.name] = lines
 
+    a = list(camera_utils.get_calibration_matrix_K_from_blender(camera.data))
+    a = [list(b) for b in a]
     scene_data[f"{k}"] = {
         "contours": cylinder_contours,
         "camera": {
             "position": list(camera.matrix_world.translation),
             "euler_rotation": [math.degrees(rad) for rad in camera.matrix_world.to_euler('XYZ')],
             "quaternion_rotation": list(camera_utils.get_R_and_T_matrix_from_blender(camera)[0].to_quaternion()),
-            "intrinsics": camera_utils.scene_camera_intrinsics(camera).tolist()
+            "intrinsics": a
         }
     }
 
