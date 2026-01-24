@@ -152,7 +152,7 @@ function plot_3dcamera(camera::CameraProperties, color = :black)
     scale = 2
     origin = camera.position
     R = Matrix{Float64}(camera.quaternion_rotation)
-    T = Matrix(create_transform_matrix(origin, camera.euler_rotation))
+    T = Matrix(create_transform_matrix(origin, camera.quaternion_rotation))
 
     # Plot axes
     for (i, color) in enumerate((:red, :green, :blue))

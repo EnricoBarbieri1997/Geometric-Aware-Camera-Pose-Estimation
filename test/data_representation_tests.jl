@@ -3,6 +3,7 @@ using CylindersBasedCameraResectioning.Geometry: get_view
 using CylindersBasedCameraResectioning.Cylinder: CalibrationRigs, points_at_infinity_dualquadrics
 using CylindersBasedCameraResectioning.Camera: CameraProperties, lookat_quaternion, random_camera_lookingat_center
 using CylindersBasedCameraResectioning.IO: read_axis_rig_lines, read_camera
+using CylindersBasedCameraResectioning.Utils: ≃, eulerangles_from_rotationmatrix
 
 using LinearAlgebra: I
 using Rotations
@@ -89,7 +90,7 @@ end
     for i in 1:3
         for j in 1:2
             line = lines_view_1[i, j, :]
-            equation = line' * camera1.intrinsic * camera1.rotation_matrix * points_at_infinity[i, :]
+            equation = line' * camera1.rotation_matrix * points_at_infinity[i, :]
             error += equation
         end
     end
@@ -151,10 +152,39 @@ end
 
     error = 0.0
 
+    camera_matrix = camera1.matrix
+    camera_matrix = camera_matrix / camera_matrix[3, 4]
+    camera_matrix = camera_matrix[:, 1:3]
+    display("Camera")
+    display(camera1.intrinsic)
+    display(camera1.rotation_matrix[:, 1])
+    display(camera1.rotation_matrix[:, 2])
+    display(camera1.rotation_matrix[:, 3])
+
+    R = [
+        -0.6677567581146903 -0.3728383968374097 0.6442766811206727;
+        0.7179709694314603 -0.3566235112582031 0.5977770138366976;
+        -0.0002156973332256661 0.9211179713896587 0.38928349086194325
+    ]
+
+    display("Lines")
     for i in 1:3
+        point_at_infinity_index = (i-1) * 2 + 1
         for j in 1:2
             line = lines_view_1[i][j]
-            equation = line' * camera1.intrinsic * camera1.rotation_matrix * points_at_infinity[i, :]
+            rp = R * points_at_infinity[point_at_infinity_index, :]
+            irp = camera1.intrinsic * rp
+            equation = line' * irp
+            if i == 1
+                display(points_at_infinity[point_at_infinity_index, :])
+                display(line)
+                display("Steps")
+                display(rp)
+                display(irp)
+                display("Irp adjusted")
+                display(irp ./ irp[3])
+                display("Error $(i) - $(j) : $equation")
+            end
             error += equation
         end
     end

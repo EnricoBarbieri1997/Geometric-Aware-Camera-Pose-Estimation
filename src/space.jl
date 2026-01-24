@@ -35,20 +35,21 @@ end
 
 function transformation(
     translation::Union{Array{<:Number,1},Vector{<:Number}}=[0, 0, 0],
-    rotation::Union{Array{<:Number,1},Vector{<:Number}}=[0, 0, 0]
+    rotation::RotMatrix3 = diagm([1.0, 1.0, 1.0])
 )
-    rotation = RotDeg(rotation...)
-
-    r = zeros(4, 4)
-    r[1:3, 1:3] .= (rotation)
-    r[4, 4] = 1
-    t = diagm([1.0, 1.0, 1.0, 1.0])
-    t[1:3, 4] .= (translation .* 1)
-
-    transform = t * r
-    transform[abs.(transform).<1e-11] .= 0.0
+    transform = Matrix(1.0I, 4, 4)
+    transform[1:3, 1:3] .= rotation
+    transform[1:3, 4] .= translation
 
     return transform
+end
+
+function transformation_euler(
+    translation::Union{Array{<:Number,1},Vector{<:Number}}=[0, 0, 0],
+    rotation::Union{Array{<:Number,1},Vector{<:Number}}=[0, 0, 0]
+)
+    rot = RotMatrix(RotZYX(deg2rad(rotation[3]), deg2rad(rotation[2]), deg2rad(rotation[1])))
+    return transformation(translation, rot)
 end
 
 function position_rotation(transform_matrix::Matrix{<:Number})
@@ -71,7 +72,7 @@ function random_transformation(
     center = rand_in_range(collect(centerBoundaries))
     rotation = rand_in_range((0, 40), 3)
 
-    return transformation((center[1], center[2], center[3]), (rotation[1], rotation[2], rotation[3]))
+    return transformation_euler((center[1], center[2], center[3]), (rotation[1], rotation[2], rotation[3]))
 end
 
 function identity_transformation()

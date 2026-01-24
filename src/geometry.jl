@@ -209,9 +209,11 @@ end
 function get_cylinder_contours(cylinder::CylinderProperties, camera::CameraProperties)
     camera_center = camera.position
     camera_matrix = camera.matrix
+    display("Camera transform matrix: $(cylinder.transform)")
     center, _ = position_rotation(cylinder.transform)
     axis = cylinder.singular_point[1:3]
     radius = cylinder.radiuses[1]
+    display("center: $center, axis: $axis, radius: $radius")
     circlecenter = project_point_into_line(camera_center, Line(center, axis))
     tangentpoint₁, tangentpoint₂ = get_tangentpoints_circle_point(
         Circle(circlecenter, radius, axis),
@@ -221,8 +223,11 @@ function get_cylinder_contours(cylinder::CylinderProperties, camera::CameraPrope
     projected_tangentpoint₂ = camera_matrix * [tangentpoint₂; 1]
     projected_cylinderaxis = camera_matrix * [axis; 0]
 
-    contour₁ = cross(projected_tangentpoint₁, projected_tangentpoint₁ + projected_cylinderaxis)
-    contour₂ = cross(projected_tangentpoint₂, projected_tangentpoint₂ + projected_cylinderaxis)
+    contour₁ = cross(projected_tangentpoint₁, projected_cylinderaxis)
+    contour₂ = cross(projected_tangentpoint₂, projected_cylinderaxis)
+
+    display("Cylinder axis projection: $(projected_cylinderaxis ./ projected_cylinderaxis[3])")
+    display("Do solve: $(contour₁' * projected_cylinderaxis), $(contour₂' * projected_cylinderaxis)")
 
     return (contour₁, contour₂)
 end

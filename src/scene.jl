@@ -2,7 +2,7 @@ module Scene
 
 	using ..CylindersBasedCameraResectioning: ASSERTS_ENABLED, IMAGE_HEIGHT, IMAGE_WIDTH
 	using ..Geometry: Line, cylinder_rotation_from_axis, homogeneous_line_from_points, homogeneous_to_line, line_to_homogenous, homogeneous_line_intercept, get_cylinder_contours, get_cylinder_contours_raw
-	using ..Space: RotDeg, transformation, random_transformation, identity_transformation, position_rotation
+	using ..Space: RotDeg, transformation_euler, random_transformation, identity_transformation, position_rotation
 	using ..Camera: CameraProperties, IntrinsicParameters, build_intrinsic_matrix, build_camera_matrix, random_camera_lookingat_center, is_in_front_of_camera
 	using ..Printing: print_camera_differences
 	using ..Plotting: initfigure, get_or_add_2d_axis!, clean_plots!, plot_2dpoints, plot_image_background, Plot3dCameraInput, plot_3dcamera, plot_3dcamera_rotation, plot_3dcylinders, plot_2dcylinders
@@ -84,7 +84,7 @@ module Scene
 					rotation = rand_in_range((-90, 90), 3)
 					cylinder.euler_rotation = rotation
 
-					cylinder.transform = transformation(position, cylinder.euler_rotation)
+					cylinder.transform = transformation_euler(position, cylinder.euler_rotation)
 					radius = rand_in_range((0.2, 1.5), 2)
 					cylinder.radiuses = [radius[1], radius[1]] # TODO Support different radiuses for each cylinder
 
@@ -329,7 +329,7 @@ module Scene
 						position = Vector{Float64}(cylinder_properties["position"])
 						cylinder.euler_rotation = rad2deg.(cylinder_rotation_from_axis(Vector{Float64}(cylinder_properties["axis"])))
 
-						cylinder.transform = transformation(position, cylinder.euler_rotation)
+						cylinder.transform = transformation_euler(position, cylinder.euler_rotation)
 						radius = Float64(cylinder_properties["radius"])
 						cylinder.radiuses = [radius, radius]
 

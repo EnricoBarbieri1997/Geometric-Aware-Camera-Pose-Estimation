@@ -27,7 +27,7 @@ function read_camera(filepath::String; object_path::String = "")::CameraProperti
     camera = CameraProperties()
     camera.position = json_data["position"]
     camera.euler_rotation = json_data["euler_rotation"]
-    camera.quaternion_rotation = QuatRotation(json_data["quaternion_rotation"])
+    camera.quaternion_rotation = QuatRotation(0.311379, 0.222926, -0.527197, 0.758558) * QuatRotation(json_data["quaternion_rotation"])
     camera.intrinsic = Float64.((hcat(json_data["intrinsics"]...)'))
 
     return camera

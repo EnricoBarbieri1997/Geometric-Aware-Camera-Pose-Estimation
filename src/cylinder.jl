@@ -24,7 +24,12 @@ function standard_and_dual(
     inverseRadiusSquareY = 1 / (radius[2]^2)
     canonicalCylinder = diagm([inverseRadiusSquareX, inverseRadiusSquareY, 0, -1])
 
-    cylinder = inv(transform_matrix') * canonicalCylinder * inv(transform_matrix)
+    cylinder = canonicalCylinder
+    try
+        cylinder = inv(transform_matrix') * canonicalCylinder * inv(transform_matrix)
+    catch e
+        @warn "Matrix inversion failed in standard_and_dual function. Returning canonical cylinder. Error: $e"
+    end
 
     dualCanonicalCylinderMatrix = zeros(4, 4)
     dualCanonicalCylinderMatrix[[1, 2, 4], [1, 2, 4]] .= inv(canonicalCylinder[[1, 2, 4], [1, 2, 4]])
@@ -55,13 +60,13 @@ end
 module CalibrationRigs
 using ..Cylinder: CylinderProperties, standard_and_dual
 using ....CylindersBasedCameraResectioning: ASSERTS_ENABLED
-using ....Space: transformation
+using ....Space: transformation_euler
 
 function origin_centered_cylinder(euler_rotation)
     cylinder = CylinderProperties()
     position = [0.0, 0.0, 0.0]
     cylinder.euler_rotation = euler_rotation
-    cylinder.transform = transformation(position, cylinder.euler_rotation)
+    cylinder.transform = transformation_euler(position, cylinder.euler_rotation)
     cylinder.radiuses = [1.0, 1.0]
 
     axis = cylinder.transform * [0; 0; 1; 0]
