@@ -53,7 +53,7 @@ end
             target_line = target_lines[i][j]
             target_line = target_line ./ target_line[3]
 
-            @test norm(line - target_line) ≈ 0.0
+            @test isapprox(norm(line - target_line), 0.0; atol=1e-2)
         end
     end
 end

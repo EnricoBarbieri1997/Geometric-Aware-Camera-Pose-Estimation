@@ -88,9 +88,10 @@ end
     error = 0.0
 
     for i in 1:3
+        point_at_infinity_index = (i-1) * 2 + 1
         for j in 1:2
             line = lines_view_1[i, j, :]
-            equation = line' * camera1.rotation_matrix * points_at_infinity[i, :]
+            equation = line' * camera1.rotation_matrix * points_at_infinity[point_at_infinity_index, :]
             error += equation
         end
     end
@@ -115,9 +116,10 @@ end
     error = 0.0
 
     for i in 1:3
+        point_at_infinity_index = (i-1) * 2 + 1
         for j in 1:2
             line = lines_view_1[i, j, :]
-            equation = line' * camera1.intrinsic * camera1.rotation_matrix * points_at_infinity[i, :]
+            equation = line' * camera1.intrinsic * camera1.rotation_matrix * points_at_infinity[point_at_infinity_index, :]
             error += equation
         end
     end
@@ -134,9 +136,10 @@ end
     error = 0.0
 
     for i in 1:3
+        point_at_infinity_index = (i-1) * 2 + 1
         for j in 1:2
             line = lines_view_1[i][j]
-            equation = line' * camera1.matrix[1:3, 1:3] * points_at_infinity[i, :]
+            equation = line' * camera1.matrix[1:3, 1:3] * points_at_infinity[point_at_infinity_index, :]
             error += equation
         end
     end
@@ -204,7 +207,7 @@ end
     )
     lines_view_1 = get_view(cylinders, camera1)
 
-    quat = Rotations.params(camera1.rotation_matrix)
+    quat = Rotations.params(QuatRotation(camera1.rotation_matrix))
     quat = quat ./ quat[1]
     quat = quat[2:end]
 
@@ -213,9 +216,10 @@ end
     error = 0.0
 
     for i in 1:3
+        point_at_infinity_index = (i-1) * 2 + 1
         for j in 1:2
             line = lines_view_1[i, j, :]
-            equation = line' * camera1.intrinsic * rotation * points_at_infinity[i, :]
+            equation = line' * camera1.intrinsic * rotation * points_at_infinity[point_at_infinity_index, :]
             error += equation
         end
     end
@@ -229,7 +233,7 @@ end
     camera1 = read_camera("../assets/test_scenes/axis_rig/scene.json"; object_path="0.camera")
     lines_view_1 = read_axis_rig_lines("../assets/test_scenes/axis_rig/scene.json"; object_path="0.contours")
 
-    quat = Rotations.params(camera1.rotation_matrix)
+    quat = Rotations.params(QuatRotation(camera1.rotation_matrix))
     quat = quat ./ quat[1]
     quat = quat[2:end]
 
@@ -238,9 +242,10 @@ end
     error = 0.0
 
     for i in 1:3
+        point_at_infinity_index = (i-1) * 2 + 1
         for j in 1:2
             line = lines_view_1[i][j]
-            equation = line' * camera1.intrinsic * rotation * points_at_infinity[i, :]
+            equation = line' * camera1.intrinsic * rotation * points_at_infinity[point_at_infinity_index, :]
             error += equation
         end
     end
