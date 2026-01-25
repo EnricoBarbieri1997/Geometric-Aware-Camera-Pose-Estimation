@@ -30,12 +30,12 @@
         };
       }
     )
-    {
+    // {
       nixosConfigurations.nixos = nixpkgs.lib.nixosSystem {
         system = "x86_64-linux";
         modules = [
           nix-ld.nixosModules.nix-ld
-          { programs.nix-ld.dev.enable = true; }
+          { programs.nix-ld.enable = true; }
         ];
       };
     };
