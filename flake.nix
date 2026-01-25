@@ -24,7 +24,6 @@
           # EGL/OpenGL (GLVND + Mesa)
           pkgs.libglvnd
           pkgs.mesa
-          pkgs.mesa.drivers
 
           # Often needed by GLFW/Makie stack
           pkgs.glib
