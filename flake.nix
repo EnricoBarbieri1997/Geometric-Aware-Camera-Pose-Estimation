@@ -15,7 +15,7 @@
         devShells.default = pkgs.mkShell {
           name = "julia-dev-shell";
           buildInputs = [
-            pkgs.julia_1_11
+            pkgs.julia_111
             pkgs.git
             pkgs.gnumake
             pkgs.python3
