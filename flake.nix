@@ -13,6 +13,24 @@
     flake-utils.lib.eachDefaultSystem (system:
       let
         pkgs = import nixpkgs { inherit system; };
+        libPath = pkgs.lib.makeLibraryPath [
+          pkgs.stdenv.cc.cc.lib     # libquadmath.so.0, libstdc++.so, etc.
+          pkgs.gfortran.cc.lib      # libgfortran.so.*, often needed by JLLs
+          
+          # Wayland + input
+          pkgs.wayland
+          pkgs.libxkbcommon
+
+          # EGL/OpenGL (GLVND + Mesa)
+          pkgs.libglvnd
+          pkgs.mesa
+          pkgs.mesa.drivers
+
+          # Often needed by GLFW/Makie stack
+          pkgs.glib
+          pkgs.fontconfig
+          pkgs.freetype
+        ];
       in {
         devShells.default = pkgs.mkShell {
           name = "julia-dev-shell";
@@ -26,6 +44,18 @@
           shellHook = ''
             echo "Welcome to the Julia dev shell!"
             export JULIA_PROJECT=$PWD
+            export LD_LIBRARY_PATH="${libPath}:$LD_LIBRARY_PATH"
+
+            # Force GLFW to use Wayland (avoid GLX entirely)
+            export GLFW_USE_WAYLAND=1
+
+            # Make sure EGL is the chosen GL platform
+            export EGL_PLATFORM=wayland
+
+            # Helpful sanity output
+            echo "WAYLAND_DISPLAY=$WAYLAND_DISPLAY"
+            echo "GLFW_USE_WAYLAND=$GLFW_USE_WAYLAND"
+            echo "EGL_PLATFORM=$EGL_PLATFORM"
           '';
         };
       }
