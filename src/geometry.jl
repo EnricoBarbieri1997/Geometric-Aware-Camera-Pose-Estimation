@@ -226,8 +226,8 @@ function get_cylinder_contours(cylinder::CylinderProperties, camera::CameraPrope
     contour₁ = cross(projected_tangentpoint₁, projected_cylinderaxis)
     contour₂ = cross(projected_tangentpoint₂, projected_cylinderaxis)
 
-    display("Cylinder axis projection: $(projected_cylinderaxis ./ projected_cylinderaxis[3])")
-    display("Do solve: $(contour₁' * projected_cylinderaxis), $(contour₂' * projected_cylinderaxis)")
+    # display("Cylinder axis projection: $(projected_cylinderaxis ./ projected_cylinderaxis[3])")
+    # display("Do solve: $(contour₁' * projected_cylinderaxis), $(contour₂' * projected_cylinderaxis)")
 
     return (contour₁, contour₂)
 end

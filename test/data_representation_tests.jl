@@ -9,7 +9,7 @@ using LinearAlgebra: I
 using Rotations
 using Random
 
-intrinsic = [
+intrinsics = [
     2666.6666666666665 0.0 960.0;
     0.0 2666.6666666666665 540.0;
     0.0 0.0 1.0
@@ -56,7 +56,6 @@ end
         intrinsic=Matrix(I, 3, 3),
     )
     lines_view_1 = get_view(cylinders, camera1)
-    display(lines_view_1)
 
     error = 0.0
 
@@ -109,7 +108,7 @@ end
         position=position,
         euler_rotation=euler_rotation,
         quaternion_rotation=quaternion_camera_rotation,
-        intrinsic=intrinsic,
+        intrinsic=intrinsics,
     )
     lines_view_1 = get_view(cylinders, camera1)
 
@@ -158,11 +157,6 @@ end
     camera_matrix = camera1.matrix
     camera_matrix = camera_matrix / camera_matrix[3, 4]
     camera_matrix = camera_matrix[:, 1:3]
-    display("Camera")
-    display(camera1.intrinsic)
-    display(camera1.rotation_matrix[:, 1])
-    display(camera1.rotation_matrix[:, 2])
-    display(camera1.rotation_matrix[:, 3])
 
     R = [
         -0.6677567581146903 -0.3728383968374097 0.6442766811206727;
@@ -170,7 +164,6 @@ end
         -0.0002156973332256661 0.9211179713896587 0.38928349086194325
     ]
 
-    display("Lines")
     for i in 1:3
         point_at_infinity_index = (i-1) * 2 + 1
         for j in 1:2
@@ -178,16 +171,6 @@ end
             rp = R * points_at_infinity[point_at_infinity_index, :]
             irp = camera1.intrinsic * rp
             equation = line' * irp
-            if i == 1
-                display(points_at_infinity[point_at_infinity_index, :])
-                display(line)
-                display("Steps")
-                display(rp)
-                display(irp)
-                display("Irp adjusted")
-                display(irp ./ irp[3])
-                display("Error $(i) - $(j) : $equation")
-            end
             error += equation
         end
     end
@@ -203,7 +186,7 @@ end
         position=position,
         euler_rotation=rad2deg.(eulerangles_from_rotationmatrix(rotation_matrix)),
         quaternion_rotation=QuatRotation(rotation_matrix),
-        intrinsic=intrinsic,
+        intrinsic=intrinsics,
     )
     lines_view_1 = get_view(cylinders, camera1)
 
