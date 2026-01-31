@@ -205,22 +205,13 @@ function build_intrinsic_rotation_conic_system(
                 Variable("lines$(index)", i, j)
                 for i in 1:lines_to_pick, j in 1:3
             ], lines_to_pick, 3)
-        display(lines)
         for line_index in 1:lines_to_pick
-            # if index == 2 && line_index == 2
-            #     display("params")
-            #     display(lines[line_index, :])
-            #     display(intrinsic)
-            #     display(R)
-            #     display(problem.points_at_infinity[line_index, :])
-            # end
             equation = lines[line_index, :]' * intrinsic * R * problem.points_at_infinity[line_index, :]
             push!(system_to_solve, equation)
         end
 
         variables = stack_homotopy_parameters(variables, Rparams)
         parameters = stack_homotopy_parameters(parameters, lines)
-        display(parameters)
     end
 
     a = System(system_to_solve, variables=variables, parameters=parameters)

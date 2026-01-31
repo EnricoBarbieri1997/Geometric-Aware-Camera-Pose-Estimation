@@ -1,5 +1,5 @@
 module Utils
-	export almostequal, ≃, rand_in_range, quat_from_rotmatrix, normalized_diff, vector_difference, matrix_difference, intrinsic_difference, rotations_difference, eulerangles_from_rotationmatrix, translations_difference, isvalid_startsolution
+	export almostequal, ≃, rand_in_range, quat_from_rotmatrix, normalized_diff, vector_difference, matrix_difference, intrinsic_difference, rotations_difference, eulerangles_from_rotationmatrix, translations_difference, isvalid_startsolution, lines_clp_to_stack
 
 	using LinearAlgebra: Adjoint, diagm, norm, normalize, svdvals, tr
 	using Rotations
@@ -292,5 +292,11 @@ module Utils
 			end
 		end
 		throw(ArgumentError("Invalid arguments"))
+	end
+	# Cylinder_count x 2 x 3 to line_count x 3
+	function lines_clp_to_stack(lines_clp::Array{Float64,3})::Array{Float64,2}
+		cylinder_count = size(lines_clp, 1)
+		line_count = cylinder_count * 2
+		return reshape(permutedims(lines_clp, (2, 1, 3)), line_count, 3)
 	end
 end

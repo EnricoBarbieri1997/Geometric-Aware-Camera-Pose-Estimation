@@ -5,7 +5,7 @@ using CylindersBasedCameraResectioning.IO: read_axis_rig_lines, read_camera
 using CylindersBasedCameraResectioning.EquationSystems: build_intrinsic_rotation_conic_system, stack_homotopy_parameters
 using CylindersBasedCameraResectioning.EquationSystems.Problems: CylinderCameraContoursProblem, CylinderCameraContoursProblemValidationData
 using CylindersBasedCameraResectioning.EquationSystems.Problems.IntrinsicParameters: Configurations as IntrinsicParametersConfigurations
-using CylindersBasedCameraResectioning.Utils: rad2deg, eulerangles_from_rotationmatrix
+using CylindersBasedCameraResectioning.Utils: rad2deg, eulerangles_from_rotationmatrix, lines_clp_to_stack
 
 using HomotopyContinuation
 using LinearAlgebra: norm
@@ -58,11 +58,7 @@ using Rotations
         Vector{Float64}(undef, 6)
     )
     for (i, camera_view_pair) in enumerate(camera_view_pairs)
-        display("CCCCC")
-        display(camera_view_pair.view[1, :, :])
-        lines = reshape(permutedims(camera_view_pair.view, (2, 1, 3)), 6, 3)
-        display(lines)
-        display("DDDDD")
+        lines = lines_clp_to_stack(camera_view_pair.view)
         problem = CylinderCameraContoursProblem(
             camera_view_pair.camera,
             lines,
@@ -88,10 +84,6 @@ using Rotations
         )
     end
     parameters = convert(Vector{Float64}, parameters)
-    display("AAAAA")
-    display(problems[1].lines[2, :])
-    display(parameters)
-    display("BBBBB")
 
     rot1 = Rotations.params(QuatRotation(cameras[1].rotation_matrix))
     rot1 = rot1 / rot1[1]
@@ -112,11 +104,6 @@ using Rotations
     ]
 
     equation_results = evaluate(rotation_intrinsic_system, solution, parameters)
-    display("Eq 1 ex")
-    display(problems[1].lines[1, :]' * intrinsics * cameras[1].rotation_matrix * problems[1].points_at_infinity[1, :])
-    display("Eq 2 ex")
-    display(problems[1].lines[2, :]' * intrinsics * cameras[1].rotation_matrix * problems[1].points_at_infinity[2, :])
-    display(equation_results)
     for res in equation_results
         @test isapprox(res, 0.0; atol=1e-6)
     end
