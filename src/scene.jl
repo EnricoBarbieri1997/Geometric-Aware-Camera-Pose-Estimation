@@ -717,26 +717,23 @@ module Scene
 			end
 			parameters = []
 			intrinsic_count = count_ones(UInt8(intrinsic_configuration))
-			extrinsic_count = size(problems)[1] * 3
+			problems_count = size(problems)[1]
+			extrinsic_count = problems_count * 3
 			lines_count = intrinsic_count + extrinsic_count
-			for problem in problems
-				lines_to_pick = min(size(problem.lines)[1], lines_count - ceil(Int64, size(parameters)[1] / 3))
-				lines = problem.lines[1:lines_to_pick, :]
-				if (
-					!isIntrinsicEnabled.cₓ(intrinsic_configuration) &&
-					!isIntrinsicEnabled.cᵧ(intrinsic_configuration) &&
-					!isIntrinsicEnabled.skew(intrinsic_configuration)
-				)
-					known_intrinsic = [
-						1.0 0.0 0.0;
-						0.0 1.0 0.0;
-						0.0 0.0 1.0;
-					]
-					known_intrinsic[1, 2] = problem.camera.intrinsic[1, 2]
-					known_intrinsic[1, 3] = problem.camera.intrinsic[1, 3]
-					known_intrinsic[2, 3] = problem.camera.intrinsic[2, 3]
-					lines = lines * known_intrinsic
+
+			lines_per_problem = zeros(Int64, problems_count)
+			problem_index = 1
+			for i in 1:lines_count
+				lines_per_problem[problem_index] += 1
+				problem_index += 1
+				if problem_index > problems_count
+					problem_index = 1
 				end
+			end
+
+			for (i, problem) in enumerate(problems)
+				lines_to_pick = lines_per_problem[i]
+				lines = problem.lines[1:lines_to_pick, :]
 				parameters = stack_homotopy_parameters(
 					parameters,
 					lines,
