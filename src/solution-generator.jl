@@ -130,8 +130,9 @@ function generate_configurations()
     cameras = []
     for dir in quadrants_directions
         camera = CameraProperties()
-        camera.position = dir * 10.0
-        rotation_matrix = lookat_rotation(camera.position, [0.0, 0.0, 0.0])
+        randomized_dir = normalize(dir + rand_in_range((-0.2, 0.2), 3))
+        camera.position = randomized_dir * rand_in_range(7.0, 13.0)
+        rotation_matrix = lookat_rotation(camera.position, rand_in_range((-0.1, 0.1), 3))
         camera.quaternion_rotation = QuatRotation(rotation_matrix)
         camera.euler_rotation = rad2deg.(eulerangles_from_rotationmatrix(rotation_matrix))
         camera.intrinsic = [
