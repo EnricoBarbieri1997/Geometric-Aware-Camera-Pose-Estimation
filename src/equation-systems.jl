@@ -75,47 +75,16 @@ mutable struct CylinderCameraContoursProblemValidationData
     lines::Array{Float64,2}
     points_at_infinity::Array{Float64,2}
     dualquadrics::Array{Float64,3}
-    line_indexes::Array{Float64,1}
 end
 mutable struct CylinderCameraContoursProblem
     camera::CameraProperties
     lines::Array{Float64,2}
     noise_free_lines::Array{Float64,2}
     points_at_infinity::Array{Float64,2}
-    dualquadrics::Array{Float64,3}
-    line_indexes::Array{Float64,1}
     validation::CylinderCameraContoursProblemValidationData
     intrinsic_configuration::UInt8
 end
 
-function CylinderCameraContoursProblem(
-    camera::CameraProperties,
-    lines::Array{Float64,2},
-    noise_free_lines::Array{Float64,2},
-    points_at_infinity::Array{Float64,2},
-    dualquadrics::Array{Float64,3},
-    intrinsic_configuration::UInt8=IntrinsicParameters.focal_length_x | IntrinsicParameters.focal_length_y | IntrinsicParameters.skew | IntrinsicParameters.principal_point_x | IntrinsicParameters.principal_point_y
-)
-    println(typeof(camera))
-    println(typeof(lines))
-    println(typeof(noise_free_lines))
-    println(typeof(points_at_infinity))
-    println(typeof(dualquadrics))
-    println(typeof(intrinsic_configuration))
-
-    return CylinderCameraContoursProblem(
-        camera,
-        lines,
-        noise_free_lines,
-        points_at_infinity,
-        dualquadrics,
-        collect(1:size(lines)[1]),
-        CylinderCameraContoursProblemValidationData(
-            [], [], [], []
-        ),
-        intrinsic_configuration
-    )
-end
 end
 
 function stack_homotopy_parameters(parameters...)
@@ -135,6 +104,7 @@ end
 
 function build_intrinsic_rotation_conic_system(
     problems::Vector{Problems.CylinderCameraContoursProblem};
+    equation_combinations = nothing,
 )
     problems_count = length(problems)
     if problems_count == 0
@@ -195,23 +165,62 @@ function build_intrinsic_rotation_conic_system(
         end
     end
 
+    if equation_combinations === nothing
+        equation_combinations = []
+        already_seen = 0
+        for (index, problem) in enumerate(problems)
+            pick_count = lines_per_problem[index]
+            spare_count = size(problem.lines)[1] - pick_count
+            
+            equation_combinations = vcat(equation_combinations, collect(1:pick_count) .+ already_seen)
+            already_seen += (pick_count + spare_count)
+        end
+    end
+
+    points_at_infinity = vcat([problem.points_at_infinity for problem in problems]...)
+
+    lines = nothing
+
     for (index, problem) in enumerate(problems)
-        lines_to_pick = lines_per_problem[index]
+        lines_to_pick = size(problem.lines)[1]
+        _lines = reshape([
+                Variable("lines$(index)", i, j)
+                for i in 1:lines_to_pick, j in 1:3
+            ], lines_to_pick, 3)
+        if lines === nothing
+            lines = _lines
+        else
+            lines = vcat(lines, _lines)
+        end
+    end
+
+    Rs = []
+
+    for (index, problem) in enumerate(problems)
         Rparams = [
             Variable("R$(index)", i) for i in 1:3
         ]
         R = build_rotation_matrix(Rparams..., false)
-        lines = reshape([
-                Variable("lines$(index)", i, j)
-                for i in 1:lines_to_pick, j in 1:3
-            ], lines_to_pick, 3)
-        for line_index in 1:lines_to_pick
-            equation = lines[line_index, :]' * intrinsic * R * problem.points_at_infinity[line_index, :]
-            push!(system_to_solve, equation)
-        end
+        push!(Rs, R)
 
         variables = stack_homotopy_parameters(variables, Rparams)
-        parameters = stack_homotopy_parameters(parameters, lines)
+    end
+
+    for line_index in equation_combinations
+        lines_upto_now = 0
+        problem_index = 1
+        for (index, problem) in enumerate(problems)
+            lines_upto_now += size(problem.lines)[1]
+            if line_index <= lines_upto_now
+                problem_index = index
+                break
+            end
+        end
+
+        line = lines[line_index, :]
+        equation = line' * intrinsic * Rs[problem_index] * points_at_infinity[line_index, :]
+        push!(system_to_solve, equation)
+        parameters = stack_homotopy_parameters(parameters, line)
     end
 
     a = System(system_to_solve, variables=variables, parameters=parameters)

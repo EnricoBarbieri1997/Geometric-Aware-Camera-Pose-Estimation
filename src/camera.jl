@@ -94,7 +94,6 @@ function lookat_quaternion(camera_pos::Union{Vector{Float64},Vector{Number}}, ta
     end
     v_x = cross(v_z, up)
     if (isapprox(v_x, zeros(3)))
-        display("Hua")
         v_x = get_any_perpendicular(up)
     end
     v_x = normalize(v_x)

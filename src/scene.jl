@@ -251,7 +251,6 @@ module Scene
 						Matrix{Float64}(undef, number_of_spare_lines, 3),
 						Matrix{Float64}(undef, number_of_spare_lines, 3),
 						Array{Float64}(undef, number_of_spare_lines, 4, 4),
-						Vector{Float64}(undef, numberoflines_tosolvefor)
 					)
 					for store_index in (1:number_of_spare_lines)
 						line_index = possible_picks[1] # rand(possible_picks)
@@ -262,7 +261,6 @@ module Scene
 						validation_data.lines[store_index, :] = normalize(noisy_conic_contours[i, j, :])
 						validation_data.points_at_infinity[store_index, :] = normalize(cylinders[i].singular_point[1:3])
 						validation_data.dualquadrics[store_index, :, :] = cylinders[i].dual_matrix ./ cylinders[i].dual_matrix[4, 4]
-						validation_data.line_indexes[store_index] = line_index
 					end
 
 					problem_camera = CameraProperties()
@@ -272,8 +270,6 @@ module Scene
 						lines,
 						noise_free_lines,
 						points_at_infinity,
-						dualquadrics,
-						line_indexes,
 						validation_data,
 						UInt8(intrinsic_configuration),
 					)
@@ -466,7 +462,6 @@ module Scene
 						Matrix{Float64}(undef, number_of_spare_lines, 3),
 						Matrix{Float64}(undef, number_of_spare_lines, 3),
 						Array{Float64}(undef, number_of_spare_lines, 4, 4),
-						Vector{Float64}(undef, number_of_spare_lines)
 					)
 					for store_index in (1:number_of_spare_lines)
 						line_index = possible_picks[1]
@@ -477,7 +472,6 @@ module Scene
 						validation_data.lines[store_index, :] = normalize(conics_contours[i, j, :])
 						validation_data.points_at_infinity[store_index, :] = normalize(cylinders[i].singular_point[1:3])
 						validation_data.dualquadrics[store_index, :, :] = cylinders[i].dual_matrix ./ cylinders[i].dual_matrix[4, 4]
-						validation_data.line_indexes[store_index] = line_index
 					end
 
 					problem_camera = CameraProperties()
@@ -503,8 +497,6 @@ module Scene
 							lines,
 							lines,
 							points_at_infinity,
-							dualquadrics,
-							line_indexes,
 							validation_data,
 							UInt8(intrinsic_configuration),
 					)
@@ -704,6 +696,7 @@ module Scene
 		problems;
 		minimization = false,
 		intrinsic_configuration = IntrinsicParametersConfigurations.fₓ_fᵧ_skew_cₓ_cᵧ,
+		equation_combinations = nothing,
 	)
 			rotation_intrinsic_system = nothing
 			if (minimization)
@@ -713,6 +706,7 @@ module Scene
 			else
 				rotation_intrinsic_system = build_intrinsic_rotation_conic_system(
 					problems;
+					equation_combinations = equation_combinations,
 				)
 			end
 			parameters = []
@@ -721,23 +715,32 @@ module Scene
 			extrinsic_count = problems_count * 3
 			lines_count = intrinsic_count + extrinsic_count
 
-			lines_per_problem = zeros(Int64, problems_count)
-			problem_index = 1
-			for i in 1:lines_count
-				lines_per_problem[problem_index] += 1
-				problem_index += 1
-				if problem_index > problems_count
-					problem_index = 1
-				end
-			end
-
-			for (i, problem) in enumerate(problems)
-				lines_to_pick = lines_per_problem[i]
-				lines = problem.lines[1:lines_to_pick, :]
+			if equation_combinations !== nothing
+				lines = vcat([problem.lines for problem in problems]...)
+				lines = lines[equation_combinations, :]
 				parameters = stack_homotopy_parameters(
 					parameters,
-					lines,
+					lines',
 				)
+			else
+				lines_per_problem = zeros(Int64, problems_count)
+				problem_index = 1
+				for i in 1:lines_count
+					lines_per_problem[problem_index] += 1
+					problem_index += 1
+					if problem_index > problems_count
+						problem_index = 1
+					end
+				end
+
+				for (i, problem) in enumerate(problems)
+					lines_to_pick = lines_per_problem[i]
+					lines = problem.lines[1:lines_to_pick, :]
+					parameters = stack_homotopy_parameters(
+						parameters,
+						lines',
+					)
+				end
 			end
 			parameters = convert(Vector{Float64}, parameters)
 
@@ -862,12 +865,12 @@ module Scene
 						@assert eq ≃ errs[i] "Camera calibration not successful for line $(i) with error $(eq)"
 					end
 				end
-				parameters = stack_homotopy_parameters(lines[1:3, 1:3])
+				parameters = stack_homotopy_parameters(lines[1:3, 1:3]')
 			else
 				translation_system = build_intrinsic_rotation_translation_conic_system(
 					problem
 				)
-				parameters = stack_homotopy_parameters(problem.lines[1:3, 1:3])
+				parameters = stack_homotopy_parameters(problem.lines[1:3, 1:3]')
 			end
 
 			return translation_system, parameters
@@ -1053,8 +1056,6 @@ module Scene
 								problem.lines,
 								problem.noise_free_lines,
 								problem.points_at_infinity,
-								problem.dualquadrics,
-								problem.line_indexes,
 								problem.validation,
 								problem.intrinsic_configuration,
 						)
@@ -1169,8 +1170,6 @@ module Scene
 					problem.lines,
 					problem.noise_free_lines,
 					problem.points_at_infinity,
-					problem.dualquadrics,
-					problem.line_indexes,
 					problem.validation,
 					problem.intrinsic_configuration,
 				)

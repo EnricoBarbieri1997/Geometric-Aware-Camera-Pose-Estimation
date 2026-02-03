@@ -8,6 +8,8 @@ using ..EquationSystems.Problems: CylinderCameraContoursProblem, CylinderCameraC
 using ..EquationSystems.Problems.IntrinsicParameters: Configurations as IntrinsicParametersConfigurations
 using ..Utils: eulerangles_from_rotationmatrix, rand_in_range, lines_clp_to_stack
 using ..Plotting: initfigure, plot_2dcylinders
+
+using Combinatorics: combinations as indices_combinations
 using LinearAlgebra, Serialization
 using HomotopyContinuation, Rotations
 using Random
@@ -66,23 +68,15 @@ function solve_by_similarity()
         Matrix{Float64}(undef, 0, 3),
         Matrix{Float64}(undef, 0, 3),
         Array{Float64}(undef, 0, 4, 4),
-        Vector{Float64}(undef, 6)
     )
     for (i, camera_view_pair) in enumerate(camera_view_pairs)
         lines = lines_clp_to_stack(camera_view_pair.view)
 
-        if i == 2
-            tmp = lines[5, :]
-            lines[5, :] = lines[6, :]
-            lines[6, :] = tmp
-        end
         problem = CylinderCameraContoursProblem(
             camera_view_pair.camera,
             lines,
             lines,
             points_at_infinity,
-            dualquadrics,
-            collect(1:size(lines)[1]),
             validation_data,
             UInt8(intrinsic_configuration)
         )
@@ -90,44 +84,6 @@ function solve_by_similarity()
     end
 
     plot_scene(scene, original_problems)
-
-    # rotation_intrinsic_system, parameters = intrinsic_rotation_system_setup(
-    #     original_problems;
-    #     minimization=false,
-    #     intrinsic_configuration
-    # )
-
-    # rot1 = Rotations.params(QuatRotation(scene.instances[1].camera.rotation_matrix))
-    # rot1 = rot1 / rot1[1]
-    # rot1 = rot1[2:4]
-    # rot2 = Rotations.params(QuatRotation(scene.instances[2].camera.rotation_matrix))
-    # rot2 = rot2 / rot2[1]
-    # rot2 = rot2[2:4]
-
-    # intrinsics = scene.instances[1].camera.intrinsic
-    # factor = 1.0 / 3000.0
-    # solution = [
-    #     intrinsics[1, 1] * factor,
-    #     intrinsics[2, 2] * factor,
-    #     intrinsics[1, 3] * factor,
-    #     intrinsics[2, 3] * factor,
-    #     rot1...,
-    #     rot2...,
-    # ]
-    # display(pair[3:4])
-    # display("Known solution")
-    # display(solution;)
-    # display(size(parameters))
-
-    # eq = expressions(rotation_intrinsic_system)[1]
-    # display(eq)
-    # display(original_problems[1].lines[1, :])
-
-    # display(evaluate(rotation_intrinsic_system, solution, parameters))
-
-    # display(scene.figure)
-
-    # return
 
     pairs = camera_pairs_by_similarity(scene.instances[1].conics_contours, scene.instances[2].conics_contours)
 
@@ -139,22 +95,12 @@ function solve_by_similarity()
         cv_1 = deserialize("./tmp/start_solutions/camera_view_pairs/$(ids[1]).jls")
         cv_2 = deserialize("./tmp/start_solutions/camera_view_pairs/$(ids[2]).jls")
 
-        # plot_2dcylinders(cv_1.view; axindex = 1, linestyle = :dash,)
-        # plot_2dcylinders(cv_2.view; axindex = 2, linestyle = :dash,)
-
         rotation_intrinsic_system, parameters = intrinsic_rotation_system_setup(
             problems;
             minimization=false,
-            intrinsic_configuration
+            intrinsic_configuration,
+            equation_combinations=reference_start.permutation
         )
-
-        # display("Total degree solution")
-        # tdsol = solve(
-        #     rotation_intrinsic_system;
-        #     start_system = :total_degree,
-        #     target_parameters = parameters,
-        # )
-        # display(tdsol)
 
         result = solve(
             rotation_intrinsic_system,
@@ -238,39 +184,29 @@ function generate_parameter_solution_pair(index::String)
         Matrix{Float64}(undef, 0, 3),
         Matrix{Float64}(undef, 0, 3),
         Array{Float64}(undef, 0, 4, 4),
-        Vector{Float64}(undef, 6)
     )
     for (i, camera_view_pair) in enumerate([camera_view_pair_1, camera_view_pair_2])
         lines = lines_clp_to_stack(camera_view_pair.view)
-
-        if i == 2
-            tmp = lines[5, :]
-            lines[5, :] = lines[6, :]
-            lines[6, :] = tmp
-        end
 
         problem = CylinderCameraContoursProblem(
             camera_view_pair.camera,
             lines,
             lines,
             points_at_infinity,
-            dualquadrics,
-            collect(1:size(lines)[1]),
             validation_data,
             UInt8(intrinsic_configuration)
         )
         push!(problems, problem)
     end
 
-    system, parameters = intrinsic_rotation_system_setup(problems; intrinsic_configuration)
-
+    #region Computing original sol
     rot = Rotations.params(QuatRotation(scene.instances[1].camera.rotation_matrix))
     rot = rot / rot[1]
     rot1 = rot[2:4]
     rot = Rotations.params(QuatRotation(scene.instances[2].camera.rotation_matrix))
     rot = rot / rot[1]
     rot2 = rot[2:4]
-    sol_aaa = [
+    original_sol = [
         scene.instances[1].camera.intrinsic[1, 1] / 3000.0,
         scene.instances[1].camera.intrinsic[2, 2] / 3000.0,
         scene.instances[1].camera.intrinsic[1, 3] / 3000.0,
@@ -278,33 +214,52 @@ function generate_parameter_solution_pair(index::String)
         rot1...,
         rot2...,
     ]
-    display(evaluate(system, sol_aaa, parameters))
-    display(svdvals(jacobian(system, sol_aaa, parameters)))
+    #endregion
 
-    # return
+    possible_system_combinations = indices_combinations(1:12, 10)
+    picked_combination::Array{Int} = []
 
-    # result = solve(
-    #     system;
-    #     target_parameters=parameters,
-    #     start_system=:total_degree,
-    # )
-    # sol = solutions(result)
+    for comb in possible_system_combinations
+        display("Trying combination: $(comb)")
+        system, parameters = intrinsic_rotation_system_setup(problems;
+            intrinsic_configuration,
+            equation_combinations=comb
+        )
+        display(rank(jacobian(system, original_sol, parameters)))
+        
+        if rank(jacobian(system, original_sol, parameters)) == length(expressions(system))
+            picked_combination = comb
+            break
+        end
+    end
 
-    sol = solutions(monodromy_solve(system, [sol_aaa], parameters))
+    display(picked_combination)
 
-    # return
-    # sol = vcat(sol, additional_solutions)
+    system, parameters = intrinsic_rotation_system_setup(problems;
+        intrinsic_configuration,
+        equation_combinations=picked_combination
+    )
+    
+    display(evaluate(system, original_sol, parameters))
+
+    result = solve(
+        system;
+        target_parameters=parameters,
+        start_system=:total_degree,
+    )
+    sol = solutions(result)
+
+    # sol = solutions(monodromy_solve(system, [sol_aaa], parameters))
+
     if length(sol) < 64
         display("Warning: The number of solutions found is less than expected: $(length(sol)) < 128 for index $(index)")
     end
-    parameters_solutions_pair = ParameterSolutionsPair(
+    parameters_solutions_pair = PermutationParametersSolutions(
         index,
+        picked_combination,
         parameters,
         sol
     )
-
-    # display(system)
-    # display(evaluate(system, sol[1], parameters))
 
     if !isdir("./tmp/start_solutions/parameters_solution_pairs/")
         mkpath("./tmp/start_solutions/parameters_solution_pairs/")
@@ -381,8 +336,9 @@ function camera_pairs_by_similarity(view_1, view_2)
     return sort(pairs, by=x -> x[2])
 end
 
-struct ParameterSolutionsPair
+struct PermutationParametersSolutions
     index::String
+    permutation::Vector{Int}
     parameters::Vector{Float64}
     solutions::Vector{Vector{Number}}
 end
