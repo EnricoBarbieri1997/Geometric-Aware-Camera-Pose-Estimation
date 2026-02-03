@@ -218,15 +218,15 @@ function generate_parameter_solution_pair(index::String)
     #endregion
 
     possible_system_combinations = indices_combinations(1:12, 10)
-    picked_combination::Array{Int} = []
+    picked_combination::Union{Nothing, Array{Int}} = nothing
 
     for comb in possible_system_combinations
-        display("Trying combination: $(comb)")
+        # display("Trying combination: $(comb)")
         system, parameters = intrinsic_rotation_system_setup(problems;
             intrinsic_configuration,
             equation_combinations=comb
         )
-        display(rank(jacobian(system, original_sol, parameters)))
+        # display(rank(jacobian(system, original_sol, parameters)))
         
         if rank(jacobian(system, original_sol, parameters)) == length(expressions(system))
             picked_combination = comb
@@ -234,14 +234,14 @@ function generate_parameter_solution_pair(index::String)
         end
     end
 
-    display(picked_combination)
+    # display(picked_combination)
 
     system, parameters = intrinsic_rotation_system_setup(problems;
         intrinsic_configuration,
         equation_combinations=picked_combination
     )
     
-    display(evaluate(system, original_sol, parameters))
+    # display(evaluate(system, original_sol, parameters))
 
     result = solve(
         system;
