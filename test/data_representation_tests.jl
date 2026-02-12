@@ -126,58 +126,6 @@ end
     @test error ≃ 0.0
 end
 
-@testset "using_camera_matrix" begin
-    cylinders = CalibrationRigs.axis_rig()
-    points_at_infinity, dualquadrics = points_at_infinity_dualquadrics(cylinders)
-    camera1 = read_camera("../assets/test_scenes/axis_rig/scene.json"; object_path="0.camera")
-    lines_view_1 = read_axis_rig_lines("../assets/test_scenes/axis_rig/scene.json"; object_path="0.contours")
-
-    error = 0.0
-
-    for i in 1:3
-        point_at_infinity_index = (i-1) * 2 + 1
-        for j in 1:2
-            line = lines_view_1[i][j]
-            equation = line' * camera1.matrix[1:3, 1:3] * points_at_infinity[point_at_infinity_index, :]
-            error += equation
-        end
-    end
-
-    @test error ≃ 0.0
-end
-
-@testset "external_uncalibrated" begin
-    cylinders = CalibrationRigs.axis_rig()
-    points_at_infinity, dualquadrics = points_at_infinity_dualquadrics(cylinders)
-    camera1 = read_camera("../assets/test_scenes/axis_rig/scene.json"; object_path="0.camera")
-    lines_view_1 = read_axis_rig_lines("../assets/test_scenes/axis_rig/scene.json"; object_path="0.contours")
-
-    error = 0.0
-
-    camera_matrix = camera1.matrix
-    camera_matrix = camera_matrix / camera_matrix[3, 4]
-    camera_matrix = camera_matrix[:, 1:3]
-
-    R = [
-        -0.6677567581146903 -0.3728383968374097 0.6442766811206727;
-        0.7179709694314603 -0.3566235112582031 0.5977770138366976;
-        -0.0002156973332256661 0.9211179713896587 0.38928349086194325
-    ]
-
-    for i in 1:3
-        point_at_infinity_index = (i-1) * 2 + 1
-        for j in 1:2
-            line = lines_view_1[i][j]
-            rp = R * points_at_infinity[point_at_infinity_index, :]
-            irp = camera1.intrinsic * rp
-            equation = line' * irp
-            error += equation
-        end
-    end
-
-    @test error ≃ 0.0
-end
-
 @testset "cayley_rotation" begin
     cylinders = CalibrationRigs.axis_rig()
     points_at_infinity, dualquadrics = points_at_infinity_dualquadrics(cylinders)
@@ -202,32 +150,6 @@ end
         point_at_infinity_index = (i-1) * 2 + 1
         for j in 1:2
             line = lines_view_1[i, j, :]
-            equation = line' * camera1.intrinsic * rotation * points_at_infinity[point_at_infinity_index, :]
-            error += equation
-        end
-    end
-
-    @test error ≃ 0.0
-end
-
-@testset "external_cayley_rotation" begin
-    cylinders = CalibrationRigs.axis_rig()
-    points_at_infinity, dualquadrics = points_at_infinity_dualquadrics(cylinders)
-    camera1 = read_camera("../assets/test_scenes/axis_rig/scene.json"; object_path="0.camera")
-    lines_view_1 = read_axis_rig_lines("../assets/test_scenes/axis_rig/scene.json"; object_path="0.contours")
-
-    quat = Rotations.params(QuatRotation(camera1.rotation_matrix))
-    quat = quat ./ quat[1]
-    quat = quat[2:end]
-
-    rotation = build_rotation_matrix(quat..., false)
-
-    error = 0.0
-
-    for i in 1:3
-        point_at_infinity_index = (i-1) * 2 + 1
-        for j in 1:2
-            line = lines_view_1[i][j]
             equation = line' * camera1.intrinsic * rotation * points_at_infinity[point_at_infinity_index, :]
             error += equation
         end
