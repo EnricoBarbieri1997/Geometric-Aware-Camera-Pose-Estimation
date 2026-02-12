@@ -8,6 +8,7 @@ using ..EquationSystems.Problems: CylinderCameraContoursProblem, CylinderCameraC
 using ..EquationSystems.Problems.IntrinsicParameters: Configurations as IntrinsicParametersConfigurations
 using ..Utils: eulerangles_from_rotationmatrix, rand_in_range, lines_clp_to_stack
 using ..Plotting: initfigure, plot_2dcylinders
+using ..Homotopies: GeometricHomotopy
 
 using Combinatorics: combinations as indices_combinations
 using LinearAlgebra, Serialization
@@ -19,7 +20,7 @@ CAMERAS_POOL_SIZE = 8
 function solve_by_similarity()
     Random.seed!(785687)
     intrinsic_configuration = IntrinsicParametersConfigurations.fₓ_fᵧ_cₓ_cᵧ
-    cylinders::Vector{CylinderProperties} = CalibrationRigs.axis_rig()
+    cylinders::Vector{CylinderProperties} = CalibrationRigs.arbitrary_rig()
 
     intrinsics = [
         rand_in_range(2500.0, 2700.0) 0.0 rand_in_range(950.0, 970.0);   # fₓ, skew, cₓ
@@ -91,16 +92,21 @@ function solve_by_similarity()
         reference_start = deserialize("./tmp/start_solutions/parameters_solution_pairs/$(pair[1]).jls")
         problems = original_problems[pair[3:4]]
 
-        ids = parse.(Int, split(pair[1], "_"))
-        cv_1 = deserialize("./tmp/start_solutions/camera_view_pairs/$(ids[1]).jls")
-        cv_2 = deserialize("./tmp/start_solutions/camera_view_pairs/$(ids[2]).jls")
-
         rotation_intrinsic_system, parameters = intrinsic_rotation_system_setup(
             problems;
             minimization=false,
             intrinsic_configuration,
             equation_combinations=reference_start.permutation
         )
+
+        # result = solve(
+        #     GeometricHomotopy(
+        #         rotation_intrinsic_system,
+        #         start_parameters=reference_start.parameters,
+        #         target_parameters=parameters,
+        #     ),
+        #     reference_start.solutions
+        # )
 
         result = solve(
             rotation_intrinsic_system,
@@ -143,7 +149,7 @@ function generate_configurations()
         push!(cameras, camera)
     end
 
-    cylinders = CalibrationRigs.axis_rig()
+    cylinders = CalibrationRigs.arbitrary_rig()
 
     views::Array{Array{Float64,3}} = []
     for camera in cameras
@@ -163,7 +169,7 @@ end
 function generate_parameter_solution_pair(index::String)
     intrinsic_configuration = IntrinsicParametersConfigurations.fₓ_fᵧ_cₓ_cᵧ
 
-    cylinders = CalibrationRigs.axis_rig()
+    cylinders = CalibrationRigs.arbitrary_rig()
     camera_index_1, camera_index_2 = parse.(Int, split(index, "_"))
     camera_view_pair_1 = deserialize("./tmp/start_solutions/camera_view_pairs/$(camera_index_1).jls")
     camera_view_pair_2 = deserialize("./tmp/start_solutions/camera_view_pairs/$(camera_index_2).jls")

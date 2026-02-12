@@ -61,10 +61,13 @@ module CalibrationRigs
 using ..Cylinder: CylinderProperties, standard_and_dual
 using ....CylindersBasedCameraResectioning: ASSERTS_ENABLED
 using ....Space: transformation_euler
+using ....Utils: rand_in_range
 
-function origin_centered_cylinder(euler_rotation)
+using LinearAlgebra: normalize
+using Random
+
+function cylinder(position, euler_rotation)
     cylinder = CylinderProperties()
-    position = [0.0, 0.0, 0.0]
     cylinder.euler_rotation = euler_rotation
     cylinder.transform = transformation_euler(position, cylinder.euler_rotation)
     cylinder.radiuses = [1.0, 1.0]
@@ -94,6 +97,10 @@ function origin_centered_cylinder(euler_rotation)
     return cylinder
 end
 
+function origin_centered_cylinder(euler_rotation)
+    return cylinder([0.0, 0.0, 0.0], euler_rotation)
+end
+
 function axis_rig()
     cylinders = []
     # Cylinder X
@@ -102,6 +109,18 @@ function axis_rig()
     push!(cylinders, origin_centered_cylinder([90.0, 0.0, 0.0]))
     # Cylinder Z
     push!(cylinders, origin_centered_cylinder([0.0, 0.0, 0.0]))
+    return cylinders
+end
+
+function arbitrary_rig()
+    Random.seed!(2300)
+    cylinders = []
+    for i in 1:3
+        dir = normalize(rand_in_range(-1.0, 1.0, 3))
+        position = dir * rand_in_range(0.1, 3.0)
+        euler_rotation = rand_in_range(0.0, 360.0, 3)
+        push!(cylinders, cylinder(position, euler_rotation))
+    end
     return cylinders
 end
 end

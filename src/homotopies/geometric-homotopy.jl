@@ -114,7 +114,7 @@ end
 function ModelKit.evaluate!(u, H::GeometricHomotopy, x, t)
     tp!(H, t)
     a = evaluate!(u, H.F, x, H.pt)
-    display(a)
+    # display(a)
     a
 end
 
