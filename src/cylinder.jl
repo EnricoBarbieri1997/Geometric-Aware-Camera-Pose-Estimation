@@ -1,9 +1,10 @@
 module Cylinder
-export CylinderProperties, standard_and_dual, points_at_infinity_dualquadrics
+export CylinderProperties, standard_and_dual, points_at_infinity_dualquadrics, cylinder_from_center_axis_radius
 
 using ..Space, ..Utils
 
 using LinearAlgebra, Random
+using Rotations
 
 mutable struct CylinderProperties
     euler_rotation::Vector{Number}
@@ -55,6 +56,36 @@ function points_at_infinity_dualquadrics(cylinders)
     end
 
     return points_at_infinity, dualquadrics
+end
+
+function cylinder_from_center_axis_radius(
+    center::Vector{<:Number},
+    axis::Vector{<:Number},
+    radius::Number,
+)::CylinderProperties
+    axis_direction = Float64.(axis[1:3])
+    axis_norm = norm(axis_direction)
+    if axis_norm == 0
+        throw(ArgumentError("Axis vector must be non-zero."))
+    end
+    axis_direction = axis_direction / axis_norm
+
+    x_axis = Float64.(get_any_perpendicular(axis_direction))
+    y_axis = Float64.(normalize(cross(axis_direction, x_axis)))
+    rotation = RotMatrix3(hcat(x_axis, y_axis, axis_direction))
+    transform = transformation(Float64.(center[1:3]), rotation)
+
+    radius_float = Float64(radius)
+    standard, dual, singularpoint = standard_and_dual(transform, [radius_float, radius_float])
+
+    cylinder = CylinderProperties()
+    cylinder.euler_rotation = eulerangles_from_rotationmatrix(rotation)
+    cylinder.radiuses = [radius_float, radius_float]
+    cylinder.matrix = standard
+    cylinder.singular_point = singularpoint
+    cylinder.dual_matrix = dual
+    cylinder.transform = transform
+    return cylinder
 end
 
 module CalibrationRigs

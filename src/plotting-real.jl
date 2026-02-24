@@ -273,6 +273,14 @@ function plot_3dcylinders(cylinders::Vector{CylinderProperties}; axindex = 1)
     end
 end
 
+function plot_3dpoints(points::Vector{Vector{Float64}}; color = :black, markersize = 8)
+    if isempty(points)
+        return
+    end
+    points_matrix = reduce(hcat, points)
+    scatter!(ax3, points_matrix[1, :], points_matrix[2, :], points_matrix[3, :]; color, markersize)
+end
+
 function plot_2dpoints(points; axindex = 1)
     for (i, point) in enumerate(points)
         if length(point) == 3 && point[3] != 0

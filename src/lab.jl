@@ -4,6 +4,10 @@ module Lab
     using StatsBase
     using LinearAlgebra
 
+    using ..IO: read_point_cloud_yup_to_zup, read_cylinders_yup_to_zup
+    using ..Plotting: initfigure, plot_3dcylinders, plot_3dpoints
+    using ..Cylinder: cylinder_from_center_axis_radius
+
     function shuttercameras()
         link1 = "https://gist.githubusercontent.com/PBrdng/e17d0e3bc4d983734238b9cb8386d560/raw/07272b125a6ad03c791fdf99e741318f1d85149b/3Dpoints"
         link2 = "https://gist.githubusercontent.com/PBrdng/e17d0e3bc4d983734238b9cb8386d560/raw/07272b125a6ad03c791fdf99e741318f1d85149b/2Dpoints"
@@ -201,5 +205,21 @@ module Lab
         display(F)
         sol = solve(F)
         display(sol)
+    end
+
+    function view_tmp_point_cloud_cylinders()
+        filepath = "./tmp/pnt_cloud_cylinders.json"
+        points = read_point_cloud_yup_to_zup(filepath)
+        cylinders = read_cylinders_yup_to_zup(filepath)
+
+        figure = initfigure()
+        plot_3dpoints(points; color=:black, markersize=4)
+        plot_3dcylinders([
+            cylinder_from_center_axis_radius(cylinder.center, cylinder.axis, cylinder.radius)
+            for cylinder in cylinders
+        ])
+        display(figure)
+
+        return points, cylinders
     end
 end
