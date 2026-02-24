@@ -78,6 +78,7 @@ function solve_by_similarity()
             lines,
             lines,
             points_at_infinity,
+            dualquadrics,
             validation_data,
             UInt8(intrinsic_configuration)
         )
@@ -200,6 +201,7 @@ function generate_parameter_solution_pair(index::String)
             lines,
             lines,
             points_at_infinity,
+            dualquadrics,
             validation_data,
             UInt8(intrinsic_configuration)
         )

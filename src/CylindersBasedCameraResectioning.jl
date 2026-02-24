@@ -5,14 +5,17 @@ module CylindersBasedCameraResectioning
     const IMAGE_WIDTH = 1920
     include("includes.jl")
 
-	using ..Scene: SceneData, ParametersSolutionsPair, averaged_solution!, best_overall_solution!, best_overall_solution_by_steps!, best_intrinsic_rotation_translation_system_solution!, camera_from_solution, create_scene_instances_and_problems, scene_instances_and_problems_from_files, intrinsic_rotation_system_setup, intrinsic_rotation_translation_system_setup, plot_interactive_scene, plot_reconstructed_scene, split_intrinsic_rotation_parameters
+    using ..Cylinder: cylinder_from_center_axis_radius, points_at_infinity_dualquadrics
+	using ..Scene: SceneData, InstanceConfiguration, ParametersSolutionsPair, averaged_solution!, best_overall_solution!, best_overall_solution_by_steps!, best_intrinsic_rotation_translation_system_solution!, camera_from_solution, create_scene_instances_and_problems, scene_instances_and_problems_from_files, intrinsic_rotation_system_setup, intrinsic_rotation_translation_system_setup, plot_interactive_scene, plot_reconstructed_scene, split_intrinsic_rotation_parameters, plot_scene
     using ..Camera: CameraViewPair
 	using ..EquationSystems: stack_homotopy_parameters, variables_jacobian_rank, joint_jacobian_rank
+    using ..EquationSystems.Problems: CylinderCameraContoursProblem, CylinderCameraContoursProblemValidationData
     using ..EquationSystems.Problems.IntrinsicParameters: Configurations as IntrinsicParametersConfigurations
     using ..Plotting
 	using ..Printing: print_camera_differences, print_relative_motion_errors
     using ..Homotopies: ParameterHomotopy as MyParameterHomotopy
     using ..IO: read_point_cloud_zup, read_cylinders_zup, read_camera_from_matrices, read_cylinder_line_views
+    using ..Utils: lines_clp_to_stack
 
     using HomotopyContinuation, Observables, Random, Serialization
 
@@ -577,6 +580,8 @@ module CylindersBasedCameraResectioning
         intrinsic_configuration = IntrinsicParametersConfigurations.fₓ_fᵧ_cₓ_cᵧ
         filepath = "./assets/test_scenes/water_tower/scene.json"
         cylinders = read_cylinders_zup(filepath)
+        cylinders = [cylinder_from_center_axis_radius(cylinder.center, cylinder.axis, cylinder.radius)
+            for cylinder in cylinders]
         camera1 = read_camera_from_matrices(
             filepath,
             1
@@ -619,6 +624,7 @@ module CylindersBasedCameraResectioning
                 lines,
                 lines,
                 points_at_infinity,
+                dualquadrics,
                 validation_data,
                 UInt8(intrinsic_configuration)
             )
@@ -631,17 +637,37 @@ module CylindersBasedCameraResectioning
             problems;
             minimization=false,
             intrinsic_configuration,
-            equation_combinations=reference_start.permutation
         )
 
         result = solve(
-            rotation_intrinsic_system,
-            reference_start.solutions;
-            start_parameters=reference_start.parameters,
+            rotation_intrinsic_system;
             target_parameters=parameters,
+            start_system=:total_degree,
         )
 
         @info result
+
+        solution_error, _ = best_overall_solution_by_steps!(
+            result,
+            problems;
+            intrinsic_configuration,
+        )
+
+        display("Solution error: $solution_error")
+
+        for (i, instance) in enumerate(scene.instances)
+            display("View $i")
+            print_camera_differences(instance.camera, problems[i].camera)
+            display("--------------------")
+        end
+
+        print_relative_motion_errors(scene, problems)
+
+        plot_reconstructed_scene(scene, problems; plot_3d = false, raw_3d = true)
+
+        save_2d_figures("assets/test_scenes/water_tower/figures/", scene, problems; scene_file_path = "./assets/test_scenes/roller_coaster/scene.json", raw_3d = true)
+
+        display(scene.figure)
     end
 
     export explore_path, main, monodromy, markers, lights

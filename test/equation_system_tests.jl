@@ -67,6 +67,7 @@ using Rotations
             lines,
             lines,
             points_at_infinity,
+            dualquadrics,
             validation_data,
             UInt8(intrinsic_configuration)
         )
@@ -159,6 +160,7 @@ end
             lines,
             lines,
             points_at_infinity,
+            dualquadrics,
             validation_data,
             UInt8(intrinsic_configuration)
         )
@@ -252,6 +254,7 @@ function solution_solve_system_with_auto_params_base(; minimization=false)
             lines,
             lines,
             points_at_infinity,
+            dualquadrics,
             validation_data,
             UInt8(intrinsic_configuration)
         )
@@ -344,6 +347,7 @@ function solution_solve_system_with_auto_params_with_combination(; minimization=
             lines,
             lines,
             points_at_infinity,
+            dualquadrics,
             validation_data,
             UInt8(intrinsic_configuration)
         )

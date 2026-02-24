@@ -270,6 +270,7 @@ module Scene
 						lines,
 						noise_free_lines,
 						points_at_infinity,
+						dualquadrics,
 						validation_data,
 						UInt8(intrinsic_configuration),
 					)
@@ -497,6 +498,7 @@ module Scene
 							lines,
 							lines,
 							points_at_infinity,
+							dualquadrics,
 							validation_data,
 							UInt8(intrinsic_configuration),
 					)
@@ -1056,6 +1058,7 @@ module Scene
 								problem.lines,
 								problem.noise_free_lines,
 								problem.points_at_infinity,
+								problem.dualquadrics,
 								problem.validation,
 								problem.intrinsic_configuration,
 						)
@@ -1170,6 +1173,7 @@ module Scene
 					problem.lines,
 					problem.noise_free_lines,
 					problem.points_at_infinity,
+					problem.dualquadrics,
 					problem.validation,
 					problem.intrinsic_configuration,
 				)
@@ -1289,7 +1293,7 @@ module Scene
 				display("Problem $i")
 				translation_system, parameters = intrinsic_rotation_translation_system_setup(
 					problem;
-					calibrate = true
+					calibrate = false
 				)
 				try
 					translation_result = solve(

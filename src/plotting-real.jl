@@ -291,7 +291,7 @@ function plot_2dpoints(points; axindex = 1)
 end
 
 function plot_2dcylinders(conic_contours; linestyle = :solid, alpha = 1, axindex = 1)
-    Base.lines(ax2_array[axindex], conic_contours; linestyle=linestyle, alpha=alpha)
+    PlottingPrimitives.lines(ax2_array[axindex], conic_contours; linestyle=linestyle, alpha=alpha)
 end
 
 function plot_image_background(img; axindex = 1)
@@ -365,6 +365,9 @@ function save_2d_figures(path, scene, problems; scene_file_path, raw_3d = false,
 end
 
 module PlottingPrimitives
+using ....CylindersBasedCameraResectioning: IMAGE_WIDTH, IMAGE_HEIGHT
+using ..Plotting: colors
+using GLMakie: lines!
 function lines(ax, lines; linestyle = :solid, alpha = 1)
     y = function (x, l) return (-(l[1] * x + l[3]) / l[2]) end
     for i in 1:(size(lines)[1])

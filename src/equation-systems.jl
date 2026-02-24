@@ -81,6 +81,7 @@ mutable struct CylinderCameraContoursProblem
     lines::Array{Float64,2}
     noise_free_lines::Array{Float64,2}
     points_at_infinity::Array{Float64,2}
+    dualquadrics::Array{Float64, 3}
     validation::CylinderCameraContoursProblemValidationData
     intrinsic_configuration::UInt8
 end

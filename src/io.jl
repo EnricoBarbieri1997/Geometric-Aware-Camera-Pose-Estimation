@@ -142,24 +142,16 @@ function read_cylinder_line_views(filepath::String; object_path::String = "")
     max_cylinder = maximum(line["cylinder"] for line in lines)
 
     views = [
-        [Vector{Vector{Float64}}() for _ in 1:(max_cylinder + 1)]
+        Array{Float64}(undef, max_cylinder + 1, 2, 3)
         for _ in 1:(max_camera + 1)
     ]
 
+    line_counts = zeros(Int, max_camera + 1, max_cylinder + 1)
     for line in lines
         camera_index = line["camera"] + 1
         cylinder_index = line["cylinder"] + 1
-        push!(views[camera_index][cylinder_index], Float64.(line["params"]))
-    end
-
-    for (camera_index, view) in enumerate(views)
-        for (cylinder_index, cylinder_lines) in enumerate(view)
-            if length(cylinder_lines) != 2
-                throw(ArgumentError(
-                    "Camera $(camera_index - 1), cylinder $(cylinder_index - 1) must have exactly two lines."
-                ))
-            end
-        end
+        line_counts[camera_index, cylinder_index] += 1
+        views[camera_index][cylinder_index, line_counts[camera_index, cylinder_index], :] = Float64.(line["params"])
     end
 
     return views
