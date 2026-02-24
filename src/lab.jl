@@ -4,8 +4,8 @@ module Lab
     using StatsBase
     using LinearAlgebra
 
-    using ..IO: read_point_cloud_yup_to_zup, read_cylinders_yup_to_zup
-    using ..Plotting: initfigure, plot_3dcylinders, plot_3dpoints
+    using ..IO: read_point_cloud_zup, read_cylinders_zup, read_camera_from_matrices
+    using ..Plotting: initfigure, plot_3dcylinders, plot_3dpoints, plot_3dcamera
     using ..Cylinder: cylinder_from_center_axis_radius
 
     function shuttercameras()
@@ -208,9 +208,17 @@ module Lab
     end
 
     function view_tmp_point_cloud_cylinders()
-        filepath = "./tmp/pnt_cloud_cylinders.json"
-        points = read_point_cloud_yup_to_zup(filepath)
-        cylinders = read_cylinders_yup_to_zup(filepath)
+        filepath = "./assets/test_scenes/water_tower/scene.json"
+        points = read_point_cloud_zup(filepath)
+        cylinders = read_cylinders_zup(filepath)
+        camera1 = read_camera_from_matrices(
+            filepath,
+            1
+        )
+        camera2 = read_camera_from_matrices(
+            filepath,
+            79
+        )
 
         figure = initfigure()
         plot_3dpoints(points; color=:black, markersize=4)
@@ -218,8 +226,10 @@ module Lab
             cylinder_from_center_axis_radius(cylinder.center, cylinder.axis, cylinder.radius)
             for cylinder in cylinders
         ])
+        plot_3dcamera(camera1, :red)
+        plot_3dcamera(camera2, :blue)
         display(figure)
 
-        return points, cylinders
+        # return points, cylinders
     end
 end

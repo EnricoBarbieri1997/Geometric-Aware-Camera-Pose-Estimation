@@ -59,7 +59,7 @@ module Plotting
         # Base.showerror(stdout, error("Plotting not available in this environment."))
     end
 
-    const PROVIDE_IMPLEMENTATION = @isdefined(TESTS) && GUI_ENABLED
+    const PROVIDE_IMPLEMENTATION = !@isdefined(TESTS) && GUI_ENABLED
 
     if PROVIDE_IMPLEMENTATION && Base.find_package("GLMakie") !== nothing
         include("plotting-real.jl")

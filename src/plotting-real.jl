@@ -2,7 +2,7 @@ using ..CylindersBasedCameraResectioning: IMAGE_WIDTH, IMAGE_HEIGHT
 
 using ..Space: RotRad, position_rotation, transformation as create_transform_matrix
 using ..Cylinder: CylinderProperties
-using ..Geometry: Line, Plane, plane_basis, get_cylinder_contours, get_cylinder_contours_raw
+using ..Geometry: Plane, plane_basis, get_cylinder_contours, get_cylinder_contours_raw
 using ..Camera: CameraProperties
 
 using Reexport
@@ -151,8 +151,8 @@ function plot_3dcamera(camera::CameraProperties, color = :black)
 
     scale = 2
     origin = camera.position
-    R = Matrix{Float64}(camera.quaternion_rotation)
-    T = Matrix(create_transform_matrix(origin, camera.quaternion_rotation))
+    R = Rotations.RotMatrix3(camera.quaternion_rotation)
+    T = Matrix(create_transform_matrix(origin, R))
 
     # Plot axes
     for (i, color) in enumerate((:red, :green, :blue))
@@ -364,18 +364,7 @@ function save_2d_figures(path, scene, problems; scene_file_path, raw_3d = false,
     end
 end
 
-module OneOf
-using ..Base
-using Makie: Figure, Axis, DataAspect
-function lines(lines)
-    figure = Figure()
-    ax = Axis(figure[1, 1]; aspect = DataAspect())
-    Base.lines(ax, lines)
-    display(figure)
-end
-end
-
-module Base
+module PlottingPrimitives
 function lines(ax, lines; linestyle = :solid, alpha = 1)
     y = function (x, l) return (-(l[1] * x + l[3]) / l[2]) end
     for i in 1:(size(lines)[1])
@@ -393,5 +382,16 @@ function lines(ax, lines; linestyle = :solid, alpha = 1)
             end
         end
     end
+end
+end
+
+module OneOf
+using ..PlottingPrimitives
+using Makie: Figure, Axis, DataAspect
+function lines(lines)
+    figure = Figure()
+    ax = Axis(figure[1, 1]; aspect = DataAspect())
+    PlottingPrimitives.lines(ax, lines)
+    display(figure)
 end
 end

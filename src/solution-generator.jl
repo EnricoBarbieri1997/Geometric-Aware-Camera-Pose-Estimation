@@ -94,7 +94,7 @@ function solve_by_similarity()
 
         rotation_intrinsic_system, parameters = intrinsic_rotation_system_setup(
             problems;
-            minimization=false,
+            minimization=true,
             intrinsic_configuration,
             equation_combinations=reference_start.permutation
         )
@@ -240,23 +240,22 @@ function generate_parameter_solution_pair(index::String)
         end
     end
 
-    # display(picked_combination)
-
     system, parameters = intrinsic_rotation_system_setup(problems;
         intrinsic_configuration,
-        equation_combinations=picked_combination
+        equation_combinations=picked_combination,
+        minimization=false
     )
     
-    # display(evaluate(system, original_sol, parameters))
+    display("Boh: $(picked_combination)")
 
-    result = solve(
-        system;
-        target_parameters=parameters,
-        start_system=:total_degree,
-    )
-    sol = solutions(result)
+    # result = solve(
+    #     system;
+    #     target_parameters=parameters,
+    #     start_system=:total_degree,
+    # )
+    # sol = solutions(result)
 
-    # sol = solutions(monodromy_solve(system, [sol_aaa], parameters))
+    sol = solutions(monodromy_solve(system, [original_sol], parameters))
 
     if length(sol) < 64
         display("Warning: The number of solutions found is less than expected: $(length(sol)) < 128 for index $(index)")

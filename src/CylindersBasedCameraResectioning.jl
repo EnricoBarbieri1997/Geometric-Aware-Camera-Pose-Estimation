@@ -5,12 +5,14 @@ module CylindersBasedCameraResectioning
     const IMAGE_WIDTH = 1920
     include("includes.jl")
 
-	using ..Scene: ParametersSolutionsPair, averaged_solution!, best_overall_solution!, best_overall_solution_by_steps!, best_intrinsic_rotation_translation_system_solution!, camera_from_solution, create_scene_instances_and_problems, scene_instances_and_problems_from_files, intrinsic_rotation_system_setup, intrinsic_rotation_translation_system_setup, plot_interactive_scene, plot_reconstructed_scene, split_intrinsic_rotation_parameters
+	using ..Scene: SceneData, ParametersSolutionsPair, averaged_solution!, best_overall_solution!, best_overall_solution_by_steps!, best_intrinsic_rotation_translation_system_solution!, camera_from_solution, create_scene_instances_and_problems, scene_instances_and_problems_from_files, intrinsic_rotation_system_setup, intrinsic_rotation_translation_system_setup, plot_interactive_scene, plot_reconstructed_scene, split_intrinsic_rotation_parameters
+    using ..Camera: CameraViewPair
 	using ..EquationSystems: stack_homotopy_parameters, variables_jacobian_rank, joint_jacobian_rank
     using ..EquationSystems.Problems.IntrinsicParameters: Configurations as IntrinsicParametersConfigurations
     using ..Plotting
 	using ..Printing: print_camera_differences, print_relative_motion_errors
     using ..Homotopies: ParameterHomotopy as MyParameterHomotopy
+    using ..IO: read_point_cloud_zup, read_cylinders_zup, read_camera_from_matrices, read_cylinder_line_views
 
     using HomotopyContinuation, Observables, Random, Serialization
 
@@ -569,6 +571,77 @@ module CylindersBasedCameraResectioning
         save_2d_figures("assets/test_scenes/roller_coaster/figures/", scene, problems; scene_file_path = "./assets/test_scenes/roller_coaster/scene.json", raw_3d = true)
 
         display(scene.figure)
+    end
+
+    function water_tower()
+        intrinsic_configuration = IntrinsicParametersConfigurations.fₓ_fᵧ_cₓ_cᵧ
+        filepath = "./assets/test_scenes/water_tower/scene.json"
+        cylinders = read_cylinders_zup(filepath)
+        camera1 = read_camera_from_matrices(
+            filepath,
+            1
+        )
+        camera2 = read_camera_from_matrices(
+            filepath,
+            79
+        )
+        views = read_cylinder_line_views(filepath; object_path="lines")
+
+        camera_view_pairs = [
+            CameraViewPair(1, camera1, views[1]),
+            CameraViewPair(2, camera2, views[2]),
+        ]
+
+        scene = SceneData()
+        scene.figure = initfigure()
+        scene.cylinders = cylinders
+
+        scene.instances = map(camera_view_pair -> begin
+                instance = InstanceConfiguration()
+                instance.camera = camera_view_pair.camera
+                instance.conics_contours = camera_view_pair.view
+                return instance
+            end, camera_view_pairs)
+
+        points_at_infinity, dualquadrics = points_at_infinity_dualquadrics(cylinders)
+
+        problems::Vector{CylinderCameraContoursProblem} = []
+        validation_data = CylinderCameraContoursProblemValidationData(
+            Matrix{Float64}(undef, 0, 3),
+            Matrix{Float64}(undef, 0, 3),
+            Array{Float64}(undef, 0, 4, 4),
+        )
+        for (i, camera_view_pair) in enumerate(camera_view_pairs)
+            lines = lines_clp_to_stack(camera_view_pair.view)
+
+            problem = CylinderCameraContoursProblem(
+                camera_view_pair.camera,
+                lines,
+                lines,
+                points_at_infinity,
+                validation_data,
+                UInt8(intrinsic_configuration)
+            )
+            push!(problems, problem)
+        end
+
+        plot_scene(scene, problems)
+
+        rotation_intrinsic_system, parameters = intrinsic_rotation_system_setup(
+            problems;
+            minimization=false,
+            intrinsic_configuration,
+            equation_combinations=reference_start.permutation
+        )
+
+        result = solve(
+            rotation_intrinsic_system,
+            reference_start.solutions;
+            start_parameters=reference_start.parameters,
+            target_parameters=parameters,
+        )
+
+        @info result
     end
 
     export explore_path, main, monodromy, markers, lights
