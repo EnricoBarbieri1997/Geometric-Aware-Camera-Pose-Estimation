@@ -20,7 +20,7 @@ CAMERAS_POOL_SIZE = 8
 function solve_by_similarity()
     Random.seed!(785687)
     intrinsic_configuration = IntrinsicParametersConfigurations.fₓ_fᵧ_cₓ_cᵧ
-    cylinders::Vector{CylinderProperties} = CalibrationRigs.arbitrary_rig()
+    cylinders::Vector{CylinderProperties} = CalibrationRigs.axis_rig()
 
     intrinsics = [
         rand_in_range(2500.0, 2700.0) 0.0 rand_in_range(950.0, 970.0);   # fₓ, skew, cₓ
@@ -89,13 +89,14 @@ function solve_by_similarity()
 
     pairs = camera_pairs_by_similarity(scene.instances[1].conics_contours, scene.instances[2].conics_contours)
 
+    solved_count = 0
     for pair in pairs
         reference_start = deserialize("./tmp/start_solutions/parameters_solution_pairs/$(pair[1]).jls")
         problems = original_problems[pair[3:4]]
 
         rotation_intrinsic_system, parameters = intrinsic_rotation_system_setup(
             problems;
-            minimization=true,
+            minimization=false,
             intrinsic_configuration,
             equation_combinations=reference_start.permutation
         )
@@ -109,6 +110,8 @@ function solve_by_similarity()
         #     reference_start.solutions
         # )
 
+        display(pair)
+
         result = solve(
             rotation_intrinsic_system,
             reference_start.solutions;
@@ -116,8 +119,17 @@ function solve_by_similarity()
             target_parameters=parameters,
         )
 
+        if length(solutions(result)) > 0
+            display("Found solution for pair $(pair[1]) with score $(pair[2])")
+            solved_count += 1
+        else
+            display("No solution found for pair $(pair[1]) with score $(pair[2])")
+        end
+
         @info result
     end
+
+    display(solved_count)
 
     display(scene.figure)
 end
@@ -150,7 +162,7 @@ function generate_configurations()
         push!(cameras, camera)
     end
 
-    cylinders = CalibrationRigs.arbitrary_rig()
+    cylinders = CalibrationRigs.axis_rig()
 
     views::Array{Array{Float64,3}} = []
     for camera in cameras
@@ -170,7 +182,7 @@ end
 function generate_parameter_solution_pair(index::String)
     intrinsic_configuration = IntrinsicParametersConfigurations.fₓ_fᵧ_cₓ_cᵧ
 
-    cylinders = CalibrationRigs.arbitrary_rig()
+    cylinders = CalibrationRigs.axis_rig()
     camera_index_1, camera_index_2 = parse.(Int, split(index, "_"))
     camera_view_pair_1 = deserialize("./tmp/start_solutions/camera_view_pairs/$(camera_index_1).jls")
     camera_view_pair_2 = deserialize("./tmp/start_solutions/camera_view_pairs/$(camera_index_2).jls")
@@ -248,16 +260,16 @@ function generate_parameter_solution_pair(index::String)
         minimization=false
     )
     
-    display("Boh: $(picked_combination)")
+    display("Picked permutation: $(picked_combination)")
 
-    # result = solve(
-    #     system;
-    #     target_parameters=parameters,
-    #     start_system=:total_degree,
-    # )
-    # sol = solutions(result)
+    result = solve(
+        system;
+        target_parameters=parameters,
+        start_system=:total_degree,
+    )
+    sol = solutions(result)
 
-    sol = solutions(monodromy_solve(system, [original_sol], parameters))
+    # sol = solutions(monodromy_solve(system, [original_sol], parameters))
 
     if length(sol) < 64
         display("Warning: The number of solutions found is less than expected: $(length(sol)) < 128 for index $(index)")
