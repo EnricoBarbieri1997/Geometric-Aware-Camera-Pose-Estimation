@@ -7,7 +7,7 @@ import json
 camera_utils = bpy.data.texts["camera_utils"].as_module()
 
 cameras = [
-    bpy.data.objects["Camera"],
+    bpy.data.objects["Camera1"],
     bpy.data.objects["Camera2"]
 ]
 
@@ -89,8 +89,8 @@ for (k, camera) in enumerate(cameras):
                 print("end")
                 break
 
-        # cv.imshow("found", cdst)
-        # cv.waitKey()
+#        cv.imshow("found", cdst)
+#        cv.waitKey()
         cylinder_contours[ax.name] = lines
 
     a = list(camera_utils.get_calibration_matrix_K_from_blender(camera.data))
