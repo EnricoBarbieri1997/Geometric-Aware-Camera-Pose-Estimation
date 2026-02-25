@@ -651,6 +651,7 @@ module CylindersBasedCameraResectioning
             result,
             problems;
             intrinsic_configuration,
+            scene
         )
 
         display("Solution error: $solution_error")

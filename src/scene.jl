@@ -225,15 +225,12 @@ module Scene
 					noise_free_lines = Matrix{Float64}(undef, numberoflines_tosolvefor, 3)
 					points_at_infinity = Matrix{Float64}(undef, numberoflines_tosolvefor, 3)
 					dualquadrics = Array{Float64}(undef, numberoflines_tosolvefor, 4, 4)
-					line_indexes = Vector{Float64}(undef, numberoflines_tosolvefor)
 					possible_picks = collect(1:(number_of_cylinders*2))
 					for store_index in (1:numberoflines_tosolvefor)
 							line_index = store_index # rand(possible_picks)
 							possible_picks = filter(x -> x != line_index, possible_picks)
 							i = ceil(Int, line_index / 2)
 							j = (line_index - 1) % 2 + 1
-
-							line_indexes[store_index] = line_index
 
 							line = conics_contours[i, j, :]
 							noise_free_lines[store_index, :] = normalize(line)
@@ -443,14 +440,11 @@ module Scene
 					points_at_infinity = Matrix{Float64}(undef, numberoflines_tosolvefor, 3)
 					dualquadrics = Array{Float64}(undef, numberoflines_tosolvefor, 4, 4)
 					possible_picks = collect(1:(number_of_cylinders*2))
-					line_indexes = Vector{Float64}(undef, numberoflines_tosolvefor)
 					for store_index in (1:numberoflines_tosolvefor)
 						line_index = store_index # rand(possible_picks)
 						possible_picks = filter(x -> x != line_index, possible_picks)
 						i = ceil(Int, line_index / 2)
 						j = (line_index - 1) % 2 + 1
-
-						line_indexes[store_index] = line_index
 
 						line = conics_contours[i, j, :]
 						lines[store_index, :] = normalize(line)
@@ -889,7 +883,7 @@ module Scene
 			)
 			for (j, line) in enumerate(lines)
 				line_index = (i-1)*2+j
-				line_position = findfirst(==(line_index), problem.line_indexes)
+				line_position = line_index
 				if (!isnothing(line_position))
 					line_truth = normalize(problem.lines[line_position,:])
 					line_calculated = normalize(line)
