@@ -650,8 +650,7 @@ module CylindersBasedCameraResectioning
         solution_error, _ = best_overall_solution_by_steps!(
             result,
             problems;
-            intrinsic_configuration,
-            scene
+            intrinsic_configuration
         )
 
         display("Solution error: $solution_error")
