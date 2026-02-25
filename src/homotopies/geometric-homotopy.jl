@@ -110,11 +110,11 @@ function tp!(H::GeometricHomotopy, tinput::Union{ComplexF64,Float64})
         x = intersection[1]
         y = intersection[2]
         transform::Matrix{Float64} = [
-            c -s x-x*c+s*y;
-            s c y-s*x-c*y;
-            0 0 1
+            c -s 0;
+            s c 0;
+            x-x*c-s*y y-x*s-c*y 1
         ]
-        parameters[index:index+2] = inv(transform)' * line_start
+        parameters[index:index+2] = transform * line_start
     end
 
     @inbounds for i = 1:length(H.taylor_pt)
