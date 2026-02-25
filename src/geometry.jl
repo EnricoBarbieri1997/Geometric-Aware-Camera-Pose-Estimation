@@ -80,7 +80,13 @@ function homogeneous_line_intercept(x, line)
 end
 
 function homogeneous_anglebetween(a, b)
-    return atan((b[1] * a[2] - a[1] * b[2]) / (a[1] * b[1] + a[2] * b[2]))
+    d1 = [-a[2], a[1]]
+    d2 = [-b[2], b[1]]
+    angle = atan(d2[2], d2[1]) - atan(d1[2], d1[1])
+    if (angle < 0)
+        angle += 2π
+    end
+    return angle
 end
 
 function project_point_into_line(point::Vector{<:Number}, line::Line)::Vector{<:Number}

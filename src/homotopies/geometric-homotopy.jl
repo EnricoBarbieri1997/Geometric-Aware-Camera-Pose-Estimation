@@ -1,7 +1,7 @@
 export GeometricHomotopy
 
 using ..Geometry: homogeneous_anglebetween
-using LinearAlgebra: cross
+using LinearAlgebra: cross, rank
 using HomotopyContinuation
 
 """
@@ -53,14 +53,23 @@ function GeometricHomotopy(F::AbstractSystem, p::AbstractVector, q::AbstractVect
     for i in 1:number_of_lines
         index = (i-1)*3+1
         line_start = p[index:index+2]
-        line_start = line_start / line_start[3]
         line_target = q[index:index+2]
-        line_target = line_target / line_target[3]
         angles_between[i] = homogeneous_anglebetween(line_start, line_target)
         intersections[i] = cross(line_start, line_target)
+        intersections[i] /= intersections[i][3]
+        intersections[i] = intersections[i][1:2]
     end
 
-    GeometricHomotopy(F, p̂, q̂, angles_between, intersections, Ref(complex(NaN)), pt, taylor_pt)
+    GeometricHomotopy(
+        F,
+        p̂,
+        q̂,
+        angles_between,
+        intersections,
+        Ref(complex(NaN)),
+        pt,
+        taylor_pt
+    )
 end
 
 Base.size(H::GeometricHomotopy) = size(H.F)
@@ -92,13 +101,20 @@ function tp!(H::GeometricHomotopy, tinput::Union{ComplexF64,Float64})
         index = (i-1)*3+1
         line_start = H.p[index:index+2]
         angle = H.angles_between[i] * (1.0-t)
-        intersection = (H.intersections[i] / H.intersections[i][3])[1:2]
-        rotation = [
-            cos(angle) -sin(angle);
-            sin(angle) cos(angle);
+        if (angle < 0)
+            display(angle)
+        end
+        intersection = H.intersections[i]
+        c = cos(angle)
+        s = sin(angle)
+        x = intersection[1]
+        y = intersection[2]
+        transform::Matrix{Float64} = [
+            c -s x-x*c+s*y;
+            s c y-s*x-c*y;
+            0 0 1
         ]
-        transform = vcat(hcat(rotation, -rotation * intersection + intersection), [0, 0, 1]')
-        parameters[index:index+2] = transform * line_start
+        parameters[index:index+2] = inv(transform)' * line_start
     end
 
     @inbounds for i = 1:length(H.taylor_pt)
@@ -121,6 +137,10 @@ end
 function ModelKit.evaluate_and_jacobian!(u, U, H::GeometricHomotopy, x, t)
     tp!(H, t)
     evaluate_and_jacobian!(u, U, H.F, x, H.pt)
+    r = rank(U)
+    if r < 10
+        display(U)
+    end
 end
 
 function ModelKit.taylor!(u, v::Val, H::GeometricHomotopy, tx, t)

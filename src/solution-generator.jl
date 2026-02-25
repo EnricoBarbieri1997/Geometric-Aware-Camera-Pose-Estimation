@@ -101,23 +101,23 @@ function solve_by_similarity()
             equation_combinations=reference_start.permutation
         )
 
-        # result = solve(
-        #     GeometricHomotopy(
-        #         rotation_intrinsic_system,
-        #         start_parameters=reference_start.parameters,
-        #         target_parameters=parameters,
-        #     ),
-        #     reference_start.solutions
-        # )
-
-        display(pair)
+        display(rotation_intrinsic_system.parameters)
 
         result = solve(
-            rotation_intrinsic_system,
-            reference_start.solutions;
-            start_parameters=reference_start.parameters,
-            target_parameters=parameters,
+            GeometricHomotopy(
+                rotation_intrinsic_system,
+                start_parameters=reference_start.parameters,
+                target_parameters=parameters,
+            ),
+            reference_start.solutions
         )
+
+        # result = solve(
+        #     rotation_intrinsic_system,
+        #     reference_start.solutions;
+        #     start_parameters=reference_start.parameters,
+        #     target_parameters=parameters,
+        # )
 
         if length(solutions(result)) > 0
             display("Found solution for pair $(pair[1]) with score $(pair[2])")
@@ -127,6 +127,8 @@ function solve_by_similarity()
         end
 
         @info result
+
+        return
     end
 
     display(solved_count)
