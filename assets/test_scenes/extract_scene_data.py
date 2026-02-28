@@ -4,6 +4,14 @@ import numpy as np
 import cv2 as cv
 import json
 
+from mathutils import Matrix, Vector
+
+def mat_to_list(M):
+    return [list(row) for row in M]
+
+def vec_to_list(v):
+    return [float(x) for x in v]
+
 camera_utils = bpy.data.texts["camera_utils"].as_module()
 
 cameras = [
@@ -22,6 +30,26 @@ scene_data = {}
 
 for (k, camera) in enumerate(cameras):
     cylinder_contours = {}
+    # --- Extrinsics from Blender matrix_world (camera->world) ---
+    M_cw = camera.matrix_world.copy()          # 4x4, camera -> world
+    R_cw = M_cw.to_3x3()                       # 3x3, camera -> world rotation
+    C_w  = M_cw.to_translation()               # camera center in world coords
+
+    # world -> camera rotation
+    R, t = camera_utils.get_R_and_T_matrix_from_blender(camera)
+
+
+    # 3x4 extrinsic matrix [R|t] (world -> camera)
+    Rt = Matrix((
+        (R[0][0], R[0][1], R[0][2], t[0]),
+        (R[1][0], R[1][1], R[1][2], t[1]),
+        (R[2][0], R[2][1], R[2][2], t[2]),
+    ))
+
+    # optional: full projection P = K [R|t]
+    K = camera_utils.get_calibration_matrix_K_from_blender(camera.data)  # 3x3 Matrix
+    P = K @ Rt  # 3x4
+
     for (i, ax) in enumerate(axis):
         filename = bpy.path.abspath(f"//renders/{k}/{i}.png")
         src = cv.imread(filename, cv.IMREAD_GRAYSCALE)
@@ -93,15 +121,16 @@ for (k, camera) in enumerate(cameras):
 #        cv.waitKey()
         cylinder_contours[ax.name] = lines
 
-    a = list(camera_utils.get_calibration_matrix_K_from_blender(camera.data))
-    a = [list(b) for b in a]
     scene_data[f"{k}"] = {
         "contours": cylinder_contours,
         "camera": {
-            "position": list(camera.matrix_world.translation),
+            "camera_matrix": mat_to_list(P),
+            "position": vec_to_list(camera.matrix_world.translation),
             "euler_rotation": [math.degrees(rad) for rad in camera.matrix_world.to_euler('XYZ')],
-            "quaternion_rotation": list(camera_utils.get_R_and_T_matrix_from_blender(camera)[0].to_quaternion()),
-            "intrinsics": a
+            "quaternion_rotation": vec_to_list(R.to_quaternion()),
+            "rotation_matrix": mat_to_list(R),
+            "translation_vector": vec_to_list(t),
+            "intrinsics": mat_to_list(K)
         }
     }
 

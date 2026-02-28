@@ -7,7 +7,7 @@ Z = bpy.data.objects["z"]
 axis = [X, Y, Z]
 scene = bpy.context.scene
 cameras = [
-    bpy.data.objects["Camera"],
+    bpy.data.objects["Camera1"],
     bpy.data.objects["Camera2"]
 ]
 

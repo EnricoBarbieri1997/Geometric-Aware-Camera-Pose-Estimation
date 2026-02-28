@@ -20,7 +20,7 @@ def cylinder_to_dict(obj):
 def main():
     cylinders = [
         obj for obj in bpy.context.scene.objects
-        if obj.type == "MESH" and obj.name.startswith("Cylinder")
+        if obj.type == "MESH" and obj.name.startswith("Cylinder") or obj.name == "x" or obj.name == "y" or obj.name == "z"
     ]
 
     if bpy.data.filepath:
