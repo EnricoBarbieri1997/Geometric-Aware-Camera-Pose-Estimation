@@ -21,10 +21,8 @@ intrinsics = [
     position = [10.0, 10.0, -10.0]
     rotation_matrix = Matrix{Float64}(I, 3, 3)
     quaternion_camera_rotation = QuatRotation(rotation_matrix)
-    euler_rotation = rad2deg.(eulerangles_from_rotationmatrix(rotation_matrix))
     camera1 = CameraProperties(
         position=position,
-        euler_rotation=euler_rotation,
         quaternion_rotation=quaternion_camera_rotation,
         intrinsic=Matrix(I, 3, 3),
     )
@@ -48,10 +46,8 @@ end
     points_at_infinity, dualquadrics = points_at_infinity_dualquadrics(cylinders)
     position = [10.0, 10.0, -10.0]
     rotation_matrix = lookat_quaternion(position, [0.0, 0.0, 0.0])
-    euler_rotation = rad2deg.(eulerangles_from_rotationmatrix(rotation_matrix))
     camera1 = CameraProperties(
         position=position,
-        euler_rotation=euler_rotation,
         quaternion_rotation=rotation_matrix,
         intrinsic=Matrix(I, 3, 3),
     )
@@ -75,10 +71,8 @@ end
     cylinders = CalibrationRigs.axis_rig()
     points_at_infinity, dualquadrics = points_at_infinity_dualquadrics(cylinders)
     position, quaternion_camera_rotation = random_camera_lookingat_center()
-    euler_rotation = rad2deg.(eulerangles_from_rotationmatrix(quaternion_camera_rotation))
     camera1 = CameraProperties(
         position=position,
-        euler_rotation=euler_rotation,
         quaternion_rotation=quaternion_camera_rotation,
         intrinsic=Matrix(I, 3, 3),
     )
@@ -103,10 +97,8 @@ end
     points_at_infinity, dualquadrics = points_at_infinity_dualquadrics(cylinders)
     position, rotation_matrix = random_camera_lookingat_center()
     quaternion_camera_rotation = QuatRotation(rotation_matrix)
-    euler_rotation = rad2deg.(eulerangles_from_rotationmatrix(rotation_matrix))
     camera1 = CameraProperties(
         position=position,
-        euler_rotation=euler_rotation,
         quaternion_rotation=quaternion_camera_rotation,
         intrinsic=intrinsics,
     )
@@ -132,7 +124,6 @@ end
     position, rotation_matrix = random_camera_lookingat_center()
     camera1 = CameraProperties(
         position=position,
-        euler_rotation=rad2deg.(eulerangles_from_rotationmatrix(rotation_matrix)),
         quaternion_rotation=QuatRotation(rotation_matrix),
         intrinsic=intrinsics,
     )

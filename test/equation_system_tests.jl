@@ -32,7 +32,6 @@ using Rotations
         camera = CameraProperties()
         camera.position = position
         camera.quaternion_rotation = rotation
-        camera.euler_rotation = rad2deg.(eulerangles_from_rotationmatrix(rotation))
         camera.intrinsic = intrinsics
         push!(cameras, camera)
     end
@@ -125,7 +124,6 @@ end
         camera = CameraProperties()
         camera.position = position
         camera.quaternion_rotation = rotation
-        camera.euler_rotation = rad2deg.(eulerangles_from_rotationmatrix(rotation))
         camera.intrinsic = intrinsics
         push!(cameras, camera)
     end
@@ -219,7 +217,6 @@ function solution_solve_system_with_auto_params_base(; minimization=false)
         camera = CameraProperties()
         camera.position = position
         camera.quaternion_rotation = rotation
-        camera.euler_rotation = rad2deg.(eulerangles_from_rotationmatrix(rotation))
         camera.intrinsic = intrinsics
         push!(cameras, camera)
     end
@@ -312,7 +309,6 @@ function solution_solve_system_with_auto_params_with_combination(; minimization=
         camera = CameraProperties()
         camera.position = position
         camera.quaternion_rotation = rotation
-        camera.euler_rotation = rad2deg.(eulerangles_from_rotationmatrix(rotation))
         camera.intrinsic = intrinsics
         push!(cameras, camera)
     end

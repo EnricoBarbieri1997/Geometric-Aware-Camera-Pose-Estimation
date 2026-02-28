@@ -35,7 +35,6 @@ function solve_by_similarity()
         camera.position = dir * rand_in_range(10.0, 15.0)
         rotation_matrix = lookat_rotation(camera.position, [0.0, 0.0, 0.0])
         camera.quaternion_rotation = QuatRotation(rotation_matrix)
-        camera.euler_rotation = rad2deg.(eulerangles_from_rotationmatrix(rotation_matrix))
         camera.intrinsic = intrinsics
         push!(cameras, camera)
     end
@@ -101,8 +100,6 @@ function solve_by_similarity()
             equation_combinations=reference_start.permutation
         )
 
-        display(rotation_intrinsic_system.parameters)
-
         result = solve(
             GeometricHomotopy(
                 rotation_intrinsic_system,
@@ -155,7 +152,6 @@ function generate_configurations()
         camera.position = randomized_dir * rand_in_range(7.0, 13.0)
         rotation_matrix = lookat_rotation(camera.position, rand_in_range((-0.1, 0.1), 3))
         camera.quaternion_rotation = QuatRotation(rotation_matrix)
-        camera.euler_rotation = rad2deg.(eulerangles_from_rotationmatrix(rotation_matrix))
         camera.intrinsic = [
             2666.6666 0 960;
             0 1500 540;

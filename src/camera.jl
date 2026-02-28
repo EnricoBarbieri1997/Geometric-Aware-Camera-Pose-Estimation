@@ -2,7 +2,7 @@ module Camera
 export CameraProperties, CameraViewPair, IntrinsicParameters, build_camera_matrix, build_intrinsic_matrix, build_camera_matrix, lookat_rotation, is_in_front_of_camera
 
 using ..Space: RotDeg, get_any_perpendicular
-using ..Utils: rand_in_range
+using ..Utils: rand_in_range, eulerangles_from_rotationmatrix
 
 using Rotations
 using LinearAlgebra
@@ -25,6 +25,8 @@ end
 function Base.getproperty(obj::CameraProperties, name::Symbol)
     if name == :matrix
         return build_camera_matrix(obj.intrinsic ./ obj.intrinsic[2, 2], obj.rotation_matrix, obj.position; use_rotation_as_is=true)
+    elseif name == :euler_rotation
+        return rad2deg.(eulerangles_from_rotationmatrix(obj.quaternion_rotation))
     elseif name == :rotation_matrix
         return RotMatrix(obj.quaternion_rotation)'
     else

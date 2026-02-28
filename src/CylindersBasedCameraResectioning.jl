@@ -7,7 +7,8 @@ module CylindersBasedCameraResectioning
 
     using ..Cylinder: cylinder_from_center_axis_radius, points_at_infinity_dualquadrics
 	using ..Scene: SceneData, InstanceConfiguration, ParametersSolutionsPair, averaged_solution!, best_overall_solution!, best_overall_solution_by_steps!, best_intrinsic_rotation_translation_system_solution!, camera_from_solution, create_scene_instances_and_problems, scene_instances_and_problems_from_files, intrinsic_rotation_system_setup, intrinsic_rotation_translation_system_setup, plot_interactive_scene, plot_reconstructed_scene, split_intrinsic_rotation_parameters, plot_scene
-    using ..Camera: CameraViewPair
+    using ..Camera: CameraProperties, CameraViewPair
+    using ..Geometry: get_view
 	using ..EquationSystems: stack_homotopy_parameters, variables_jacobian_rank, joint_jacobian_rank
     using ..EquationSystems.Problems: CylinderCameraContoursProblem, CylinderCameraContoursProblemValidationData
     using ..EquationSystems.Problems.IntrinsicParameters: Configurations as IntrinsicParametersConfigurations
@@ -526,10 +527,8 @@ module CylindersBasedCameraResectioning
         intrinsic_configuration = problems[1].intrinsic_configuration
 
         rotation_intrinsic_system, parameters = intrinsic_rotation_system_setup(problems; intrinsic_configuration)
-        # display(parameters)
 
         display(scene.figure)
-        # return
 
         solver = starts = nothing
 
@@ -665,7 +664,106 @@ module CylindersBasedCameraResectioning
 
         plot_reconstructed_scene(scene, problems; plot_3d = false, raw_3d = true)
 
-        save_2d_figures("assets/test_scenes/water_tower/figures/", scene, problems; scene_file_path = "./assets/test_scenes/roller_coaster/scene.json", raw_3d = true)
+        save_2d_figures("assets/test_scenes/water_tower/figures/", scene, problems; scene_file_path = "./assets/test_scenes/water_tower/scene.json", raw_3d = true)
+
+        display(scene.figure)
+    end
+
+    function hot_pipes()
+        intrinsic_configuration = IntrinsicParametersConfigurations.fₓ_fᵧ_cₓ_cᵧ
+        filepath = "./assets/test_scenes/hot_pipes/scene.json"
+        cylinders = read_cylinders_zup(filepath)
+        cylinders = [cylinder_from_center_axis_radius(cylinder.center, cylinder.axis, cylinder.radius)
+            for cylinder in cylinders]
+        camera1 = read_camera_from_matrices(
+            filepath,
+            1
+        )
+        camera2 = read_camera_from_matrices(
+            filepath,
+            2
+        )
+        # views = read_cylinder_line_views(filepath; object_path="lines")
+
+        views = map(camera -> begin
+            get_view(cylinders, camera)
+        end, [camera1, camera2])
+
+        camera_view_pairs = [
+            CameraViewPair(1, camera1, views[1]),
+            CameraViewPair(2, camera2, views[2]),
+        ]
+
+        scene = SceneData()
+        scene.figure = initfigure()
+        scene.cylinders = cylinders
+
+        scene.instances = map(camera_view_pair -> begin
+                instance = InstanceConfiguration()
+                instance.camera = camera_view_pair.camera
+                instance.conics_contours = camera_view_pair.view
+                return instance
+            end, camera_view_pairs)
+
+        points_at_infinity, dualquadrics = points_at_infinity_dualquadrics(cylinders)
+
+        problems::Vector{CylinderCameraContoursProblem} = []
+        validation_data = CylinderCameraContoursProblemValidationData(
+            Matrix{Float64}(undef, 0, 3),
+            Matrix{Float64}(undef, 0, 3),
+            Array{Float64}(undef, 0, 4, 4),
+        )
+        for (i, camera_view_pair) in enumerate(camera_view_pairs)
+            lines = lines_clp_to_stack(camera_view_pair.view)
+
+            problem = CylinderCameraContoursProblem(
+                CameraProperties(),
+                lines,
+                lines,
+                points_at_infinity,
+                dualquadrics,
+                validation_data,
+                UInt8(intrinsic_configuration)
+            )
+            push!(problems, problem)
+        end
+
+        plot_scene(scene, problems)
+
+        rotation_intrinsic_system, parameters = intrinsic_rotation_system_setup(
+            problems;
+            minimization=false,
+            intrinsic_configuration,
+        )
+
+        result = solve(
+            rotation_intrinsic_system;
+            target_parameters=parameters,
+            start_system=:total_degree,
+        )
+
+        @info result
+
+        solution_error, _ = best_overall_solution_by_steps!(
+            result,
+            problems;
+            intrinsic_configuration,
+            scene,
+        )
+
+        display("Solution error: $solution_error")
+
+        for (i, instance) in enumerate(scene.instances)
+            display("View $i")
+            print_camera_differences(instance.camera, problems[i].camera)
+            display("--------------------")
+        end
+
+        print_relative_motion_errors(scene, problems)
+
+        plot_reconstructed_scene(scene, problems; plot_3d = true, raw_3d = false)
+
+        save_2d_figures("assets/test_scenes/hot_pipes/figures/", scene, problems; scene_file_path = "./assets/test_scenes/hot_pipes/scene.json", raw_3d = true)
 
         display(scene.figure)
     end

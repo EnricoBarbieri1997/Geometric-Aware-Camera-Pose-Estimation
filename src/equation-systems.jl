@@ -234,16 +234,20 @@ function build_intrinsic_rotation_translation_conic_system(problem::Problems.Cyl
     @var lines[1:lines_count, 1:3]
     P = build_camera_matrix(
         problem.camera.intrinsic ./ problem.camera.intrinsic[2, 2],
-        problem.camera.quaternion_rotation,
+        problem.camera.rotation_matrix,
         [tx, ty, tz]
     )
+    display(P[1:3, 1:3])
 
     system_to_solve = []
+    parameters::Vector{HomotopyContinuation.ModelKit.Variable} = []
     for i in 1:lines_count
-        equation = (lines[i, :]' * P * problem.dualquadrics[i, :, :] * P' * lines[i, :]) / (IMAGE_HEIGHT * IMAGE_WIDTH)
+        index = (i - 1) * 2 + 1
+        equation = (lines[i, :]' * P * problem.dualquadrics[index, :, :] * P' * lines[i, :]) / (IMAGE_HEIGHT * IMAGE_WIDTH)
         push!(system_to_solve, equation)
+        parameters = stack_homotopy_parameters(parameters, lines[i, :])
     end
-    parameters::Vector{HomotopyContinuation.ModelKit.Variable} = stack_homotopy_parameters(lines)
+
     return System(system_to_solve, variables=[tx, ty, tz], parameters=parameters)
 end
 

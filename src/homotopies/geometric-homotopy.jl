@@ -138,9 +138,9 @@ function ModelKit.evaluate_and_jacobian!(u, U, H::GeometricHomotopy, x, t)
     tp!(H, t)
     evaluate_and_jacobian!(u, U, H.F, x, H.pt)
     r = rank(U)
-    if r < 10
-        display(U)
-    end
+    # if r < 10
+    #     display(U)
+    # end
 end
 
 function ModelKit.taylor!(u, v::Val, H::GeometricHomotopy, tx, t)

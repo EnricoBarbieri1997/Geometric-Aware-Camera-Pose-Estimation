@@ -268,8 +268,8 @@ function plot_3dcylinders(cylinders::Vector{CylinderProperties}; axindex = 1)
 
         lines!(ax3, points[1, :], points[2, :], points[3, :]; color = colors[i])
 
-        plane = inv(cylinder.transform') * [0, 0, 1, 0]
-        plot_plane!(plane; origin=P0, color=colors[i])
+        # plane = inv(cylinder.transform') * [0, 0, 1, 0]
+        # plot_plane!(plane; origin=P0, color=colors[i])
     end
 end
 
