@@ -232,10 +232,12 @@ function build_intrinsic_rotation_translation_conic_system(problem::Problems.Cyl
     lines_count = 3
     @var tx ty tz
     @var lines[1:lines_count, 1:3]
+    obj = problem.camera
     P = build_camera_matrix(
-        problem.camera.intrinsic ./ problem.camera.intrinsic[2, 2],
-        problem.camera.rotation_matrix,
-        [tx, ty, tz]
+        obj.intrinsic ./ obj.intrinsic[2, 2],
+        obj.rotation_matrix,
+        [tx, ty, tz];
+        use_rotation_as_is=true
     )
     display(P[1:3, 1:3])
 
