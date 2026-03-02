@@ -3,10 +3,21 @@ module Lab
     using DelimitedFiles
     using StatsBase
     using LinearAlgebra
+    using Rotations
 
+    using ..Scene: SceneData, InstanceConfiguration, intrinsic_rotation_system_setup
+    using ..Camera: CameraProperties, CameraViewPair, random_camera_lookingat_center, lookat_quaternion
+    using ..Geometry: get_view
     using ..IO: read_point_cloud_zup, read_cylinders_zup, read_camera_from_matrices
     using ..Plotting: initfigure, plot_3dcylinders, plot_3dpoints, plot_3dcamera
-    using ..Cylinder: cylinder_from_center_axis_radius
+    using ..Cylinder: cylinder_from_center_axis_radius, points_at_infinity_dualquadrics
+    using ..Cylinder.CalibrationRigs: arbitrary_rig
+    using ..EquationSystems.Problems: CylinderCameraContoursProblem, CylinderCameraContoursProblemValidationData
+    using ..EquationSystems.Problems.IntrinsicParameters: Configurations as IntrinsicParametersConfigurations
+    using ..Utils: rand_in_range, lines_clp_to_stack
+    using ..Homotopies: GeometricHomotopy
+
+    using Random
 
     function shuttercameras()
         link1 = "https://gist.githubusercontent.com/PBrdng/e17d0e3bc4d983734238b9cb8386d560/raw/07272b125a6ad03c791fdf99e741318f1d85149b/3Dpoints"
@@ -231,5 +242,236 @@ module Lab
         display(figure)
 
         # return points, cylinders
+    end
+
+    function problems_from_scene(scene; intrinsic_configuration=IntrinsicParametersConfigurations.fₓ_fᵧ_cₓ_cᵧ)
+        points_at_infinity, dualquadrics = points_at_infinity_dualquadrics(scene.cylinders)
+                
+        problems::Vector{CylinderCameraContoursProblem} = []
+        validation_data = CylinderCameraContoursProblemValidationData(
+            Matrix{Float64}(undef, 0, 3),
+            Matrix{Float64}(undef, 0, 3),
+            Array{Float64}(undef, 0, 4, 4),
+        )
+        for (_, instance) in enumerate(scene.instances)
+            lines = lines_clp_to_stack(instance.conics_contours)
+            problem = CylinderCameraContoursProblem(
+                CameraProperties(),
+                lines,
+                lines,
+                points_at_infinity,
+                dualquadrics,
+                validation_data,
+                UInt8(intrinsic_configuration)
+            )
+            push!(problems, problem)
+        end
+
+        return problems
+    end
+
+    function compare_parameter_homotopies()
+        Random.seed!(777)
+        intrinsic_configuration = IntrinsicParametersConfigurations.fₓ_fᵧ_cₓ_cᵧ
+
+        scenes = []
+        true_solutions = []
+
+        for _ in 1:64
+            intrinsics = [
+                rand_in_range(2500.0, 2700.0) 0.0 rand_in_range(950.0, 970.0);   # fₓ, skew, cₓ
+                0.0 rand_in_range(1400.0, 1600.0) rand_in_range(530.0, 550.0);   # 0, fᵧ, cᵧ
+                0.0 0.0 1.0                                                      # bottom row
+            ]
+
+            cylinders = arbitrary_rig()
+
+            cameras = []
+            for _ in 1:2
+                position, rotation = random_camera_lookingat_center()
+                camera = CameraProperties()
+                camera.position = position
+                camera.quaternion_rotation = rotation
+                camera.intrinsic = intrinsics
+                push!(cameras, camera)
+            end
+
+            camera_view_pairs = [
+                CameraViewPair(0, cameras[1], get_view(cylinders, cameras[1])),
+                CameraViewPair(1, cameras[2], get_view(cylinders, cameras[2]))
+            ]
+            # map(((i, camera)) -> CameraViewPair(i - 1, camera, get_view(cylinders, camera)), enumerate(cameras))
+
+            scene = SceneData()
+            scene.figure = initfigure()
+            scene.cylinders = cylinders
+            scene.instances = map(camera_view_pair -> begin
+                instance = InstanceConfiguration()
+                instance.camera = camera_view_pair.camera
+                instance.conics_contours = camera_view_pair.view
+                return instance
+            end, camera_view_pairs)
+
+            push!(scenes, scene)
+        end
+
+        #region true solutions for original problems
+        for scene in scenes
+            true_intrinsics = scene.instances[1].camera.intrinsic ./ 3000.0
+            rot1 = Rotations.params(QuatRotation(scene.instances[1].camera.rotation_matrix))
+            rot1 = rot1 / rot1[1]
+            rot1 = rot1[2:4]
+            rot2 = Rotations.params(QuatRotation(scene.instances[2].camera.rotation_matrix))
+            rot2 = rot2 / rot2[1]
+            rot2 = rot2[2:4]
+
+            true_solution = [
+                true_intrinsics[1, 1],
+                true_intrinsics[2, 2],
+                true_intrinsics[1, 3],
+                true_intrinsics[2, 3],
+                rot1...,
+                rot2...,
+            ]
+            push!(true_solutions, true_solution)
+        end
+        #endregion
+
+        offset = 3.0
+        offset_feasible = false
+        while !offset_feasible
+            display("Trying offset: $offset")
+
+            solved_instances_parametric = 0
+            solved_instances_line_parametric = 0
+            solved_paths_parametric = 0
+            solved_paths_line_parametric = 0
+            tracked_paths_parametric = 0
+            tracked_paths_line_parametric = 0
+
+            for (i, scene) in enumerate(scenes)
+                display("Processing scene: $i")
+                problems = problems_from_scene(scene)
+                _, parameters = intrinsic_rotation_system_setup(problems; intrinsic_configuration)
+
+                offsetted_scene = SceneData()
+                offsetted_scene.figure = initfigure()
+                offsetted_scene.cylinders = scene.cylinders
+
+                offsetted_intrinsics = scene.instances[1].camera.intrinsic + [
+                    (rand(Float64) * 50.0 - 25.0) 0.0 (rand(Float64) * 10.0 - 5.0);   # fₓ, skew, cₓ
+                    0.0 (rand(Float64) * 50.0 - 25.0) (rand(Float64) * 10.0 - 5.0);   # 0, fᵧ, cᵧ
+                    0.0 0.0 0.0                                                      # bottom row
+                ]
+
+                offsetted_scene.instances = map((instance) -> begin
+                    offsetted_camera = CameraProperties()
+                    offsetted_camera.intrinsic = offsetted_intrinsics
+                    random_direction = normalize(randn(3))
+                    offsetted_camera.position = instance.camera.position + offset * random_direction
+                    rotation = lookat_quaternion(offsetted_camera.position, [0.0, 0.0, 0.0])
+                    offsetted_camera.quaternion_rotation = rotation
+                    view = get_view(offsetted_scene.cylinders, offsetted_camera)
+                    instance = InstanceConfiguration()
+                    instance.camera = offsetted_camera
+                    instance.conics_contours = view
+                    return instance
+                end, scene.instances)
+
+                offsetted_problems = problems_from_scene(offsetted_scene)
+
+                rotation_intrinsic_system, offsetted_parameters = intrinsic_rotation_system_setup(offsetted_problems;
+                    intrinsic_configuration
+                )
+
+                #region Computing original sol
+                rot = Rotations.params(QuatRotation(offsetted_scene.instances[1].camera.rotation_matrix))
+                rot = rot / rot[1]
+                rot1 = rot[2:4]
+                rot = Rotations.params(QuatRotation(offsetted_scene.instances[2].camera.rotation_matrix))
+                rot = rot / rot[1]
+                rot2 = rot[2:4]
+                known_solution = [
+                    offsetted_scene.instances[1].camera.intrinsic[1, 1] / 3000.0,
+                    offsetted_scene.instances[1].camera.intrinsic[2, 2] / 3000.0,
+                    offsetted_scene.instances[1].camera.intrinsic[1, 3] / 3000.0,
+                    offsetted_scene.instances[1].camera.intrinsic[2, 3] / 3000.0,
+                    rot1...,
+                    rot2...,
+                ]
+                #endregion
+
+                monodromy_solutions = solutions(
+                    monodromy_solve(
+                        rotation_intrinsic_system,
+                        [known_solution],
+                        offsetted_parameters;
+                        show_progress=false,
+                    )
+                )
+
+                parametric_result = solve(
+                    rotation_intrinsic_system,
+                    monodromy_solutions;
+                    start_parameters=offsetted_parameters,
+                    target_parameters=parameters,
+                    show_progress=false
+                )
+
+                display("Found $(nsolutions(parametric_result)) solutions with parametric homotopy")
+                display("Of which $(nreal(parametric_result)) are real")
+
+                line_parametric_result = solve(
+                    GeometricHomotopy(
+                        rotation_intrinsic_system,
+                        start_parameters=offsetted_parameters,
+                        target_parameters=parameters,
+                    ),
+                    monodromy_solutions;
+                    show_progress=true
+                )
+
+                display("Known solution: $known_solution")
+                display("Parametric")
+                feasible_solutions = findall(sol -> isapprox(norm(known_solution - sol), 0.0; atol=1e-4), real_solutions(parametric_result))
+                for rs in feasible_solutions
+                    display(rs - known_solution)
+                end
+                display("Line parametric")
+                feasible_solutions = findall(sol -> isapprox(norm(known_solution - sol), 0.0; atol=1e-4), real_solutions(line_parametric_result))
+                for rs in feasible_solutions
+                    display(rs - known_solution)
+                end
+
+                display("Found $(nsolutions(line_parametric_result)) solutions with line parametric homotopy")
+                display("Of which $(nreal(line_parametric_result)) are real")
+
+                solved_paths_parametric += nsolutions(parametric_result)
+                tracked_paths_parametric += nsolutions(parametric_result) + nfailed(parametric_result)
+                solved_paths_line_parametric += nsolutions(line_parametric_result)
+                tracked_paths_line_parametric += nsolutions(line_parametric_result) + nfailed(line_parametric_result)
+
+                if any(sol -> isapprox(true_solutions[i], sol; atol=1e-2), real_solutions(parametric_result))
+                    solved_instances_parametric += 1
+                end
+                if any(sol -> isapprox(true_solutions[i], sol; atol=1e-2), real_solutions(line_parametric_result))
+                    solved_instances_line_parametric += 1
+                end
+            end
+
+            if solved_instances_parametric > 0 && solved_instances_line_parametric > 0
+                offset_feasible = true
+
+                display("Offset: $offset")
+                display("Solved instances with parametric homotopy: $solved_instances_parametric / $(length(scenes))")
+                display("Solved instances with line parametric homotopy: $solved_instances_line_parametric / $(length(scenes))")
+                display("Solved paths with parametric homotopy: $solved_paths_parametric / $tracked_paths_parametric")
+                display("Solved paths with line parametric homotopy: $solved_paths_line_parametric / $tracked_paths_line_parametric")
+            else
+                offset -= 0.5
+            end
+
+            display("--------------------------------------------------")
+        end
     end
 end
