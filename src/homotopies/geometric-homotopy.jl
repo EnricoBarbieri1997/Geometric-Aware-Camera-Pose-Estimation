@@ -58,6 +58,26 @@ function GeometricHomotopy(F::AbstractSystem, p::AbstractVector, q::AbstractVect
         intersections[i] = cross(line_start, line_target)
         intersections[i] /= intersections[i][3]
         intersections[i] = intersections[i][1:2]
+        #region test
+        # display("Line start: $line_start, line target: $line_target")
+        # display("Angle between: $(angles_between[i]) radians, or $(rad2deg(angles_between[i])) degrees")
+        # display("Intersection point: $(intersections[i])")
+        # c = cos(angles_between[i])
+        # s = sin(angles_between[i])
+        # x = intersections[i][1]
+        # y = intersections[i][2]
+        # transform_point = [
+        #     c  -s  x - c*x + s*y
+        #     s   c  y - c*y - s*x
+        #     0.0   0.0              1.0
+        # ]
+        # p1 = transform_point * [0.0, -line_start[3]/line_start[2], 1.0]
+        # p2 = transform_point * [1000.0, -(line_start[1]*1000.0 + line_start[3])/line_start[2], 1.0]
+        # t_calculated = cross(p1, p2)
+        # t_calculated /= t_calculated[3]
+        # line_target /= line_target[3]
+        # display("Difference between calculated and target: $(t_calculated - line_target)")
+        #endregion
     end
 
     GeometricHomotopy(
@@ -101,20 +121,23 @@ function tp!(H::GeometricHomotopy, tinput::Union{ComplexF64,Float64})
         index = (i-1)*3+1
         line_start = H.p[index:index+2]
         angle = H.angles_between[i] * (1.0-t)
-        if (angle < 0)
-            display(angle)
-        end
+        # if (angle < 0)
+        #     display(angle)
+        # end
         intersection = H.intersections[i]
         c = cos(angle)
         s = sin(angle)
         x = intersection[1]
         y = intersection[2]
-        transform::Matrix{Float64} = [
-            c -s 0;
-            s c 0;
-            x-x*c-s*y y-x*s-c*y 1
+        transform_point = [
+            c  -s  x - c*x + s*y
+            s   c  y - c*y - s*x
+            0   0              1
         ]
-        parameters[index:index+2] = transform * line_start
+        p1 = transform_point * [0.0, -line_start[3]/line_start[2], 1.0]
+        p2 = transform_point * [1000.0, -(line_start[1]*1000.0 + line_start[3])/line_start[2], 1.0]
+        t_calculated = cross(p1, p2)
+        parameters[index:index+2] = t_calculated
     end
 
     @inbounds for i = 1:length(H.taylor_pt)
@@ -137,9 +160,10 @@ end
 function ModelKit.evaluate_and_jacobian!(u, U, H::GeometricHomotopy, x, t)
     tp!(H, t)
     evaluate_and_jacobian!(u, U, H.F, x, H.pt)
-    r = rank(U)
+    # r = rank(U)
     # if r < 10
-    #     display(U)
+    #     display("At time $t")
+    #     display(H.p)
     # end
 end
 

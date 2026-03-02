@@ -83,9 +83,6 @@ function homogeneous_anglebetween(a, b)
     d1 = [-a[2], a[1]]
     d2 = [-b[2], b[1]]
     angle = atan(d2[2], d2[1]) - atan(d1[2], d1[1])
-    if (angle < 0)
-        angle += 2π
-    end
     return angle
 end
 
