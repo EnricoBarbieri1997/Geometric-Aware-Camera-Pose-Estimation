@@ -307,14 +307,18 @@
 			throw(ArgumentError("CC must be 10xN or a 4x4 matrix"))
 		end
 
-		cl = class(CC)
-		nc = size(VP, 2)
-
-		if size(VP,1) == 3
-			VP = [VP;zeros(1,nc)];
+		vp = VP
+		if ndims(vp) == 1
+			vp = reshape(vp, :, 1)
+		end
+		if size(vp, 1) == 3
+			vp = vcat(vp, zeros(eltype(vp), 1, size(vp, 2)))
+		end
+		if size(vp, 1) != 4
+			throw(ArgumentError("VP must be 4xN or 3xN"))
 		end
 
-		vp = P * VP
+		vp = P * vp
 
 		C1 = cc[1, :]
 		C2 = cc[2, :]
@@ -340,7 +344,8 @@
 		p11 = P[11]
 		p12 = P[12]
 
-		conic = zeros(eltype(cc), 6, nc, cl)
+		nc = size(cc, 2)
+		conic = zeros(eltype(cc), 6, nc)
 		conic[1, :] = p1 * (C1 * p1 + C2 * p4 + C3 * p7 + C4 * p10) + p4 * (C2 * p1 + C5 * p4 + C6 * p7 + C7 * p10) + p7 * (C3 * p1 + C6 * p4 + C8 * p7 + C9 * p10) + p10 * (C4 * p1 + C7 * p4 + C9 * p7 + C10 * p10)
 		conic[2, :] = p1 * (C1 * p2 + C2 * p5 + C3 * p8 + C4 * p11) + p4 * (C2 * p2 + C5 * p5 + C6 * p8 + C7 * p11) + p7 * (C3 * p2 + C6 * p5 + C8 * p8 + C9 * p11) + p10 * (C4 * p2 + C7 * p5 + C9 * p8 + C10 * p11)
 		conic[3, :] = p1 * (C1 * p3 + C2 * p6 + C3 * p9 + C4 * p12) + p4 * (C2 * p3 + C5 * p6 + C6 * p9 + C7 * p12) + p7 * (C3 * p3 + C6 * p6 + C8 * p9 + C9 * p12) + p10 * (C4 * p3 + C7 * p6 + C9 * p9 + C10 * p12)
