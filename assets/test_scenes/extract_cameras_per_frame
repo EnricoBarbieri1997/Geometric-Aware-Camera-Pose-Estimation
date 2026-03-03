@@ -1,0 +1,64 @@
+import bpy
+import math
+import json
+
+from mathutils import Matrix, Vector
+
+def mat_to_list(M):
+    return [list(row) for row in M]
+
+def vec_to_list(v):
+    return [float(x) for x in v]
+
+camera_utils = bpy.data.texts["camera_utils"].as_module()
+
+camera = bpy.data.objects["Camera3"]
+
+scene = bpy.context.scene
+
+scene_data = {}
+
+start = scene.frame_start
+end   = scene.frame_end
+
+camera_matrices = []
+intrinsic_matrices = []
+rotation_matrices = []
+translation_vectors = []
+camera_centers = []
+
+for f in range(start, end + 1):
+    scene.frame_set(f)
+
+    # world -> camera rotation
+    R, t = camera_utils.get_R_and_T_matrix_from_blender(camera)
+
+
+    # 3x4 extrinsic matrix [R|t] (world -> camera)
+    Rt = Matrix((
+        (R[0][0], R[0][1], R[0][2], t[0]),
+        (R[1][0], R[1][1], R[1][2], t[1]),
+        (R[2][0], R[2][1], R[2][2], t[2]),
+    ))
+
+    # optional: full projection P = K [R|t]
+    K = camera_utils.get_calibration_matrix_K_from_blender(camera.data)  # 3x3 Matrix
+    P = K @ Rt  # 3x4
+    
+    camera_matrices.append(mat_to_list(P))
+    intrinsic_matrices.append(mat_to_list(K))
+    rotation_matrices.append(mat_to_list(R))
+    translation_vectors.append(vec_to_list(t))
+    camera_centers.append(vec_to_list(camera.matrix_world.translation))
+
+
+scene_data[f"{k}"] = {
+    "camera_matrices": camera_matrices,
+    "intrinsic_matrices": intrinsic_matrices,
+    "rotation_matrices": rotation_matrices,
+    "translation_vectors": translation_vectors,
+    "camera_centers": camera_centers
+}
+
+with open(bpy.path.abspath("//cameras.json"), "w") as f:
+        json.dump(scene_data, f, indent=4)
