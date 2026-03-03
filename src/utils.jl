@@ -1,5 +1,6 @@
-module Utils
-	export almostequal, ≃, rand_in_range, quat_from_rotmatrix, normalized_diff, vector_difference, matrix_difference, intrinsic_difference, rotations_difference, eulerangles_from_rotationmatrix, translations_difference, isvalid_startsolution, lines_clp_to_stack
+	module Utils
+	export almostequal, ≃, rand_in_range, quat_from_rotmatrix, normalized_diff, vector_difference, matrix_difference, intrinsic_difference, rotations_difference, eulerangles_from_rotationmatrix, translations_difference, isvalid_startsolution, lines_clp_to_stack, get_view_CC_VP_P
+
 
 	using LinearAlgebra: Adjoint, diagm, norm, normalize, svdvals, tr
 	using Rotations
@@ -292,6 +293,113 @@ module Utils
 			end
 		end
 		throw(ArgumentError("Invalid arguments"))
+	end
+
+	function get_view_CC_VP_P(CC, VP, P)
+		cc = CC
+		if length(cc) == 16
+			cc = cc[[1, 2, 3, 4, 6, 7, 8, 11, 12, 16]]
+		end
+		if ndims(cc) == 1
+			cc = reshape(cc, :, 1)
+		end
+		if size(cc, 1) != 10
+			throw(ArgumentError("CC must be 10xN or a 4x4 matrix"))
+		end
+
+		cl = class(CC)
+		nc = size(VP, 2)
+
+		if size(VP,1) == 3
+			VP = [VP;zeros(1,nc)];
+		end
+
+		vp = P * VP
+
+		C1 = cc[1, :]
+		C2 = cc[2, :]
+		C3 = cc[3, :]
+		C4 = cc[4, :]
+		C5 = cc[5, :]
+		C6 = cc[6, :]
+		C7 = cc[7, :]
+		C8 = cc[8, :]
+		C9 = cc[9, :]
+		C10 = cc[10, :]
+
+		p1 = P[1]
+		p2 = P[2]
+		p3 = P[3]
+		p4 = P[4]
+		p5 = P[5]
+		p6 = P[6]
+		p7 = P[7]
+		p8 = P[8]
+		p9 = P[9]
+		p10 = P[10]
+		p11 = P[11]
+		p12 = P[12]
+
+		conic = zeros(eltype(cc), 6, nc, cl)
+		conic[1, :] = p1 * (C1 * p1 + C2 * p4 + C3 * p7 + C4 * p10) + p4 * (C2 * p1 + C5 * p4 + C6 * p7 + C7 * p10) + p7 * (C3 * p1 + C6 * p4 + C8 * p7 + C9 * p10) + p10 * (C4 * p1 + C7 * p4 + C9 * p7 + C10 * p10)
+		conic[2, :] = p1 * (C1 * p2 + C2 * p5 + C3 * p8 + C4 * p11) + p4 * (C2 * p2 + C5 * p5 + C6 * p8 + C7 * p11) + p7 * (C3 * p2 + C6 * p5 + C8 * p8 + C9 * p11) + p10 * (C4 * p2 + C7 * p5 + C9 * p8 + C10 * p11)
+		conic[3, :] = p1 * (C1 * p3 + C2 * p6 + C3 * p9 + C4 * p12) + p4 * (C2 * p3 + C5 * p6 + C6 * p9 + C7 * p12) + p7 * (C3 * p3 + C6 * p6 + C8 * p9 + C9 * p12) + p10 * (C4 * p3 + C7 * p6 + C9 * p9 + C10 * p12)
+		conic[4, :] = p2 * (C1 * p2 + C2 * p5 + C3 * p8 + C4 * p11) + p5 * (C2 * p2 + C5 * p5 + C6 * p8 + C7 * p11) + p8 * (C3 * p2 + C6 * p5 + C8 * p8 + C9 * p11) + p11 * (C4 * p2 + C7 * p5 + C9 * p8 + C10 * p11)
+		conic[5, :] = p2 * (C1 * p3 + C2 * p6 + C3 * p9 + C4 * p12) + p5 * (C2 * p3 + C5 * p6 + C6 * p9 + C7 * p12) + p8 * (C3 * p3 + C6 * p6 + C8 * p9 + C9 * p12) + p11 * (C4 * p3 + C7 * p6 + C9 * p9 + C10 * p12)
+		conic[6, :] = p3 * (C1 * p3 + C2 * p6 + C3 * p9 + C4 * p12) + p6 * (C2 * p3 + C5 * p6 + C6 * p9 + C7 * p12) + p9 * (C3 * p3 + C6 * p6 + C8 * p9 + C9 * p12) + p12 * (C4 * p3 + C7 * p6 + C9 * p9 + C10 * p12)
+
+		return linesfromconic(conic, vp)
+	end
+
+	function linesfromconic(cc, vp)
+		conic = cc
+		if length(conic) == 9
+			conic = conic[[1, 2, 3, 5, 6, 9]]
+		end
+		if ndims(conic) == 1
+			conic = reshape(conic, :, 1)
+		end
+		if size(conic, 1) != 6
+			throw(ArgumentError("Conic must be 6xN or a 3x3 matrix"))
+		end
+
+		vp_local = vp
+		if ndims(vp_local) == 1
+			vp_local = reshape(vp_local, :, 1)
+		end
+		if size(vp_local, 1) == 2
+			vp_local = vcat(vp_local, ones(eltype(vp_local), 1, size(vp_local, 2)))
+		end
+		if size(vp_local, 1) != 3
+			throw(ArgumentError("vp must be 3xN or 2xN"))
+		end
+
+		c1 = conic[1, :]
+		c2 = conic[2, :]
+		c3 = conic[3, :]
+		c4 = conic[4, :]
+		c5 = conic[5, :]
+		c6 = conic[6, :]
+
+		vpx = vp_local[1, :]
+		vpy = vp_local[2, :]
+		vpz = vp_local[3, :]
+
+		C2 = c4 .* vpx.^ 2 - 2 * c2 .* vpx .* vpy + c1 .* vpy.^ 2
+		C1 = 2 * c3 .* vpy.^ 2 - 2 * c5 .* vpx .* vpy + 2 * c4 .* vpx .* vpz - 2 * c2 .* vpy .* vpz
+		C0 = c6 .* vpy.^ 2 - 2 * c5 .* vpy .* vpz + c4 .* vpz.^ 2
+
+		discriminant = sqrt.(C1 .^ 2 - 4 * C0 .* C2)
+		lx1 = -(C1 - discriminant) ./ (2 * C2)
+		lx2 = -(C1 + discriminant) ./ (2 * C2)
+
+		ly1 = -(vpz + lx1 .* vpx) ./ vpy
+		ly2 = -(vpz + lx2 .* vpx) ./ vpy
+
+		row = x -> reshape(x, 1, :)
+		ll1 = vcat(row(lx1), row(ly1), ones(eltype(lx1), 1, size(conic, 2)))
+		ll2 = vcat(row(lx2), row(ly2), ones(eltype(lx2), 1, size(conic, 2)))
+		return ll1, ll2
 	end
 	# Cylinder_count x 2 x 3 to line_count x 3
 	function lines_clp_to_stack(lines_clp::Array{Float64,3})::Array{Float64,2}
