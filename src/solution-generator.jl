@@ -7,7 +7,7 @@ using ..Scene: SceneData, InstanceConfiguration, intrinsic_rotation_system_setup
 using ..EquationSystems.Problems: CylinderCameraContoursProblem, CylinderCameraContoursProblemValidationData
 using ..EquationSystems.Problems.IntrinsicParameters: Configurations as IntrinsicParametersConfigurations
 using ..Utils: eulerangles_from_rotationmatrix, rand_in_range, lines_clp_to_stack
-using ..Plotting: initfigure, plot_2dcylinders
+using ..Plotting: initfigure
 using ..Homotopies: GeometricHomotopy
 
 using Combinatorics: combinations as indices_combinations

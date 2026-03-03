@@ -797,7 +797,6 @@ module Scene
 								intrinsic_correction,
 								i,
 							)
-							display(possible_camera.quaternion_rotation)
 							push!(possible_cameras, possible_camera)
 							problem = problems[i]
 

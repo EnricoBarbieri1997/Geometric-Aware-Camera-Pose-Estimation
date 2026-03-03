@@ -239,14 +239,12 @@ function build_intrinsic_rotation_translation_conic_system(problem::Problems.Cyl
         [tx, ty, tz];
         use_rotation_as_is=true
     )
-    display(P[1:3, 1:3])
 
     system_to_solve = []
     parameters::Vector{HomotopyContinuation.ModelKit.Variable} = []
     for i in 1:lines_count
         index = (i - 1) * 2 + 1
         equation = (lines[i, :]' * P * problem.dualquadrics[index, :, :] * P' * lines[i, :]) / (IMAGE_HEIGHT * IMAGE_WIDTH)
-        push!(system_to_solve, equation)
         parameters = stack_homotopy_parameters(parameters, lines[i, :])
     end
 
