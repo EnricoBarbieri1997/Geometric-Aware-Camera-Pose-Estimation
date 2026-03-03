@@ -41,8 +41,8 @@ end
 		expected1 = expected_lines[1]
 		expected2 = expected_lines[2]
 
-		matches_direct = isapprox(line1, expected1; atol=2e-5) && isapprox(line2, expected2; atol=2e-5)
-		matches_swapped = isapprox(line1, expected2; atol=2e-5) && isapprox(line2, expected1; atol=2e-5)
+		matches_direct = isapprox(line1, expected1; atol=1e-5) && isapprox(line2, expected2; atol=1e-5)
+		matches_swapped = isapprox(line1, expected2; atol=1e-5) && isapprox(line2, expected1; atol=1e-5)
 		@test matches_direct || matches_swapped
 	end
 end
