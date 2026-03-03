@@ -1,22 +1,8 @@
 \relax 
 \providecommand{\transparent@use}[1]{}
-\providecommand\hyper@newdestlabel[2]{}
-\providecommand\babel@aux[2]{}
+\providecommand \babel@aux [2]{\global \let \babel@toc \@gobbletwo }
 \@nameuse{bbl@beforestart}
-\providecommand\HyperFirstAtBeginDocument{\AtBeginDocument}
-\HyperFirstAtBeginDocument{\ifx\hyper@anchor\@undefined
-\global\let\oldcontentsline\contentsline
-\gdef\contentsline#1#2#3#4{\oldcontentsline{#1}{#2}{#3}}
-\global\let\oldnewlabel\newlabel
-\gdef\newlabel#1#2{\newlabelxx{#1}#2}
-\gdef\newlabelxx#1#2#3#4#5#6{\oldnewlabel{#1}{{#2}{#3}}}
-\AtEndDocument{\ifx\hyper@anchor\@undefined
-\let\contentsline\oldcontentsline
-\let\newlabel\oldnewlabel
-\fi}
-\fi}
-\global\let\hyper@last\relax 
-\gdef\HyperFirstAtBeginDocument#1{#1}
+\providecommand\hyper@newdestlabel[2]{}
 \providecommand\HyField@AuxAddToFields[1]{}
 \providecommand\HyField@AuxAddToCoFields[2]{}
 \bibstyle{plain}
@@ -25,7 +11,7 @@
 \babel@aux{english}{}
 \@writefile{toc}{\contentsline {section}{\numberline {1}Introduction}{1}{section.1}\protected@file@percent }
 \newlabel{sec:intro}{{1}{1}{Introduction}{section.1}{}}
-\newlabel{sec:intro@cref}{{[section][1][]1}{[1][1][]1}}
+\newlabel{sec:intro@cref}{{[section][1][]1}{[1][1][]1}{}{}{}}
 \citation{Xu2017,Crocco2016}
 \citation{gummeson22pose,Gaudilliere2023}
 \citation{Zhang2000,Maybank1992}
@@ -35,10 +21,9 @@
 \citation{gummeson22pose}
 \citation{gummeson22pose}
 \citation{gummeson22pose,Zins2022}
-\@writefile{lof}{\contentsline {figure}{\numberline {1}{\ignorespaces  Our method for $N=1$ camera and $M=3$ cylindrical objects (3 markers). The input is a known 3D scenes and images with estimated silhouette lines. The output is the calibration and the pose of the cameras that acquired the images. Rather than tackling the problem on the input data, we move to a simpler random problem with a known solution $\mathbf  {x}(0)$. Our silhouette-based parametric homotopy allows to track $\mathbf  {x}(0)$ to the solution $\mathbf  {x}(1)$ of the original problem. Our formulation support multiple cylinders and multiple images.\relax }}{2}{figure.caption.1}\protected@file@percent }
-\providecommand*\caption@xref[2]{\@setref\relax\@undefined{#1}}
-\newlabel{fig:homotopy}{{1}{2}{Our method for $N=1$ camera and $M=3$ cylindrical objects (3 markers). The input is a known 3D scenes and images with estimated silhouette lines. The output is the calibration and the pose of the cameras that acquired the images. Rather than tackling the problem on the input data, we move to a simpler random problem with a known solution $\mathbf {x}(0)$. Our silhouette-based parametric homotopy allows to track $\mathbf {x}(0)$ to the solution $\mathbf {x}(1)$ of the original problem. Our formulation support multiple cylinders and multiple images.\relax }{figure.caption.1}{}}
-\newlabel{fig:homotopy@cref}{{[figure][1][]1}{[1][1][]2}}
+\@writefile{lof}{\contentsline {figure}{\numberline {1}{\ignorespaces  Our method for $N=1$ camera and $M=3$ cylindrical objects (3 markers). The input is a known 3D scenes and images with estimated silhouette lines. The output is the calibration and the pose of the cameras that acquired the images. Rather than tackling the problem on the input data, we move to a simpler random problem with a known solution $\mathbf  {x}(0)$. Our silhouette-based parametric homotopy allows to track $\mathbf  {x}(0)$ to the solution $\mathbf  {x}(1)$ of the original problem. Our formulation support multiple cylinders and multiple images.}}{2}{figure.caption.1}\protected@file@percent }
+\newlabel{fig:homotopy}{{1}{2}{Our method for $N=1$ camera and $M=3$ cylindrical objects (3 markers). The input is a known 3D scenes and images with estimated silhouette lines. The output is the calibration and the pose of the cameras that acquired the images. Rather than tackling the problem on the input data, we move to a simpler random problem with a known solution $\mathbf {x}(0)$. Our silhouette-based parametric homotopy allows to track $\mathbf {x}(0)$ to the solution $\mathbf {x}(1)$ of the original problem. Our formulation support multiple cylinders and multiple images}{figure.caption.1}{}}
+\newlabel{fig:homotopy@cref}{{[figure][1][]1}{[1][1][]2}{}{}{}}
 \citation{Zhang2000,Maybank1992}
 \citation{Redmon2018,Girshick2015,He2020}
 \citation{Zins2022}
@@ -54,11 +39,11 @@
 \citation{Rubino2018,Gaudilliere2023}
 \@writefile{toc}{\contentsline {section}{\numberline {2}Problem Formulation}{5}{section.2}\protected@file@percent }
 \newlabel{sec:problem_formulation}{{2}{5}{Problem Formulation}{section.2}{}}
-\newlabel{sec:problem_formulation@cref}{{[section][2][]2}{[1][5][]5}}
+\newlabel{sec:problem_formulation@cref}{{[section][2][]2}{[1][5][]5}{}{}{}}
 \@writefile{toc}{\contentsline {paragraph}{Output}{5}{paragraph*.3}\protected@file@percent }
 \@writefile{toc}{\contentsline {section}{\numberline {3}Related Work}{5}{section.3}\protected@file@percent }
 \newlabel{sec:related}{{3}{5}{Related Work}{section.3}{}}
-\newlabel{sec:related@cref}{{[section][3][]3}{[1][5][]5}}
+\newlabel{sec:related@cref}{{[section][3][]3}{[1][5][]5}{}{}{}}
 \citation{liu2019realtime}
 \citation{Maybank1992}
 \citation{Zhang2007}
@@ -66,15 +51,16 @@
 \citation{Zhang2007}
 \newlabel{fig:problem_formulation}{{2a}{6}{Subfigure 2a}{subfigure.2.1}{}}
 \newlabel{sub@fig:problem_formulation}{{(a)}{a}{Subfigure 2a\relax }{subfigure.2.1}{}}
-\newlabel{fig:problem_formulation@cref}{{[subfigure][1][2]2a}{[1][5][]6}}
+\newlabel{fig:problem_formulation@cref}{{[subfigure][1][2]2a}{[1][5][]6}{}{}{}}
 \newlabel{fig:cone_plane_singlepoint}{{2b}{6}{Subfigure 2b}{subfigure.2.2}{}}
 \newlabel{sub@fig:cone_plane_singlepoint}{{(b)}{b}{Subfigure 2b\relax }{subfigure.2.2}{}}
-\newlabel{fig:cone_plane_singlepoint@cref}{{[subfigure][2][2]2b}{[1][5][]6}}
-\@writefile{lof}{\contentsline {subfigure}{\numberline{(a)}{\ignorespaces {The geometric constraints between a cylinder $\mathcal {C}_j$ and one of its silhouette lines $l^h_{ij}$. The backprojection of $l^h_{ij}$ is a plane $\Pi ^h_{ij}$ tangent to $C_{ij}$ \textup {\hbox {\mathsurround \z@ \normalfont (\ignorespaces \ref {eq:dual_quadric_constraint}\unskip \@@italiccorr )}} and passing to the point at infinity of the cylinder\textup {\hbox {\mathsurround \z@ \normalfont (\ignorespaces \ref {eq:expanded_vertex_constraint}\unskip \@@italiccorr )}}, \emph {i.e.}, parallel to its axis.}}}{6}{subfigure.2.1}\protected@file@percent }
+\newlabel{fig:cone_plane_singlepoint@cref}{{[subfigure][2][2]2b}{[1][5][]6}{}{}{}}
+\@writefile{lof}{\contentsline {subfigure}{\numberline{(a)}{\ignorespaces {The geometric constraints between a cylinder $\mathcal {C}_j$ and one of its silhouette lines $l^h_{ij}$. The backprojection of $l^h_{ij}$ is a plane $\Pi ^h_{ij}$ tangent to $C_{ij}$ \eqref {eq:dual_quadric_constraint} and passing to the point at infinity of the cylinder\eqref {eq:expanded_vertex_constraint}, \emph {i.e.}, parallel to its axis.}}}{6}{subfigure.2.1}\protected@file@percent }
 \@writefile{lof}{\contentsline {subfigure}{\numberline{(b)}{\ignorespaces { An example of a plane $\Pi $ tangent to a cone $\mathcal {C}$, which does not define the quadric surface $\mathsf {Q}^*$ }}}{6}{subfigure.2.2}\protected@file@percent }
-\@writefile{lot}{\contentsline {table}{\numberline {1}{\ignorespaces Assuming all the solhouette lines are visible, $\mathcal  {S}_1$ can be solved when the number of cylinders $M$ and the number of view $N$ satisfy $2MN>3N+5$. The red cells indicate infeasibility, while the green cells indicate feasibility. \bf  {Note}: for one cylinder, the problem is not feasible and for either 6 or more cylinders or 9 or more views, the problem is always feasible.\relax }}{6}{table.caption.5}\protected@file@percent }
-\newlabel{tab:scene_configurations}{{1}{6}{Assuming all the solhouette lines are visible, \texorpdfstring {$\mathcal {S}_1$}{S1} can be solved when the number of cylinders \texorpdfstring {$M$}{M} and the number of view \texorpdfstring {$N$}{N} satisfy \texorpdfstring {$2MN>3N+5$}{2MN>3N+5}. The red cells indicate infeasibility, while the green cells indicate feasibility. \bf {Note}: for one cylinder, the problem is not feasible and for either 6 or more cylinders or 9 or more views, the problem is always feasible.\relax }{table.caption.5}{}}
-\newlabel{tab:scene_configurations@cref}{{[table][1][]1}{[1][5][]6}}
+\@writefile{lot}{\contentsline {table}{\numberline {1}{\ignorespaces Assuming all the solhouette lines are visible, $\mathcal  {S}_1$ can be solved when the number of cylinders $M$ and the number of view $N$ satisfy $2MN>3N+5$. The red cells indicate infeasibility, while the green cells indicate feasibility. \bf  {Note}: for one cylinder, the problem is not feasible and for either 6 or more cylinders or 9 or more views, the problem is always feasible.}}{6}{table.caption.5}\protected@file@percent }
+\providecommand*\caption@xref[2]{\@setref\relax\@undefined{#1}}
+\newlabel{tab:scene_configurations}{{1}{6}{Assuming all the solhouette lines are visible, \texorpdfstring {$\mathcal {S}_1$}{S1} can be solved when the number of cylinders \texorpdfstring {$M$}{M} and the number of view \texorpdfstring {$N$}{N} satisfy \texorpdfstring {$2MN>3N+5$}{2MN>3N+5}. The red cells indicate infeasibility, while the green cells indicate feasibility. \bf {Note}: for one cylinder, the problem is not feasible and for either 6 or more cylinders or 9 or more views, the problem is always feasible}{table.caption.5}{}}
+\newlabel{tab:scene_configurations@cref}{{[table][1][]1}{[1][5][]6}{}{}{}}
 \@writefile{toc}{\contentsline {subsection}{\numberline {3.1}Classical Camera Calibration with Geometric Primitives}{6}{subsection.3.1}\protected@file@percent }
 \@writefile{toc}{\contentsline {subsection}{\numberline {3.2}Calibration from Spheres and Surfaces of Revolution}{6}{subsection.3.2}\protected@file@percent }
 \citation{Li2024}
@@ -85,9 +71,9 @@
 \citation{gaudilliere2017perspective,gaudilliere2017perspective}
 \citation{Zins2022}
 \citation{Zins2022}
-\@writefile{lot}{\contentsline {table}{\numberline {2}{\ignorespaces  Scene settings for which the most common intrinsic parameters configurations can be estimated. The first column indicates the best performing configuration in terms of speed and accuracy, while the second and third columns indicate the least number of cylinders and views, respectively, for which the configuration can be estimated. \bf  {Note: both the unknown square focal length case and the pose estimation only case require at least 2 cylinders and 1 view.} \relax }}{7}{table.caption.6}\protected@file@percent }
-\newlabel{tab:intrinsics_configurations}{{2}{7}{Scene settings for which the most common intrinsic parameters configurations can be estimated. The first column indicates the best performing configuration in terms of speed and accuracy, while the second and third columns indicate the least number of cylinders and views, respectively, for which the configuration can be estimated. \bf {Note: both the unknown square focal length case and the pose estimation only case require at least 2 cylinders and 1 view.} \relax }{table.caption.6}{}}
-\newlabel{tab:intrinsics_configurations@cref}{{[table][2][]2}{[1][5][]7}}
+\@writefile{lot}{\contentsline {table}{\numberline {2}{\ignorespaces  Scene settings for which the most common intrinsic parameters configurations can be estimated. The first column indicates the best performing configuration in terms of speed and accuracy, while the second and third columns indicate the least number of cylinders and views, respectively, for which the configuration can be estimated. \bf  {Note: both the unknown square focal length case and the pose estimation only case require at least 2 cylinders and 1 view.} }}{7}{table.caption.6}\protected@file@percent }
+\newlabel{tab:intrinsics_configurations}{{2}{7}{Scene settings for which the most common intrinsic parameters configurations can be estimated. The first column indicates the best performing configuration in terms of speed and accuracy, while the second and third columns indicate the least number of cylinders and views, respectively, for which the configuration can be estimated. \bf {Note: both the unknown square focal length case and the pose estimation only case require at least 2 cylinders and 1 view.}}{table.caption.6}{}}
+\newlabel{tab:intrinsics_configurations@cref}{{[table][2][]2}{[1][5][]7}{}{}{}}
 \@writefile{toc}{\contentsline {subsection}{\numberline {3.3}Pose Estimation from Cylindrical Features}{7}{subsection.3.3}\protected@file@percent }
 \@writefile{toc}{\contentsline {subsection}{\numberline {3.4}Ellipsoid and Ellipse-Based Pose Estimation}{7}{subsection.3.4}\protected@file@percent }
 \citation{Gaudilliere2023}
@@ -106,46 +92,46 @@
 \@writefile{toc}{\contentsline {subsection}{\numberline {3.7}Summary and Positioning of Our Work}{8}{subsection.3.7}\protected@file@percent }
 \@writefile{toc}{\contentsline {section}{\numberline {4}Background}{8}{section.4}\protected@file@percent }
 \citation{HomotophyContinuationMethods}
-\@writefile{lot}{\contentsline {table}{\numberline {3}{\ignorespaces Comparison of camera estimation methods and their outputs for calibration and pose estimation. (\leavevmode {\color  {red!70!black}{\fontfamily  {pzd}\fontencoding  {U}\fontseries  {m}\fontshape  {n}\selectfont  \char 55}}: not addressed, \leavevmode {\color  {yellow!50!red}{\fontfamily  {pzd}\fontencoding  {U}\fontseries  {m}\fontshape  {n}\selectfont  \char 55}}: partial output, \leavevmode {\color  {green!70!black}{\fontfamily  {pzd}\fontencoding  {U}\fontseries  {m}\fontshape  {n}\selectfont  \char 51}}: fully solved). Our method uniquely solves both tasks and provides all parameters.\relax }}{9}{table.caption.7}\protected@file@percent }
-\newlabel{tab:soa}{{3}{9}{Comparison of camera estimation methods and their outputs for calibration and pose estimation. (\xmark : not addressed, \mehmark : partial output, \cmark : fully solved). Our method uniquely solves both tasks and provides all parameters.\relax }{table.caption.7}{}}
-\newlabel{tab:soa@cref}{{[table][3][]3}{[1][8][]9}}
+\@writefile{lot}{\contentsline {table}{\numberline {3}{\ignorespaces Comparison of camera estimation methods and their outputs for calibration and pose estimation. (\textcolor {red!70!black}{{\fontfamily  {pzd}\fontencoding  {U}\fontseries  {m}\fontshape  {n}\selectfont  \char 55}}: not addressed, \textcolor {yellow!50!red}{{\fontfamily  {pzd}\fontencoding  {U}\fontseries  {m}\fontshape  {n}\selectfont  \char 55}}: partial output, \textcolor {green!70!black}{{\fontfamily  {pzd}\fontencoding  {U}\fontseries  {m}\fontshape  {n}\selectfont  \char 51}}: fully solved). Our method uniquely solves both tasks and provides all parameters.}}{9}{table.caption.7}\protected@file@percent }
+\newlabel{tab:soa}{{3}{9}{Comparison of camera estimation methods and their outputs for calibration and pose estimation. (\xmark : not addressed, \mehmark : partial output, \cmark : fully solved). Our method uniquely solves both tasks and provides all parameters}{table.caption.7}{}}
+\newlabel{tab:soa@cref}{{[table][3][]3}{[1][8][]9}{}{}{}}
 \@writefile{toc}{\contentsline {subsection}{\numberline {4.1}Homotopy Continuation}{9}{subsection.4.1}\protected@file@percent }
 \newlabel{sec:homotopy}{{4.1}{9}{Homotopy Continuation}{subsection.4.1}{}}
-\newlabel{sec:homotopy@cref}{{[subsection][1][4]4.1}{[1][9][]9}}
-\newlabel{eq:linear_homotopy}{{5}{9}{Homotopy Continuation}{equation.4.5}{}}
-\newlabel{eq:linear_homotopy@cref}{{[equation][5][]5}{[1][9][]9}}
-\newlabel{eq:multivariable_chain_rule}{{7}{10}{Homotopy Continuation}{equation.4.7}{}}
-\newlabel{eq:multivariable_chain_rule@cref}{{[equation][7][]7}{[1][9][]10}}
-\newlabel{eq:homotopy_derivative}{{9}{10}{Homotopy Continuation}{equation.4.9}{}}
-\newlabel{eq:homotopy_derivative@cref}{{[equation][9][]9}{[1][9][]10}}
+\newlabel{sec:homotopy@cref}{{[subsection][1][4]4.1}{[1][9][]9}{}{}{}}
+\newlabel{eq:linear_homotopy}{{5}{9}{Homotopy Continuation}{equation.5}{}}
+\newlabel{eq:linear_homotopy@cref}{{[equation][5][]5}{[1][9][]9}{}{}{}}
+\newlabel{eq:multivariable_chain_rule}{{7}{10}{Homotopy Continuation}{equation.7}{}}
+\newlabel{eq:multivariable_chain_rule@cref}{{[equation][7][]7}{[1][9][]10}{}{}{}}
+\newlabel{eq:homotopy_derivative}{{9}{10}{Homotopy Continuation}{equation.9}{}}
+\newlabel{eq:homotopy_derivative@cref}{{[equation][9][]9}{[1][9][]10}{}{}{}}
 \newlabel{eq:predictor_step}{{4.1}{10}{Homotopy Continuation}{AMS.10}{}}
-\newlabel{eq:predictor_step@cref}{{[subsection][1][4]4.1}{[1][10][]10}}
+\newlabel{eq:predictor_step@cref}{{[subsection][1][4]4.1}{[1][10][]10}{}{}{}}
 \newlabel{eq:newton_update}{{4.1}{10}{Homotopy Continuation}{AMS.10}{}}
-\newlabel{eq:newton_update@cref}{{[subsection][1][4]4.1}{[1][10][]10}}
-\@writefile{lof}{\contentsline {figure}{\numberline {2}{\ignorespaces A sketch of the predictor-corrector method. In solid black the real unknown path of the solution space \(\mathbf  {x}(t)\) obtained during the homotopy deformation. From the current solution \(\mathbf  {x}(t_k)\), we compute the derivative \(\dot  {\mathbf  {x}}_k\) using \ref  {eq:homotopy_derivative} at time \(t_k\) using any ODE method. We compute a prediction \(\hat  {x} = x_k + \Delta t\,\dot  x_k\) (purple line). More likely than not the prediction will not satisfy \(H(\hat  {x}, t_k + \Delta t) = 0\). Newton's method is then used to correct the prediction, moving it to \(x_{k+1}\) (blue line) such that \(|H(x_{k+1}, t_k + \Delta t)| < \varepsilon \) is inside the \(\varepsilon \)-tube. The process is repeated until we reach \(t=1\).\relax }}{11}{figure.caption.11}\protected@file@percent }
-\newlabel{fig:homotopy_predictor_corrector}{{2}{11}{A sketch of the predictor-corrector method. In solid black the real unknown path of the solution space \(\mathbf {x}(t)\) obtained during the homotopy deformation. From the current solution \(\mathbf {x}(t_k)\), we compute the derivative \(\dot {\mathbf {x}}_k\) using \ref {eq:homotopy_derivative} at time \(t_k\) using any ODE method. We compute a prediction \(\hat {x} = x_k + \Delta t\,\dot x_k\) (purple line). More likely than not the prediction will not satisfy \(H(\hat {x}, t_k + \Delta t) = 0\). Newton's method is then used to correct the prediction, moving it to \(x_{k+1}\) (blue line) such that \(|H(x_{k+1}, t_k + \Delta t)| < \varepsilon \) is inside the \(\varepsilon \)-tube. The process is repeated until we reach \(t=1\).\relax }{figure.caption.11}{}}
-\newlabel{fig:homotopy_predictor_corrector@cref}{{[figure][2][]2}{[1][10][]11}}
-\@writefile{loa}{\contentsline {algorithm}{\numberline {1}{\ignorespaces Homotopy Path Tracking via Predictor-Corrector\relax }}{11}{algorithm.1}\protected@file@percent }
-\newlabel{alg:homotopy_path_tracking}{{1}{11}{Homotopy Path Tracking via Predictor-Corrector\relax }{algorithm.1}{}}
-\newlabel{alg:homotopy_path_tracking@cref}{{[algorithm][1][]1}{[1][11][]11}}
+\newlabel{eq:newton_update@cref}{{[subsection][1][4]4.1}{[1][10][]10}{}{}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {2}{\ignorespaces A sketch of the predictor-corrector method. In solid black the real unknown path of the solution space \(\mathbf  {x}(t)\) obtained during the homotopy deformation. From the current solution \(\mathbf  {x}(t_k)\), we compute the derivative \(\dot  {\mathbf  {x}}_k\) using \ref {eq:homotopy_derivative} at time \(t_k\) using any ODE method. We compute a prediction \(\hat  {x} = x_k + \Delta t\,\dot  x_k\) (purple line). More likely than not the prediction will not satisfy \(H(\hat  {x}, t_k + \Delta t) = 0\). Newton's method is then used to correct the prediction, moving it to \(x_{k+1}\) (blue line) such that \(|H(x_{k+1}, t_k + \Delta t)| < \varepsilon \) is inside the \(\varepsilon \)-tube. The process is repeated until we reach \(t=1\).}}{11}{figure.caption.11}\protected@file@percent }
+\newlabel{fig:homotopy_predictor_corrector}{{2}{11}{A sketch of the predictor-corrector method. In solid black the real unknown path of the solution space \(\mathbf {x}(t)\) obtained during the homotopy deformation. From the current solution \(\mathbf {x}(t_k)\), we compute the derivative \(\dot {\mathbf {x}}_k\) using \ref {eq:homotopy_derivative} at time \(t_k\) using any ODE method. We compute a prediction \(\hat {x} = x_k + \Delta t\,\dot x_k\) (purple line). More likely than not the prediction will not satisfy \(H(\hat {x}, t_k + \Delta t) = 0\). Newton's method is then used to correct the prediction, moving it to \(x_{k+1}\) (blue line) such that \(|H(x_{k+1}, t_k + \Delta t)| < \varepsilon \) is inside the \(\varepsilon \)-tube. The process is repeated until we reach \(t=1\)}{figure.caption.11}{}}
+\newlabel{fig:homotopy_predictor_corrector@cref}{{[figure][2][]2}{[1][10][]11}{}{}{}}
+\@writefile{loa}{\contentsline {algorithm}{\numberline {1}{\ignorespaces Homotopy Path Tracking via Predictor-Corrector}}{11}{algorithm.1}\protected@file@percent }
+\newlabel{alg:homotopy_path_tracking}{{1}{11}{Homotopy Path Tracking via Predictor-Corrector}{algorithm.1}{}}
+\newlabel{alg:homotopy_path_tracking@cref}{{[algorithm][1][]1}{[1][11][]11}{}{}{}}
 \@writefile{toc}{\contentsline {subsection}{\numberline {4.2}Parametric Homotopy}{11}{subsection.4.2}\protected@file@percent }
 \newlabel{sec:parametric_homotopy}{{4.2}{11}{Parametric Homotopy}{subsection.4.2}{}}
-\newlabel{sec:parametric_homotopy@cref}{{[subsection][2][4]4.2}{[1][11][]11}}
+\newlabel{sec:parametric_homotopy@cref}{{[subsection][2][4]4.2}{[1][11][]11}{}{}{}}
 \newlabel{eq:parametric_homotopy_system}{{4.2}{12}{Parametric Homotopy}{subsection.4.2}{}}
-\newlabel{eq:parametric_homotopy_system@cref}{{[subsection][2][4]4.2}{[1][12][]12}}
+\newlabel{eq:parametric_homotopy_system@cref}{{[subsection][2][4]4.2}{[1][12][]12}{}{}{}}
 \newlabel{fig:parametric_homotopy_original}{{3a}{12}{Subfigure 3a}{subfigure.3.1}{}}
 \newlabel{sub@fig:parametric_homotopy_original}{{(a)}{a}{Subfigure 3a\relax }{subfigure.3.1}{}}
-\newlabel{fig:parametric_homotopy_original@cref}{{[subfigure][1][3]3a}{[1][12][]12}}
+\newlabel{fig:parametric_homotopy_original@cref}{{[subfigure][1][3]3a}{[1][12][]12}{}{}{}}
 \newlabel{fig:parametric_homotopy_family}{{3b}{12}{Subfigure 3b}{subfigure.3.2}{}}
 \newlabel{sub@fig:parametric_homotopy_family}{{(b)}{b}{Subfigure 3b\relax }{subfigure.3.2}{}}
-\newlabel{fig:parametric_homotopy_family@cref}{{[subfigure][2][3]3b}{[1][12][]12}}
+\newlabel{fig:parametric_homotopy_family@cref}{{[subfigure][2][3]3b}{[1][12][]12}{}{}{}}
 \newlabel{fig:parametric_homotopy_instance1}{{3c}{12}{Subfigure 3c}{subfigure.3.3}{}}
 \newlabel{sub@fig:parametric_homotopy_instance1}{{(c)}{c}{Subfigure 3c\relax }{subfigure.3.3}{}}
-\newlabel{fig:parametric_homotopy_instance1@cref}{{[subfigure][3][3]3c}{[1][12][]12}}
+\newlabel{fig:parametric_homotopy_instance1@cref}{{[subfigure][3][3]3c}{[1][12][]12}{}{}{}}
 \newlabel{fig:parametric_homotopy_instance2}{{3d}{12}{Subfigure 3d}{subfigure.3.4}{}}
 \newlabel{sub@fig:parametric_homotopy_instance2}{{(d)}{d}{Subfigure 3d\relax }{subfigure.3.4}{}}
-\newlabel{fig:parametric_homotopy_instance2@cref}{{[subfigure][4][3]3d}{[1][12][]12}}
-\@writefile{lof}{\contentsline {figure}{\numberline {3}{\ignorespaces Parametric homotopy in polynomial systems. The first image shows a parabola instance of the family $y = p_1 x^2 + p_3$, the second shows the surface resulting from varying the parameter $p_3$, and the third and fourth images show two instances of the polynomial system $F(x; \mathbf  {p}) = 0$ with different parameter values.\relax }}{12}{figure.caption.12}\protected@file@percent }
+\newlabel{fig:parametric_homotopy_instance2@cref}{{[subfigure][4][3]3d}{[1][12][]12}{}{}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {3}{\ignorespaces Parametric homotopy in polynomial systems. The first image shows a parabola instance of the family $y = p_1 x^2 + p_3$, the second shows the surface resulting from varying the parameter $p_3$, and the third and fourth images show two instances of the polynomial system $F(x; \mathbf  {p}) = 0$ with different parameter values.}}{12}{figure.caption.12}\protected@file@percent }
 \@writefile{lof}{\contentsline {subfigure}{\numberline{(a)}{\ignorespaces { A parabola instance of the family $y = p_1 x^2 + p_3$. }}}{12}{subfigure.3.1}\protected@file@percent }
 \@writefile{lof}{\contentsline {subfigure}{\numberline{(b)}{\ignorespaces { The surface resulting from varying the parameter $p_3$. We can see that the solution set (highlighted in blue) varies continuously as the parameter (Y axis) changes. }}}{12}{subfigure.3.2}\protected@file@percent }
 \@writefile{lof}{\contentsline {subfigure}{\numberline{(c)}{\ignorespaces { An instance of the polynomial system $F(x; p) = 0$ with $p = (1, 0, 0, -1, 0, 0)$. }}}{12}{subfigure.3.3}\protected@file@percent }
@@ -153,22 +139,22 @@
 \citation{HomotopyContinuationJL}
 \@writefile{toc}{\contentsline {subsection}{\numberline {4.3}Monodromy}{13}{subsection.4.3}\protected@file@percent }
 \newlabel{sec:monodromy}{{4.3}{13}{Monodromy}{subsection.4.3}{}}
-\newlabel{sec:monodromy@cref}{{[subsection][3][4]4.3}{[1][13][]13}}
+\newlabel{sec:monodromy@cref}{{[subsection][3][4]4.3}{[1][13][]13}{}{}{}}
 \newlabel{fig:monodromy_original}{{4a}{13}{Subfigure 4a}{subfigure.4.1}{}}
 \newlabel{sub@fig:monodromy_original}{{(a)}{a}{Subfigure 4a\relax }{subfigure.4.1}{}}
-\newlabel{fig:monodromy_original@cref}{{[subfigure][1][4]4a}{[1][13][]13}}
+\newlabel{fig:monodromy_original@cref}{{[subfigure][1][4]4a}{[1][13][]13}{}{}{}}
 \newlabel{fig:monodromy_parameter_surface}{{4b}{13}{Subfigure 4b}{subfigure.4.2}{}}
 \newlabel{sub@fig:monodromy_parameter_surface}{{(b)}{b}{Subfigure 4b\relax }{subfigure.4.2}{}}
-\newlabel{fig:monodromy_parameter_surface@cref}{{[subfigure][2][4]4b}{[1][13][]13}}
+\newlabel{fig:monodromy_parameter_surface@cref}{{[subfigure][2][4]4b}{[1][13][]13}{}{}{}}
 \newlabel{fig:monodromy_midloop}{{4c}{13}{Subfigure 4c}{subfigure.4.3}{}}
 \newlabel{sub@fig:monodromy_midloop}{{(c)}{c}{Subfigure 4c\relax }{subfigure.4.3}{}}
-\newlabel{fig:monodromy_midloop@cref}{{[subfigure][3][4]4c}{[1][13][]13}}
+\newlabel{fig:monodromy_midloop@cref}{{[subfigure][3][4]4c}{[1][13][]13}{}{}{}}
 \newlabel{fig:monodromy_conclusive}{{4d}{13}{Subfigure 4d}{subfigure.4.4}{}}
 \newlabel{sub@fig:monodromy_conclusive}{{(d)}{d}{Subfigure 4d\relax }{subfigure.4.4}{}}
-\newlabel{fig:monodromy_conclusive@cref}{{[subfigure][4][4]4d}{[1][13][]13}}
-\@writefile{lof}{\contentsline {figure}{\numberline {4}{\ignorespaces Monodromy in polynomial system solving. The first image shows a realization of the polynomial system family, the second shows the parameter surface with the known solution $\mathbf  {x}(t)$ highlighted in green. After projecting the surface a circular loop in the $xp$ plane (highlighted in blue) is constructed (third image). A flat circular loop on this plane is neither flat or circular on the surface (highlighted in red), so the solution $\mathbf  {x}(1)$ at the end of the loop might not be the same as $\mathbf  {x}(0)$. The fourth image shows a conclusive loop in parameter space that finds two new solutions (highlighted in green).\relax }}{13}{figure.caption.13}\protected@file@percent }
-\newlabel{fig:monodromy}{{4}{13}{Monodromy in polynomial system solving. The first image shows a realization of the polynomial system family, the second shows the parameter surface with the known solution $\mathbf {x}(t)$ highlighted in green. After projecting the surface a circular loop in the $xp$ plane (highlighted in blue) is constructed (third image). A flat circular loop on this plane is neither flat or circular on the surface (highlighted in red), so the solution $\mathbf {x}(1)$ at the end of the loop might not be the same as $\mathbf {x}(0)$. The fourth image shows a conclusive loop in parameter space that finds two new solutions (highlighted in green).\relax }{figure.caption.13}{}}
-\newlabel{fig:monodromy@cref}{{[figure][4][]4}{[1][13][]13}}
+\newlabel{fig:monodromy_conclusive@cref}{{[subfigure][4][4]4d}{[1][13][]13}{}{}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {4}{\ignorespaces Monodromy in polynomial system solving. The first image shows a realization of the polynomial system family, the second shows the parameter surface with the known solution $\mathbf  {x}(t)$ highlighted in green. After projecting the surface a circular loop in the $xp$ plane (highlighted in blue) is constructed (third image). A flat circular loop on this plane is neither flat or circular on the surface (highlighted in red), so the solution $\mathbf  {x}(1)$ at the end of the loop might not be the same as $\mathbf  {x}(0)$. The fourth image shows a conclusive loop in parameter space that finds two new solutions (highlighted in green).}}{13}{figure.caption.13}\protected@file@percent }
+\newlabel{fig:monodromy}{{4}{13}{Monodromy in polynomial system solving. The first image shows a realization of the polynomial system family, the second shows the parameter surface with the known solution $\mathbf {x}(t)$ highlighted in green. After projecting the surface a circular loop in the $xp$ plane (highlighted in blue) is constructed (third image). A flat circular loop on this plane is neither flat or circular on the surface (highlighted in red), so the solution $\mathbf {x}(1)$ at the end of the loop might not be the same as $\mathbf {x}(0)$. The fourth image shows a conclusive loop in parameter space that finds two new solutions (highlighted in green)}{figure.caption.13}{}}
+\newlabel{fig:monodromy@cref}{{[figure][4][]4}{[1][13][]13}{}{}{}}
 \@writefile{lof}{\contentsline {subfigure}{\numberline{(a)}{\ignorespaces {Instance of a realization of the polynomial system family $F(\mathbf {x}; \mathbf {p}) = 0$.}}}{13}{subfigure.4.1}\protected@file@percent }
 \@writefile{lof}{\contentsline {subfigure}{\numberline{(b)}{\ignorespaces {Polynomial system family $F(\mathbf {x}; \mathbf {p}) = 0$ surface for different values of $\mathbf {p}$}}}{13}{subfigure.4.2}\protected@file@percent }
 \@writefile{lof}{\contentsline {subfigure}{\numberline{(c)}{\ignorespaces {Mid-loop in parameter space.}}}{13}{subfigure.4.3}\protected@file@percent }
@@ -177,51 +163,51 @@
 \citation{gummeson24relative}
 \@writefile{toc}{\contentsline {subsection}{\numberline {4.4}Geometric constraints on cones and silhouette lines}{14}{subsection.4.4}\protected@file@percent }
 \newlabel{sec:constraints}{{4.4}{14}{Geometric constraints on cones and silhouette lines}{subsection.4.4}{}}
-\newlabel{sec:constraints@cref}{{[subsection][4][4]4.4}{[1][14][]14}}
+\newlabel{sec:constraints@cref}{{[subsection][4][4]4.4}{[1][14][]14}{}{}{}}
 \@writefile{toc}{\contentsline {paragraph}{}{14}{paragraph*.16}\protected@file@percent }
-\newlabel{eq:dual_quadric_constraint}{{13}{14}{}{equation.4.13}{}}
-\newlabel{eq:dual_quadric_constraint@cref}{{[equation][13][]13}{[1][14][]14}}
-\newlabel{eq:vertex_constraint}{{14}{14}{}{equation.4.14}{}}
-\newlabel{eq:vertex_constraint@cref}{{[equation][14][]14}{[1][14][]14}}
+\newlabel{eq:dual_quadric_constraint}{{13}{14}{}{equation.13}{}}
+\newlabel{eq:dual_quadric_constraint@cref}{{[equation][13][]13}{[1][14][]14}{}{}{}}
+\newlabel{eq:vertex_constraint}{{14}{14}{}{equation.14}{}}
+\newlabel{eq:vertex_constraint@cref}{{[equation][14][]14}{[1][14][]14}{}{}{}}
 \@writefile{toc}{\contentsline {section}{\numberline {5}Method}{14}{section.5}\protected@file@percent }
 \newlabel{sec:method}{{5}{14}{Method}{section.5}{}}
-\newlabel{sec:method@cref}{{[section][5][]5}{[1][14][]14}}
+\newlabel{sec:method@cref}{{[section][5][]5}{[1][14][]14}{}{}{}}
 \@writefile{toc}{\contentsline {subsection}{\numberline {5.1}The Original Target System $\mathcal  {S}_1$}{14}{subsection.5.1}\protected@file@percent }
 \citation{may2004parametrizedhomotopytheory}
-\newlabel{eq:expanded_vertex_constraint}{{15}{15}{The Original Target System $\mathcal {S}_1$}{equation.5.15}{}}
-\newlabel{eq:expanded_vertex_constraint@cref}{{[equation][15][]15}{[1][14][]15}}
-\newlabel{eq:SolvableConditionSimple}{{17}{15}{The Original Target System $\mathcal {S}_1$}{equation.5.17}{}}
-\newlabel{eq:SolvableConditionSimple@cref}{{[equation][17][]17}{[1][15][]15}}
+\newlabel{eq:expanded_vertex_constraint}{{15}{15}{The Original Target System $\mathcal {S}_1$}{equation.15}{}}
+\newlabel{eq:expanded_vertex_constraint@cref}{{[equation][15][]15}{[1][14][]15}{}{}{}}
+\newlabel{eq:SolvableConditionSimple}{{17}{15}{The Original Target System $\mathcal {S}_1$}{equation.17}{}}
+\newlabel{eq:SolvableConditionSimple@cref}{{[equation][17][]17}{[1][15][]15}{}{}{}}
 \@writefile{toc}{\contentsline {subsection}{\numberline {5.2}The Synthetic Starting System $\mathcal  {S}_0$}{15}{subsection.5.2}\protected@file@percent }
 \newlabel{sec:synthetic_system}{{5.2}{15}{The Synthetic Starting System \texorpdfstring {$\mathcal {S}_0$}{S0}}{subsection.5.2}{}}
-\newlabel{sec:synthetic_system@cref}{{[subsection][2][5]5.2}{[1][15][]15}}
+\newlabel{sec:synthetic_system@cref}{{[subsection][2][5]5.2}{[1][15][]15}{}{}{}}
 \@writefile{toc}{\contentsline {subsection}{\numberline {5.3}Custom Silhouette-based Homotopy}{15}{subsection.5.3}\protected@file@percent }
 \newlabel{sec:silhouette-based-homotopy}{{5.3}{15}{Custom Silhouette-based Homotopy}{subsection.5.3}{}}
-\newlabel{sec:silhouette-based-homotopy@cref}{{[subsection][3][5]5.3}{[1][15][]15}}
+\newlabel{sec:silhouette-based-homotopy@cref}{{[subsection][3][5]5.3}{[1][15][]15}{}{}{}}
 \citation{HomotopyContinuationJL}
 \citation{HomotophyContinuationMethods}
 \citation{khovanskii2011faa4}
 \citation{HomotophyContinuationMethods}
-\@writefile{lof}{\contentsline {figure}{\numberline {5}{\ignorespaces The rotation $T(t; \mathcal  {L}_0, \mathcal  {L}_1)$ continuously transforms the synthetic lines $l^{h(0)}_{ij}$ towards the observed lines $l^{h}_{ij}$ by applying a rotation of an angle $t\alpha $ around the intersection point $O$. At the end of the homotopy, $T(t; \mathcal  {L}_0, \mathcal  {L}_1)$ transforms the synthetic parameters $\mathcal  {L}_0$ of our problem to the observed parameters $\mathcal  {L}_1$.\relax }}{16}{figure.caption.23}\protected@file@percent }
-\newlabel{fig:transformation}{{5}{16}{The rotation $T(t; \mathcal {L}_0, \mathcal {L}_1)$ continuously transforms the synthetic lines $l^{h(0)}_{ij}$ towards the observed lines $l^{h}_{ij}$ by applying a rotation of an angle $t\alpha $ around the intersection point $O$. At the end of the homotopy, $T(t; \mathcal {L}_0, \mathcal {L}_1)$ transforms the synthetic parameters $\mathcal {L}_0$ of our problem to the observed parameters $\mathcal {L}_1$.\relax }{figure.caption.23}{}}
-\newlabel{fig:transformation@cref}{{[figure][5][]5}{[1][15][]16}}
-\newlabel{eq:LineCameraHomotopy}{{19}{16}{Custom Silhouette-based Homotopy}{equation.5.19}{}}
-\newlabel{eq:LineCameraHomotopy@cref}{{[equation][19][]19}{[1][16][]16}}
+\@writefile{lof}{\contentsline {figure}{\numberline {5}{\ignorespaces The rotation $T(t; \mathcal  {L}_0, \mathcal  {L}_1)$ continuously transforms the synthetic lines $l^{h(0)}_{ij}$ towards the observed lines $l^{h}_{ij}$ by applying a rotation of an angle $t\alpha $ around the intersection point $O$. At the end of the homotopy, $T(t; \mathcal  {L}_0, \mathcal  {L}_1)$ transforms the synthetic parameters $\mathcal  {L}_0$ of our problem to the observed parameters $\mathcal  {L}_1$.}}{16}{figure.caption.23}\protected@file@percent }
+\newlabel{fig:transformation}{{5}{16}{The rotation $T(t; \mathcal {L}_0, \mathcal {L}_1)$ continuously transforms the synthetic lines $l^{h(0)}_{ij}$ towards the observed lines $l^{h}_{ij}$ by applying a rotation of an angle $t\alpha $ around the intersection point $O$. At the end of the homotopy, $T(t; \mathcal {L}_0, \mathcal {L}_1)$ transforms the synthetic parameters $\mathcal {L}_0$ of our problem to the observed parameters $\mathcal {L}_1$}{figure.caption.23}{}}
+\newlabel{fig:transformation@cref}{{[figure][5][]5}{[1][15][]16}{}{}{}}
+\newlabel{eq:LineCameraHomotopy}{{19}{16}{Custom Silhouette-based Homotopy}{equation.19}{}}
+\newlabel{eq:LineCameraHomotopy@cref}{{[equation][19][]19}{[1][16][]16}{}{}{}}
 \@writefile{toc}{\contentsline {subsection}{\numberline {5.4}Iterating the Procedure}{16}{subsection.5.4}\protected@file@percent }
 \newlabel{sec:iterating_procedure}{{5.4}{16}{Iterating the Procedure}{subsection.5.4}{}}
-\newlabel{sec:iterating_procedure@cref}{{[subsection][4][5]5.4}{[1][16][]16}}
+\newlabel{sec:iterating_procedure@cref}{{[subsection][4][5]5.4}{[1][16][]16}{}{}{}}
 \@writefile{toc}{\contentsline {paragraph}{Intrinsics initialization}{16}{paragraph*.25}\protected@file@percent }
 \@writefile{toc}{\contentsline {paragraph}{Poses initialization}{17}{paragraph*.26}\protected@file@percent }
-\@writefile{loa}{\contentsline {algorithm}{\numberline {2}{\ignorespaces next\_camera\_pose\relax }}{17}{algorithm.2}\protected@file@percent }
-\newlabel{alg:next_camera_pose}{{2}{17}{next\_camera\_pose\relax }{algorithm.2}{}}
-\newlabel{alg:next_camera_pose@cref}{{[algorithm][2][]2}{[1][17][]17}}
+\@writefile{loa}{\contentsline {algorithm}{\numberline {2}{\ignorespaces next\_camera\_pose}}{17}{algorithm.2}\protected@file@percent }
+\newlabel{alg:next_camera_pose}{{2}{17}{next\_camera\_pose}{algorithm.2}{}}
+\newlabel{alg:next_camera_pose@cref}{{[algorithm][2][]2}{[1][17][]17}{}{}{}}
 \@writefile{toc}{\contentsline {paragraph}{Lines generation}{17}{paragraph*.28}\protected@file@percent }
 \@writefile{toc}{\contentsline {paragraph}{Monodromy}{17}{paragraph*.30}\protected@file@percent }
 \@writefile{toc}{\contentsline {paragraph}{Applying homotopy continuation}{17}{paragraph*.31}\protected@file@percent }
 \@writefile{toc}{\contentsline {paragraph}{Iterating the procedure}{17}{paragraph*.32}\protected@file@percent }
-\@writefile{loa}{\contentsline {algorithm}{\numberline {3}{\ignorespaces Solution Generation and Homotopy Procedure\relax }}{18}{algorithm.3}\protected@file@percent }
-\newlabel{alg:solutions_generation}{{3}{18}{Solution Generation and Homotopy Procedure\relax }{algorithm.3}{}}
-\newlabel{alg:solutions_generation@cref}{{[algorithm][3][]3}{[1][17][]18}}
+\@writefile{loa}{\contentsline {algorithm}{\numberline {3}{\ignorespaces Solution Generation and Homotopy Procedure}}{18}{algorithm.3}\protected@file@percent }
+\newlabel{alg:solutions_generation}{{3}{18}{Solution Generation and Homotopy Procedure}{algorithm.3}{}}
+\newlabel{alg:solutions_generation@cref}{{[algorithm][3][]3}{[1][17][]18}{}{}{}}
 \citation{gummeson22pose}
 \citation{gummeson22pose}
 \citation{gummeson22pose}
@@ -232,43 +218,43 @@
 \citation{CalibrationFreePlacedRightCylinder}
 \@writefile{toc}{\contentsline {subsection}{\numberline {5.5}Handling Spurious Solutions}{19}{subsection.5.5}\protected@file@percent }
 \newlabel{sec:postprocessing}{{5.5}{19}{Handling Spurious Solutions}{subsection.5.5}{}}
-\newlabel{sec:postprocessing@cref}{{[subsection][5][5]5.5}{[1][18][]19}}
+\newlabel{sec:postprocessing@cref}{{[subsection][5][5]5.5}{[1][18][]19}{}{}{}}
 \@writefile{toc}{\contentsline {section}{\numberline {6}Experiments}{19}{section.6}\protected@file@percent }
 \newlabel{sec:experiments}{{6}{19}{Experiments}{section.6}{}}
-\newlabel{sec:experiments@cref}{{[section][6][]6}{[1][19][]19}}
+\newlabel{sec:experiments@cref}{{[section][6][]6}{[1][19][]19}{}{}{}}
 \@writefile{toc}{\contentsline {subsection}{\numberline {6.1}Synthetic Experiments}{19}{subsection.6.1}\protected@file@percent }
-\newlabel{eq:calibration_errors}{{26}{19}{Synthetic Experiments}{equation.6.26}{}}
-\newlabel{eq:calibration_errors@cref}{{[equation][26][]26}{[1][19][]19}}
-\newlabel{eq:pose_errors}{{27}{19}{Synthetic Experiments}{equation.6.27}{}}
-\newlabel{eq:pose_errors@cref}{{[equation][27][]27}{[1][19][]19}}
+\newlabel{eq:calibration_errors}{{26}{19}{Synthetic Experiments}{equation.26}{}}
+\newlabel{eq:calibration_errors@cref}{{[equation][26][]26}{[1][19][]19}{}{}{}}
+\newlabel{eq:pose_errors}{{27}{19}{Synthetic Experiments}{equation.27}{}}
+\newlabel{eq:pose_errors@cref}{{[equation][27][]27}{[1][19][]19}{}{}{}}
 \citation{gummeson22pose}
 \citation{gummeson22pose}
-\@writefile{lof}{\contentsline {figure}{\numberline {6}{\ignorespaces Noise models effect comparison given the same noise magnitude shown for a single silhouette line. Gummeson's~\cite  {gummeson22pose} noise model (a) perturbs the line parameters directly, while our model (b) perturbs the intersection points with the image boundaries. The perturbation is applied in two random directions $\theta _1$ and $\theta _2$ whose magnitude matches the prescribed noise level. Gummeson's~\cite  {gummeson22pose} model tends to preserve direction and just move the line, while ours tends to perturb the corresponding point at infinity that is the main cause of inacurracies in the camera calibration and pose estimation tasks. The image boundaries are shown in solid transparent lines. The dashed line $l$ represents the original silhouette line. The perturbed line $l'$ is shown in solid black. The arrows indicate the perturbation applied to the intersection points with the image boundaries.\relax }}{20}{figure.caption.39}\protected@file@percent }
-\newlabel{fig:noise_model}{{6}{20}{Noise models effect comparison given the same noise magnitude shown for a single silhouette line. Gummeson's~\cite {gummeson22pose} noise model (a) perturbs the line parameters directly, while our model (b) perturbs the intersection points with the image boundaries. The perturbation is applied in two random directions $\theta _1$ and $\theta _2$ whose magnitude matches the prescribed noise level. Gummeson's~\cite {gummeson22pose} model tends to preserve direction and just move the line, while ours tends to perturb the corresponding point at infinity that is the main cause of inacurracies in the camera calibration and pose estimation tasks. The image boundaries are shown in solid transparent lines. The dashed line $l$ represents the original silhouette line. The perturbed line $l'$ is shown in solid black. The arrows indicate the perturbation applied to the intersection points with the image boundaries.\relax }{figure.caption.39}{}}
-\newlabel{fig:noise_model@cref}{{[figure][6][]6}{[1][19][]20}}
+\@writefile{lof}{\contentsline {figure}{\numberline {6}{\ignorespaces Noise models effect comparison given the same noise magnitude shown for a single silhouette line. Gummeson's~\cite  {gummeson22pose} noise model (a) perturbs the line parameters directly, while our model (b) perturbs the intersection points with the image boundaries. The perturbation is applied in two random directions $\theta _1$ and $\theta _2$ whose magnitude matches the prescribed noise level. Gummeson's~\cite  {gummeson22pose} model tends to preserve direction and just move the line, while ours tends to perturb the corresponding point at infinity that is the main cause of inacurracies in the camera calibration and pose estimation tasks. The image boundaries are shown in solid transparent lines. The dashed line $l$ represents the original silhouette line. The perturbed line $l'$ is shown in solid black. The arrows indicate the perturbation applied to the intersection points with the image boundaries.}}{20}{figure.caption.39}\protected@file@percent }
+\newlabel{fig:noise_model}{{6}{20}{Noise models effect comparison given the same noise magnitude shown for a single silhouette line. Gummeson's~\cite {gummeson22pose} noise model (a) perturbs the line parameters directly, while our model (b) perturbs the intersection points with the image boundaries. The perturbation is applied in two random directions $\theta _1$ and $\theta _2$ whose magnitude matches the prescribed noise level. Gummeson's~\cite {gummeson22pose} model tends to preserve direction and just move the line, while ours tends to perturb the corresponding point at infinity that is the main cause of inacurracies in the camera calibration and pose estimation tasks. The image boundaries are shown in solid transparent lines. The dashed line $l$ represents the original silhouette line. The perturbed line $l'$ is shown in solid black. The arrows indicate the perturbation applied to the intersection points with the image boundaries}{figure.caption.39}{}}
+\newlabel{fig:noise_model@cref}{{[figure][6][]6}{[1][19][]20}{}{}{}}
 \@writefile{lof}{\contentsline {subfigure}{\numberline{(a)}{\ignorespaces {Gummeson~\cite {gummeson22pose} noise model}}}{20}{subfigure.6.1}\protected@file@percent }
 \@writefile{lof}{\contentsline {subfigure}{\numberline{(b)}{\ignorespaces { Our noise model. }}}{20}{subfigure.6.2}\protected@file@percent }
 \@writefile{toc}{\contentsline {subsection}{\numberline {6.2}Pipes: Results on Rendered Scene}{20}{subsection.6.2}\protected@file@percent }
 \citation{gummeson22pose}
 \newlabel{fig:delta_f}{{7a}{21}{Subfigure 7a}{subfigure.7.1}{}}
 \newlabel{sub@fig:delta_f}{{(a)}{a}{Subfigure 7a\relax }{subfigure.7.1}{}}
-\newlabel{fig:delta_f@cref}{{[subfigure][1][7]7a}{[1][20][]21}}
+\newlabel{fig:delta_f@cref}{{[subfigure][1][7]7a}{[1][20][]21}{}{}{}}
 \newlabel{fig:delta_uv}{{7b}{21}{Subfigure 7b}{subfigure.7.2}{}}
 \newlabel{sub@fig:delta_uv}{{(b)}{b}{Subfigure 7b\relax }{subfigure.7.2}{}}
-\newlabel{fig:delta_uv@cref}{{[subfigure][2][7]7b}{[1][20][]21}}
+\newlabel{fig:delta_uv@cref}{{[subfigure][2][7]7b}{[1][20][]21}{}{}{}}
 \newlabel{fig:delta_skew}{{7c}{21}{Subfigure 7c}{subfigure.7.3}{}}
 \newlabel{sub@fig:delta_skew}{{(c)}{c}{Subfigure 7c\relax }{subfigure.7.3}{}}
-\newlabel{fig:delta_skew@cref}{{[subfigure][3][7]7c}{[1][20][]21}}
+\newlabel{fig:delta_skew@cref}{{[subfigure][3][7]7c}{[1][20][]21}{}{}{}}
 \newlabel{fig:delta_r}{{7d}{21}{Subfigure 7d}{subfigure.7.4}{}}
 \newlabel{sub@fig:delta_r}{{(d)}{d}{Subfigure 7d\relax }{subfigure.7.4}{}}
-\newlabel{fig:delta_r@cref}{{[subfigure][4][7]7d}{[1][20][]21}}
+\newlabel{fig:delta_r@cref}{{[subfigure][4][7]7d}{[1][20][]21}{}{}{}}
 \newlabel{fig:delta_t}{{7e}{21}{Subfigure 7e}{subfigure.7.5}{}}
 \newlabel{sub@fig:delta_t}{{(e)}{e}{Subfigure 7e\relax }{subfigure.7.5}{}}
-\newlabel{fig:delta_t@cref}{{[subfigure][5][7]7e}{[1][20][]21}}
+\newlabel{fig:delta_t@cref}{{[subfigure][5][7]7e}{[1][20][]21}{}{}{}}
 \newlabel{fig:success_rate}{{7f}{21}{Subfigure 7f}{subfigure.7.6}{}}
 \newlabel{sub@fig:success_rate}{{(f)}{f}{Subfigure 7f\relax }{subfigure.7.6}{}}
-\newlabel{fig:success_rate@cref}{{[subfigure][6][7]7f}{[1][20][]21}}
-\@writefile{lof}{\contentsline {figure}{\numberline {7}{\ignorespaces Results of our method on the two tasks of camera calibration (top row) and pose estimation (bottom row). In (f) we also report the success rate.\relax }}{21}{figure.caption.40}\protected@file@percent }
+\newlabel{fig:success_rate@cref}{{[subfigure][6][7]7f}{[1][20][]21}{}{}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {7}{\ignorespaces Results of our method on the two tasks of camera calibration (top row) and pose estimation (bottom row). In (f) we also report the success rate.}}{21}{figure.caption.40}\protected@file@percent }
 \@writefile{lof}{\contentsline {subfigure}{\numberline{(a)}{\ignorespaces {$\Delta f$ vs. noise.}}}{21}{subfigure.7.1}\protected@file@percent }
 \@writefile{lof}{\contentsline {subfigure}{\numberline{(b)}{\ignorespaces {$\Delta c$ vs. noise.}}}{21}{subfigure.7.2}\protected@file@percent }
 \@writefile{lof}{\contentsline {subfigure}{\numberline{(c)}{\ignorespaces {$\Delta s$ vs. noise.}}}{21}{subfigure.7.3}\protected@file@percent }
@@ -277,9 +263,9 @@
 \@writefile{lof}{\contentsline {subfigure}{\numberline{(f)}{\ignorespaces {$\%$ of successful trials.}}}{21}{subfigure.7.6}\protected@file@percent }
 \@writefile{toc}{\contentsline {subsection}{\numberline {6.3}Results on Real-World Scenarios}{21}{subsection.6.3}\protected@file@percent }
 \@writefile{toc}{\contentsline {paragraph}{Roller coaster}{21}{paragraph*.42}\protected@file@percent }
-\@writefile{lof}{\contentsline {figure}{\numberline {8}{\ignorespaces Digital replica of a real scene, composed of three pipes around a corner. The scene is rendered in Blender and the camera is placed at the position of the real camera. Real borders as solid transparent lines, reconstructed borders as dashed lines.\relax }}{21}{figure.caption.41}\protected@file@percent }
-\newlabel{fig:pipes}{{8}{21}{Digital replica of a real scene, composed of three pipes around a corner. The scene is rendered in Blender and the camera is placed at the position of the real camera. Real borders as solid transparent lines, reconstructed borders as dashed lines.\relax }{figure.caption.41}{}}
-\newlabel{fig:pipes@cref}{{[figure][8][]8}{[1][21][]21}}
+\@writefile{lof}{\contentsline {figure}{\numberline {8}{\ignorespaces Digital replica of a real scene, composed of three pipes around a corner. The scene is rendered in Blender and the camera is placed at the position of the real camera. Real borders as solid transparent lines, reconstructed borders as dashed lines.}}{21}{figure.caption.41}\protected@file@percent }
+\newlabel{fig:pipes}{{8}{21}{Digital replica of a real scene, composed of three pipes around a corner. The scene is rendered in Blender and the camera is placed at the position of the real camera. Real borders as solid transparent lines, reconstructed borders as dashed lines}{figure.caption.41}{}}
+\newlabel{fig:pipes@cref}{{[figure][8][]8}{[1][21][]21}{}{}{}}
 \@writefile{lof}{\contentsline {subfigure}{\numberline{(a)}{\ignorespaces {Shot 1}}}{21}{subfigure.8.1}\protected@file@percent }
 \@writefile{lof}{\contentsline {subfigure}{\numberline{(b)}{\ignorespaces {Shot 2}}}{21}{subfigure.8.2}\protected@file@percent }
 \citation{gummeson22pose}
@@ -289,49 +275,49 @@
 \citation{gummeson22pose}
 \citation{schoenberger2016sfm,schoenberger2016mvs}
 \citation{CalibrationFreePlacedRightCylinder}
-\@writefile{lof}{\contentsline {figure}{\numberline {9}{\ignorespaces Roller coaster scene from Gummeson et al. \cite  {gummeson22pose}. We achieved a comparable reprojection error while estimating intrinsic parameters. Real borders as solid transparent lines, reconstructed borders as dashed lines.\relax }}{22}{figure.caption.43}\protected@file@percent }
-\newlabel{fig:roller_coaster}{{9}{22}{Roller coaster scene from Gummeson et al. \cite {gummeson22pose}. We achieved a comparable reprojection error while estimating intrinsic parameters. Real borders as solid transparent lines, reconstructed borders as dashed lines.\relax }{figure.caption.43}{}}
-\newlabel{fig:roller_coaster@cref}{{[figure][9][]9}{[1][22][]22}}
+\@writefile{lof}{\contentsline {figure}{\numberline {9}{\ignorespaces Roller coaster scene from Gummeson et al. \cite  {gummeson22pose}. We achieved a comparable reprojection error while estimating intrinsic parameters. Real borders as solid transparent lines, reconstructed borders as dashed lines.}}{22}{figure.caption.43}\protected@file@percent }
+\newlabel{fig:roller_coaster}{{9}{22}{Roller coaster scene from Gummeson et al. \cite {gummeson22pose}. We achieved a comparable reprojection error while estimating intrinsic parameters. Real borders as solid transparent lines, reconstructed borders as dashed lines}{figure.caption.43}{}}
+\newlabel{fig:roller_coaster@cref}{{[figure][9][]9}{[1][22][]22}{}{}{}}
 \@writefile{lof}{\contentsline {subfigure}{\numberline{(a)}{\ignorespaces {Gummeson et al. \cite {gummeson22pose}}}}{22}{subfigure.9.1}\protected@file@percent }
 \@writefile{lof}{\contentsline {subfigure}{\numberline{(b)}{\ignorespaces {Ours}}}{22}{subfigure.9.2}\protected@file@percent }
 \@writefile{toc}{\contentsline {paragraph}{Markers}{22}{paragraph*.44}\protected@file@percent }
 \@writefile{toc}{\contentsline {section}{\numberline {7}Practical Applications}{22}{section.7}\protected@file@percent }
 \newlabel{sec:applications}{{7}{22}{Practical Applications}{section.7}{}}
-\newlabel{sec:applications@cref}{{[section][7][]7}{[1][22][]22}}
+\newlabel{sec:applications@cref}{{[section][7][]7}{[1][22][]22}{}{}{}}
 \@writefile{toc}{\contentsline {paragraph}{A camera calibration rig}{22}{paragraph*.46}\protected@file@percent }
 \@writefile{toc}{\contentsline {paragraph}{Automatic camera recalibration}{22}{paragraph*.47}\protected@file@percent }
-\@writefile{lot}{\contentsline {table}{\numberline {4}{\ignorespaces Estimated and ground truth intrinsic parameters and camera poses for the three scenes. For multi-view scenes only the first view is reported. The deltas are computed as relative errors with respect to the ground truth values the same way as defined in \ref  {eq:calibration_errors} and \ref  {eq:pose_errors}. The skew parameter is zero in all cases. The markers case has no ground truth pose, so absolute values are not reported, only difference between COLMAP and our method relative motion.\relax }}{23}{table.caption.45}\protected@file@percent }
-\newlabel{tab:scenes_compare}{{4}{23}{Estimated and ground truth intrinsic parameters and camera poses for the three scenes. For multi-view scenes only the first view is reported. The deltas are computed as relative errors with respect to the ground truth values the same way as defined in \ref {eq:calibration_errors} and \ref {eq:pose_errors}. The skew parameter is zero in all cases. The markers case has no ground truth pose, so absolute values are not reported, only difference between COLMAP and our method relative motion.\relax }{table.caption.45}{}}
-\newlabel{tab:scenes_compare@cref}{{[table][4][]4}{[1][22][]23}}
+\@writefile{lot}{\contentsline {table}{\numberline {4}{\ignorespaces Estimated and ground truth intrinsic parameters and camera poses for the three scenes. For multi-view scenes only the first view is reported. The deltas are computed as relative errors with respect to the ground truth values the same way as defined in \ref {eq:calibration_errors} and \ref {eq:pose_errors}. The skew parameter is zero in all cases. The markers case has no ground truth pose, so absolute values are not reported, only difference between COLMAP and our method relative motion.}}{23}{table.caption.45}\protected@file@percent }
+\newlabel{tab:scenes_compare}{{4}{23}{Estimated and ground truth intrinsic parameters and camera poses for the three scenes. For multi-view scenes only the first view is reported. The deltas are computed as relative errors with respect to the ground truth values the same way as defined in \ref {eq:calibration_errors} and \ref {eq:pose_errors}. The skew parameter is zero in all cases. The markers case has no ground truth pose, so absolute values are not reported, only difference between COLMAP and our method relative motion}{table.caption.45}{}}
+\newlabel{tab:scenes_compare@cref}{{[table][4][]4}{[1][22][]23}{}{}{}}
 \@writefile{toc}{\contentsline {paragraph}{Extended reality}{23}{paragraph*.48}\protected@file@percent }
 \@writefile{toc}{\contentsline {subsection}{\numberline {7.1}Camera Calibration Rig}{23}{subsection.7.1}\protected@file@percent }
 \newlabel{sec:camera_calibration_rig}{{7.1}{23}{Camera Calibration Rig}{subsection.7.1}{}}
-\newlabel{sec:camera_calibration_rig@cref}{{[subsection][1][7]7.1}{[1][23][]23}}
+\newlabel{sec:camera_calibration_rig@cref}{{[subsection][1][7]7.1}{[1][23][]23}{}{}{}}
 \@writefile{toc}{\contentsline {paragraph}{Procedure}{23}{paragraph*.49}\protected@file@percent }
 \@writefile{toc}{\contentsline {subsection}{\numberline {7.2}Automatic Recalibration}{23}{subsection.7.2}\protected@file@percent }
 \newlabel{sec:automatic_recalibration}{{7.2}{23}{Automatic Recalibration}{subsection.7.2}{}}
-\newlabel{sec:automatic_recalibration@cref}{{[subsection][2][7]7.2}{[1][23][]23}}
+\newlabel{sec:automatic_recalibration@cref}{{[subsection][2][7]7.2}{[1][23][]23}{}{}{}}
 \newlabel{fig:camera_rig_3dprint}{{10a}{24}{Subfigure 10a}{subfigure.10.1}{}}
 \newlabel{sub@fig:camera_rig_3dprint}{{(a)}{a}{Subfigure 10a\relax }{subfigure.10.1}{}}
-\newlabel{fig:camera_rig_3dprint@cref}{{[subfigure][1][10]10a}{[1][23][]24}}
+\newlabel{fig:camera_rig_3dprint@cref}{{[subfigure][1][10]10a}{[1][23][]24}{}{}{}}
 \newlabel{fig:camera_rig_setup}{{10b}{24}{Subfigure 10b}{subfigure.10.2}{}}
 \newlabel{sub@fig:camera_rig_setup}{{(b)}{b}{Subfigure 10b\relax }{subfigure.10.2}{}}
-\newlabel{fig:camera_rig_setup@cref}{{[subfigure][2][10]10b}{[1][23][]24}}
+\newlabel{fig:camera_rig_setup@cref}{{[subfigure][2][10]10b}{[1][23][]24}{}{}{}}
 \newlabel{fig:camera_rig_photo}{{10c}{24}{Subfigure 10c}{subfigure.10.3}{}}
 \newlabel{sub@fig:camera_rig_photo}{{(c)}{c}{Subfigure 10c\relax }{subfigure.10.3}{}}
-\newlabel{fig:camera_rig_photo@cref}{{[subfigure][3][10]10c}{[1][23][]24}}
+\newlabel{fig:camera_rig_photo@cref}{{[subfigure][3][10]10c}{[1][23][]24}{}{}{}}
 \newlabel{fig:camera_rig_edge_detector}{{10d}{24}{Subfigure 10d}{subfigure.10.4}{}}
 \newlabel{sub@fig:camera_rig_edge_detector}{{(d)}{d}{Subfigure 10d\relax }{subfigure.10.4}{}}
-\newlabel{fig:camera_rig_edge_detector@cref}{{[subfigure][4][10]10d}{[1][23][]24}}
+\newlabel{fig:camera_rig_edge_detector@cref}{{[subfigure][4][10]10d}{[1][23][]24}{}{}{}}
 \newlabel{fig:camera_rig_match}{{10e}{24}{Subfigure 10e}{subfigure.10.5}{}}
 \newlabel{sub@fig:camera_rig_match}{{(e)}{e}{Subfigure 10e\relax }{subfigure.10.5}{}}
-\newlabel{fig:camera_rig_match@cref}{{[subfigure][5][10]10e}{[1][23][]24}}
+\newlabel{fig:camera_rig_match@cref}{{[subfigure][5][10]10e}{[1][23][]24}{}{}{}}
 \newlabel{fig:camera_rig_homotopy}{{10f}{24}{Subfigure 10f}{subfigure.10.6}{}}
 \newlabel{sub@fig:camera_rig_homotopy}{{(f)}{f}{Subfigure 10f\relax }{subfigure.10.6}{}}
-\newlabel{fig:camera_rig_homotopy@cref}{{[subfigure][6][10]10f}{[1][23][]24}}
-\@writefile{lof}{\contentsline {figure}{\numberline {10}{\ignorespaces A step-by-step guide to use our method with the provided camera calibration rig.\relax }}{24}{figure.caption.50}\protected@file@percent }
-\newlabel{fig:camera_rig}{{10}{24}{A step-by-step guide to use our method with the provided camera calibration rig.\relax }{figure.caption.50}{}}
-\newlabel{fig:camera_rig@cref}{{[figure][10][]10}{[1][23][]24}}
+\newlabel{fig:camera_rig_homotopy@cref}{{[subfigure][6][10]10f}{[1][23][]24}{}{}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {10}{\ignorespaces A step-by-step guide to use our method with the provided camera calibration rig.}}{24}{figure.caption.50}\protected@file@percent }
+\newlabel{fig:camera_rig}{{10}{24}{A step-by-step guide to use our method with the provided camera calibration rig}{figure.caption.50}{}}
+\newlabel{fig:camera_rig@cref}{{[figure][10][]10}{[1][23][]24}{}{}{}}
 \@writefile{lof}{\contentsline {subfigure}{\numberline{(a)}{\ignorespaces {Camera calibration rig 3D printing.}}}{24}{subfigure.10.1}\protected@file@percent }
 \@writefile{lof}{\contentsline {subfigure}{\numberline{(b)}{\ignorespaces {Position the rig against a high contrast background, make sure it has no harsh shadows on the contact surface. White rig against black background is recommended.}}}{24}{subfigure.10.2}\protected@file@percent }
 \@writefile{lof}{\contentsline {subfigure}{\numberline{(c)}{\ignorespaces {Take two photos of the rig from different angles, take the shots as close as possible to the rig. If the cylinders go beyond the edges of the shot the accuracy increase significantly. Here an example shot}}}{24}{subfigure.10.3}\protected@file@percent }
@@ -341,36 +327,36 @@
 \citation{gummeson22pose}
 \@writefile{lof}{\contentsline {figure}{\numberline {11}{\ignorespaces \relax }}{25}{figure.caption.52}\protected@file@percent }
 \newlabel{fig:automatic_recalibration_procedure}{{11}{25}{\relax }{figure.caption.52}{}}
-\newlabel{fig:automatic_recalibration_procedure@cref}{{[figure][11][]11}{[1][25][]25}}
+\newlabel{fig:automatic_recalibration_procedure@cref}{{[figure][11][]11}{[1][25][]25}{}{}{}}
 \@writefile{toc}{\contentsline {paragraph}{Procedure}{25}{paragraph*.51}\protected@file@percent }
 \@writefile{toc}{\contentsline {subsection}{\numberline {7.3}Extended Reality Applications}{25}{subsection.7.3}\protected@file@percent }
 \newlabel{sec:extended_reality}{{7.3}{25}{Extended Reality Applications}{subsection.7.3}{}}
-\newlabel{sec:extended_reality@cref}{{[subsection][3][7]7.3}{[1][25][]25}}
+\newlabel{sec:extended_reality@cref}{{[subsection][3][7]7.3}{[1][25][]25}{}{}{}}
 \@writefile{toc}{\contentsline {paragraph}{Procedure}{25}{paragraph*.53}\protected@file@percent }
 \@writefile{toc}{\contentsline {section}{\numberline {8}Conclusions}{25}{section.8}\protected@file@percent }
 \newlabel{sec:conclusions}{{8}{25}{Conclusions}{section.8}{}}
-\newlabel{sec:conclusions@cref}{{[section][8][]8}{[1][25][]25}}
+\newlabel{sec:conclusions@cref}{{[section][8][]8}{[1][25][]25}{}{}{}}
 \@writefile{lof}{\contentsline {figure}{\numberline {12}{\ignorespaces \relax }}{26}{figure.caption.54}\protected@file@percent }
 \newlabel{fig:extended_reality_procedure}{{12}{26}{\relax }{figure.caption.54}{}}
-\newlabel{fig:extended_reality_procedure@cref}{{[figure][12][]12}{[1][25][]26}}
+\newlabel{fig:extended_reality_procedure@cref}{{[figure][12][]12}{[1][25][]26}{}{}{}}
 \newlabel{fig:extended_reality_frame2}{{13a}{26}{Subfigure 13a}{subfigure.13.1}{}}
 \newlabel{sub@fig:extended_reality_frame2}{{(a)}{a}{Subfigure 13a\relax }{subfigure.13.1}{}}
-\newlabel{fig:extended_reality_frame2@cref}{{[subfigure][1][13]13a}{[1][25][]26}}
+\newlabel{fig:extended_reality_frame2@cref}{{[subfigure][1][13]13a}{[1][25][]26}{}{}{}}
 \newlabel{fig:extended_reality_frame3}{{13b}{26}{Subfigure 13b}{subfigure.13.2}{}}
 \newlabel{sub@fig:extended_reality_frame3}{{(b)}{b}{Subfigure 13b\relax }{subfigure.13.2}{}}
-\newlabel{fig:extended_reality_frame3@cref}{{[subfigure][2][13]13b}{[1][25][]26}}
+\newlabel{fig:extended_reality_frame3@cref}{{[subfigure][2][13]13b}{[1][25][]26}{}{}{}}
 \newlabel{fig:extended_reality_frame4}{{13c}{26}{Subfigure 13c}{subfigure.13.3}{}}
 \newlabel{sub@fig:extended_reality_frame4}{{(c)}{c}{Subfigure 13c\relax }{subfigure.13.3}{}}
-\newlabel{fig:extended_reality_frame4@cref}{{[subfigure][3][13]13c}{[1][25][]26}}
+\newlabel{fig:extended_reality_frame4@cref}{{[subfigure][3][13]13c}{[1][25][]26}{}{}{}}
 \newlabel{fig:extended_reality_frame5}{{13d}{26}{Subfigure 13d}{subfigure.13.4}{}}
 \newlabel{sub@fig:extended_reality_frame5}{{(d)}{d}{Subfigure 13d\relax }{subfigure.13.4}{}}
-\newlabel{fig:extended_reality_frame5@cref}{{[subfigure][4][13]13d}{[1][25][]26}}
+\newlabel{fig:extended_reality_frame5@cref}{{[subfigure][4][13]13d}{[1][25][]26}{}{}{}}
 \newlabel{fig:extended_reality_frame6}{{13e}{26}{Subfigure 13e}{subfigure.13.5}{}}
 \newlabel{sub@fig:extended_reality_frame6}{{(e)}{e}{Subfigure 13e\relax }{subfigure.13.5}{}}
-\newlabel{fig:extended_reality_frame6@cref}{{[subfigure][5][13]13e}{[1][25][]26}}
-\@writefile{lof}{\contentsline {figure}{\numberline {13}{\ignorespaces An image sequence from the pipe video showing a virtual object being placed in the scene. The camera pose is estimated using the proposed method, allowing for accurate alignment of the virtual object with the real world. The frames demonstrate the continuous tracking and pose estimation capabilities of the method.\relax }}{26}{figure.caption.55}\protected@file@percent }
-\newlabel{fig:extended_reality_sequence}{{13}{26}{An image sequence from the pipe video showing a virtual object being placed in the scene. The camera pose is estimated using the proposed method, allowing for accurate alignment of the virtual object with the real world. The frames demonstrate the continuous tracking and pose estimation capabilities of the method.\relax }{figure.caption.55}{}}
-\newlabel{fig:extended_reality_sequence@cref}{{[figure][13][]13}{[1][25][]26}}
+\newlabel{fig:extended_reality_frame6@cref}{{[subfigure][5][13]13e}{[1][25][]26}{}{}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {13}{\ignorespaces An image sequence from the pipe video showing a virtual object being placed in the scene. The camera pose is estimated using the proposed method, allowing for accurate alignment of the virtual object with the real world. The frames demonstrate the continuous tracking and pose estimation capabilities of the method.}}{26}{figure.caption.55}\protected@file@percent }
+\newlabel{fig:extended_reality_sequence}{{13}{26}{An image sequence from the pipe video showing a virtual object being placed in the scene. The camera pose is estimated using the proposed method, allowing for accurate alignment of the virtual object with the real world. The frames demonstrate the continuous tracking and pose estimation capabilities of the method}{figure.caption.55}{}}
+\newlabel{fig:extended_reality_sequence@cref}{{[figure][13][]13}{[1][25][]26}{}{}{}}
 \@writefile{lof}{\contentsline {subfigure}{\numberline{(a)}{\ignorespaces {Frame 2.}}}{26}{subfigure.13.1}\protected@file@percent }
 \@writefile{lof}{\contentsline {subfigure}{\numberline{(b)}{\ignorespaces {Frame 2.}}}{26}{subfigure.13.2}\protected@file@percent }
 \@writefile{lof}{\contentsline {subfigure}{\numberline{(c)}{\ignorespaces {Frame 3.}}}{26}{subfigure.13.3}\protected@file@percent }
@@ -423,14 +409,14 @@
 \bibcite{Zhang2000}{{36}{}{{}}{{}}}
 \bibcite{Zins2022}{{37}{}{{}}{{}}}
 \@writefile{toc}{\contentsline {section}{\numberline {A}Appendix A: Algorithms}{30}{appendix.A}\protected@file@percent }
-\@writefile{loa}{\contentsline {algorithm}{\numberline {4}{\ignorespaces Project Point Onto Line\relax }}{30}{algorithm.4}\protected@file@percent }
-\newlabel{alg:project_point_onto_line}{{4}{30}{Project Point Onto Line\relax }{algorithm.4}{}}
-\newlabel{alg:project_point_onto_line@cref}{{[algorithm][4][2147483647]4}{[1][30][]30}}
-\@writefile{loa}{\contentsline {algorithm}{\numberline {5}{\ignorespaces Calculate tangent points on a circle from a reference point $p$\relax }}{30}{algorithm.5}\protected@file@percent }
-\newlabel{alg:tangent_points_circle_point}{{5}{30}{Calculate tangent points on a circle from a reference point $p$\relax }{algorithm.5}{}}
-\newlabel{alg:tangent_points_circle_point@cref}{{[algorithm][5][2147483647]5}{[1][30][]30}}
-\@writefile{loa}{\contentsline {algorithm}{\numberline {6}{\ignorespaces Find lines in homogeneous coordinates from a cylinder and a camera\relax }}{30}{algorithm.6}\protected@file@percent }
-\newlabel{alg:get_cylinder_contours}{{6}{30}{Find lines in homogeneous coordinates from a cylinder and a camera\relax }{algorithm.6}{}}
-\newlabel{alg:get_cylinder_contours@cref}{{[algorithm][6][2147483647]6}{[1][30][]30}}
+\@writefile{loa}{\contentsline {algorithm}{\numberline {4}{\ignorespaces Project Point Onto Line}}{30}{algorithm.4}\protected@file@percent }
+\newlabel{alg:project_point_onto_line}{{4}{30}{Project Point Onto Line}{algorithm.4}{}}
+\newlabel{alg:project_point_onto_line@cref}{{[algorithm][4][]4}{[1][30][]30}{}{}{}}
+\@writefile{loa}{\contentsline {algorithm}{\numberline {5}{\ignorespaces Calculate tangent points on a circle from a reference point $p$}}{30}{algorithm.5}\protected@file@percent }
+\newlabel{alg:tangent_points_circle_point}{{5}{30}{Calculate tangent points on a circle from a reference point $p$}{algorithm.5}{}}
+\newlabel{alg:tangent_points_circle_point@cref}{{[algorithm][5][]5}{[1][30][]30}{}{}{}}
+\@writefile{loa}{\contentsline {algorithm}{\numberline {6}{\ignorespaces Find lines in homogeneous coordinates from a cylinder and a camera}}{30}{algorithm.6}\protected@file@percent }
+\newlabel{alg:get_cylinder_contours}{{6}{30}{Find lines in homogeneous coordinates from a cylinder and a camera}{algorithm.6}{}}
+\newlabel{alg:get_cylinder_contours@cref}{{[algorithm][6][]6}{[1][30][]30}{}{}{}}
 \providecommand\NAT@force@numbers{}\NAT@force@numbers
 \gdef \@abspage@last{31}
