@@ -21,7 +21,7 @@ def generate_object_points(board_size=(9, 6), square_size=1.0):
 # 2. Simulate a known camera
 def simulate_camera(noise_std=0.0, num_views=4, debug=1):
     # Intrinsics
-    K = generate_K()
+    K = generate_K(skew=True)
     dist_coeffs = np.zeros(5)  # No distortion
     object_points = []
     image_points = []
@@ -126,4 +126,4 @@ for noise in np.arange(0.0, 0.04, 0.0005):
             )
         )
 
-save_results_to_json("./synthetic/zhang_results.json", results)
+save_results_to_json("./synthetic/zhang_skew_results.json", results)

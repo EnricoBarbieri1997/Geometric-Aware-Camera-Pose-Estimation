@@ -20,14 +20,20 @@ def iterations_results_to_metrics(iterations_results):
 
     return delta_f, delta_uv, delta_skew, success_rate, delta_r, delta_t
 
-def generate_K():
+def generate_K(
+    skew=False
+):
     # Intrinsic matrix with noise
-    fx = 3500 + np.random.normal(0, 50)
-    fy = 3500 + np.random.normal(0, 50)
-    cx = 1750 + np.random.normal(0, 10)
-    cy = 1750 + np.random.normal(0, 10)
+    fx = int(2500 + np.random.normal(0, 50))
+    fy = int(2200 + np.random.normal(0, 50))
+    cx = int(900 + np.random.normal(0, 10))
+    cy = int(500 + np.random.normal(0, 10))
+    skew_val = 0
+    if skew:
+        skew_val = np.random.normal(0, 0.1)
+    
     K = np.array([
-        [fx,  0, cx],
+        [fx,  skew_val, cx],
         [0,  fy, cy],
         [0,   0,  1]
     ])

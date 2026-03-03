@@ -19,9 +19,9 @@ method_labels = {
     "ours_skew": "Ours",
     "ours_localization": "Ours Loc.",
     "quadric_based": "Gummeson",
-    "right_cylinder": "Ding",
-    # "zhang_4": "Zhang 4 views",
-    # "zhang_30": "Zhang 30 views"
+    # "right_cylinder": "Ding",
+    "zhang_4": "Zhang 4 views",
+    "zhang_30": "Zhang 30 views"
 }
 
 metric_labels = {
@@ -39,8 +39,8 @@ method_supports = {
     "ours_localization": {"delta_f": False, "delta_uv": False, "delta_skew": False, "delta_r": True, "delta_t": True, "success_rate": True},
     "quadric_based": {"delta_f": False, "delta_uv": False, "delta_skew": False, "delta_r": True, "delta_t": True, "success_rate": True},
     "right_cylinder": {"delta_f": True, "delta_uv": True, "delta_skew": False, "delta_r": False, "delta_t": False, "success_rate": True},
-    "zhang_4": {"delta_f": True, "delta_uv": True, "delta_skew": False, "delta_r": True, "delta_t": True, "success_rate": True},
-    "zhang_30": {"delta_f": True, "delta_uv": True, "delta_skew": False, "delta_r": True, "delta_t": True, "success_rate": True},
+    "zhang_4": {"delta_f": True, "delta_uv": True, "delta_skew": False, "delta_r": True, "delta_t": False, "success_rate": True},
+    "zhang_30": {"delta_f": True, "delta_uv": True, "delta_skew": False, "delta_r": True, "delta_t": False, "success_rate": True},
 }
 
 methods = list(method_labels.keys())
@@ -70,7 +70,7 @@ for entry in data:
 # Plot each metric
 for metric in metrics:
     plt.figure(figsize=(5, 4))
-    plt.rcParams.update({'font.size': 20})
+    plt.rcParams.update({'font.size': 10})
 
     for idx, method in enumerate(methods):
         # Skip if the method does not support this metric
