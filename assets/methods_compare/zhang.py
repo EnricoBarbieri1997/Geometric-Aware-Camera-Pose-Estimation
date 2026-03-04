@@ -62,6 +62,7 @@ def run_calibration(object_points, image_points, image_size=(640, 480)):
     ret, mtx, dist, rvecs, tvecs = cv2.calibrateCamera(
         object_points, image_points, image_size, None, None
     )
+    tvecs = [np.transpose(tvec) for tvec in tvecs]
     return mtx, dist, ret, [cv2.Rodrigues(rvec)[0] for rvec in rvecs], tvecs
 
 def print_intrinsics_comparison(K_true, A_est, debug = 1):
@@ -96,7 +97,7 @@ for noise in np.arange(0.0, 0.04, 0.0005):
     for variant in zhang_variants:
         iteration_results = []
         for i in range(iterations_count):
-            obj_pts, img_pts, gt_K, gt_R, gt_T = simulate_camera(
+            obj_pts, img_pts, gt_K, gt_Rs, gt_Ts = simulate_camera(
                 noise_std=noise * 1000.0,
                 num_views=views_for_variant[variant],
                 debug=debug
@@ -110,8 +111,8 @@ for noise in np.arange(0.0, 0.04, 0.0005):
 
             # Metrics
             intr_err = intrinsic_difference(est_K, gt_K)
-            rot_err = np.mean([rotations_difference(est_R, gt_R) for (est_R, gt_R) in zip(est_Rs, gt_R)])
-            trans_err = np.mean([translations_difference(est_T, gt_T) for (est_T, gt_T) in zip(est_Ts, gt_T)])
+            rot_err = np.mean([rotations_difference(est_R, gt_R) for (est_R, gt_R) in zip(est_Rs, gt_Rs)])
+            trans_err = np.mean([translations_difference(est_T, gt_T) for (est_T, gt_T) in zip(est_Ts, gt_Ts)])
 
             print(intr_err)
             print(rot_err)

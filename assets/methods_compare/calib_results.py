@@ -67,7 +67,7 @@ def rotations_difference(R1: np.ndarray, R2: np.ndarray) -> float:
     return np.degrees(np.arccos((trace_val - 1) / 2))
 
 def translations_difference(t1: np.ndarray, t2: np.ndarray) -> float:
-    return np.linalg.norm(t1 - t2)
+    return np.linalg.norm(t1 - t2) / np.linalg.norm(t2)
 
 def create_single_noise_result(method_code, noise_value, delta_f, delta_uv, delta_skew, success_rate, delta_r=None, delta_t=None):
     """
