@@ -6,14 +6,14 @@ module CylindersBasedCameraResectioning
     include("includes.jl")
 
     using ..Cylinder: cylinder_from_center_axis_radius, points_at_infinity_dualquadrics
-	using ..Scene: SceneData, InstanceConfiguration, ParametersSolutionsPair, averaged_solution!, best_overall_solution!, best_overall_solution_by_steps!, best_intrinsic_rotation_translation_system_solution!, camera_from_solution, create_scene_instances_and_problems, scene_instances_and_problems_from_files, intrinsic_rotation_system_setup, intrinsic_rotation_translation_system_setup, plot_interactive_scene, plot_reconstructed_scene, split_intrinsic_rotation_parameters, plot_scene
+	using ..Scene: SceneData, InstanceConfiguration, ParametersSolutionsPair, averaged_solution!, best_overall_solution!, best_overall_solution_by_steps!, best_intrinsic_rotation_translation_system_solution!, camera_from_solution, create_scene_instances_and_problems, scene_instances_and_problems_from_files, intrinsic_rotation_system_setup, intrinsic_rotation_translation_system_setup, plot_interactive_scene, plot_reconstructed_scene, split_intrinsic_rotation_parameters, plot_scene, best_intrinsic_rotation_system_solution!
     using ..Camera: CameraProperties, CameraViewPair
     using ..Geometry: get_view
 	using ..EquationSystems: stack_homotopy_parameters, variables_jacobian_rank, joint_jacobian_rank
     using ..EquationSystems.Problems: CylinderCameraContoursProblem, CylinderCameraContoursProblemValidationData
     using ..EquationSystems.Problems.IntrinsicParameters: Configurations as IntrinsicParametersConfigurations
     using ..Plotting
-	using ..Printing: print_camera_differences, print_relative_motion_errors
+	using ..Printing: print_camera_differences, print_relative_motion_errors, save_results_to_json
     using ..Homotopies: ParameterHomotopy as MyParameterHomotopy
     using ..IO: read_point_cloud_zup, read_cylinders_zup, read_camera_from_matrices, read_cylinder_line_views
     using ..Utils: lines_clp_to_stack
@@ -328,10 +328,17 @@ module CylindersBasedCameraResectioning
             "./assets/test_scenes/markers/scene.json",
             "./assets/methods_compare/real/markers.json";
             number_of_instances=2,
+            use_all_lines=true
         )
         intrinsic_configuration = problems[1].intrinsic_configuration
 
-        rotation_intrinsic_system, parameters = intrinsic_rotation_system_setup(problems)
+        equation_combinations = [1, 3, 5, 7, 9, 2, 4, 6]
+
+        rotation_intrinsic_system, parameters = intrinsic_rotation_system_setup(problems;
+            intrinsic_configuration,
+            equation_combinations,
+            minimization=true,
+        )
         # display(parameters)
 
         display(scene.figure)
@@ -348,7 +355,6 @@ module CylindersBasedCameraResectioning
         chunk_size = 500000
         numberof_start_solutions = length(starts)
         display("Number of start solutions: $numberof_start_solutions. Number of iterations needed: $(ceil(Int, numberof_start_solutions / chunk_size))")
-        solution_error = Inf
         for start in Iterators.partition(starts, chunk_size)
             result = solve(
                 solver,
@@ -356,32 +362,27 @@ module CylindersBasedCameraResectioning
             )
             @info result
 
-            solution_error, _ = best_overall_solution_by_steps!(
-                result,
-                problems;
-                start_error=solution_error,
-                intrinsic_configuration,
-            )
-        end
+            serialize("./tmp/markers_minimization_results.jls", result)
+            save_results_to_json("./tmp/markers_minimization_results.json", [
+                Dict(
+                    "solutions" => real_solutions(result),
+                )
+            ])
 
-        solution_error = solution_error / 2
-        display("Solution error: $solution_error")
+            best_intrinsic_rotation_system_solution!(
+				result,
+				problems;
+				start_error=Inf,
+				intrinsic_configuration,
+				scene,
+			)
+        end
 
         for (i, instance) in enumerate(scene.instances)
             display("View $i")
             print_camera_differences(instance.camera, problems[i].camera)
             display("--------------------")
         end
-
-        print_relative_motion_errors(scene, problems)
-
-        for problem in problems
-            plot_3dcamera(problem.camera, :green)
-        end
-
-        plot_reconstructed_scene(scene, problems)
-
-        display(scene.figure)
     end
 
     function pipes()
@@ -526,7 +527,10 @@ module CylindersBasedCameraResectioning
         )
         intrinsic_configuration = problems[1].intrinsic_configuration
 
-        rotation_intrinsic_system, parameters = intrinsic_rotation_system_setup(problems; intrinsic_configuration)
+        rotation_intrinsic_system, parameters = intrinsic_rotation_system_setup(problems;
+            intrinsic_configuration,
+            minimization=true,
+        )
 
         display(scene.figure)
 
