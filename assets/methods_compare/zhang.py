@@ -113,7 +113,13 @@ for noise in np.arange(0.0, 0.04, 0.0005):
             rot_err = np.mean([rotations_difference(est_R, gt_R) for (est_R, gt_R) in zip(est_Rs, gt_R)])
             trans_err = np.mean([translations_difference(est_T, gt_T) for (est_T, gt_T) in zip(est_Ts, gt_T)])
 
-            iteration_results.append(list(intr_err) + [1/iterations_count, rot_err, trans_err])
+            print(intr_err)
+            print(rot_err)
+            print(trans_err)
+
+            success = 1/iterations_count if (not np.isnan(intr_err).any() and not np.isnan(rot_err) and not np.isnan(trans_err)) else 0
+
+            iteration_results.append(list(intr_err) + [success, rot_err, trans_err])
             print(f"Noise STD: {noise:.6f} - Reprojection Error: {error:.6f}")
             print_intrinsics_comparison(gt_K, est_K)
             print("\n========================================\n")

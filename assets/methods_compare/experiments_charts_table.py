@@ -63,7 +63,7 @@ def customPlotFun(y, pos):
 method_labels = {
     "ours": "Ours",
     "ours_skew": "Ours",
-    "ours_localization": "Ours Loc.",
+    # "ours_localization": "Ours Loc.",
     "quadric_based": "Gummeson",
     "right_cylinder": "Ding",
     "zhang_4": "Zhang 4 views",
@@ -91,7 +91,7 @@ method_supports = {
 
 methods = list(method_labels.keys())
 metrics = list(metric_labels.keys())
-colors = ["blue", "blue", "blue", "purple", "green", "orange", "red"]
+colors = ["blue", "blue", "purple", "green", "orange", "red"]
 linestyles = ["-", "-", "--", "--", "-.", ":", ":"]
 
 # Load data
