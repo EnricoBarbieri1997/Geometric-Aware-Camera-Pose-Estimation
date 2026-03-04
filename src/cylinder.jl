@@ -42,13 +42,14 @@ function standard_and_dual(
 end
 
 function points_at_infinity_dualquadrics(cylinders)
-    points_at_infinity::Matrix{Float64} = zeros(Float64, 6, 3)
+    l = length(cylinders) * 2
+    points_at_infinity::Matrix{Float64} = zeros(Float64, l, 3)
     for (i, cylinder) in enumerate(cylinders)
         doubled_index = (i - 1) * 2 + 1
         points_at_infinity[doubled_index, :] = normalize(cylinder.singular_point[1:3])
         points_at_infinity[doubled_index+1, :] = normalize(cylinder.singular_point[1:3])
     end
-    dualquadrics::Array{Float64,3} = zeros(Float64, 6, 4, 4)
+    dualquadrics::Array{Float64,3} = zeros(Float64, l, 4, 4)
     for (i, cylinder) in enumerate(cylinders)
         doubled_index = (i - 1) * 2 + 1
         dualquadrics[doubled_index, :, :] = cylinder.dual_matrix ./ cylinder.dual_matrix[4, 4]
@@ -147,6 +148,18 @@ function arbitrary_rig()
     Random.seed!(2300)
     cylinders = []
     for i in 1:3
+        dir = normalize(rand_in_range(-1.0, 1.0, 3))
+        position = dir * rand_in_range(0.1, 3.0)
+        euler_rotation = rand_in_range(0.0, 360.0, 3)
+        push!(cylinders, cylinder(position, euler_rotation))
+    end
+    return cylinders
+end
+
+function arbitrary_rig_four()
+    Random.seed!(2300)
+    cylinders = []
+    for i in 1:4
         dir = normalize(rand_in_range(-1.0, 1.0, 3))
         position = dir * rand_in_range(0.1, 3.0)
         euler_rotation = rand_in_range(0.0, 360.0, 3)

@@ -11,13 +11,16 @@ module Lab
     using ..IO: read_point_cloud_zup, read_cylinders_zup, read_camera_from_matrices
     using ..Plotting: initfigure, plot_3dcylinders, plot_3dpoints, plot_3dcamera
     using ..Cylinder: cylinder_from_center_axis_radius, points_at_infinity_dualquadrics
-    using ..Cylinder.CalibrationRigs: arbitrary_rig
+    using ..Cylinder.CalibrationRigs: arbitrary_rig, arbitrary_rig_four
     using ..EquationSystems.Problems: CylinderCameraContoursProblem, CylinderCameraContoursProblemValidationData
     using ..EquationSystems.Problems.IntrinsicParameters: Configurations as IntrinsicParametersConfigurations
     using ..Utils: rand_in_range, lines_clp_to_stack
     using ..Homotopies: GeometricHomotopy
+    using ..Printing: print_scene_config_results, scene_config_results_table_data
 
     using Random
+    using Statistics
+    using Serialization
 
     function shuttercameras()
         link1 = "https://gist.githubusercontent.com/PBrdng/e17d0e3bc4d983734238b9cb8386d560/raw/07272b125a6ad03c791fdf99e741318f1d85149b/3Dpoints"
@@ -268,6 +271,283 @@ module Lab
         end
 
         return problems
+    end
+
+    function compare_execution_times()
+        Random.seed!(777)
+        intrinsic_configuration = IntrinsicParametersConfigurations.fₓ_fᵧ_cₓ_cᵧ
+
+        scenes = []
+        true_solutions = []
+
+        cylinder_view_configurations = reverse([
+            Dict(
+                "number_of_cylinders" => 2,
+                "number_of_views" => 4,
+                "delta_fx" => [],
+                "delta_fy" => [],
+                "delta_cx" => [],
+                "delta_cy" => [],
+                "delta_rotation" => [],
+                "elapsed_time" => [],
+            ),
+            Dict(
+                "number_of_cylinders" => 3,
+                "number_of_views" => 2,
+                "delta_fx" => [],
+                "delta_fy" => [],
+                "delta_cx" => [],
+                "delta_cy" => [],
+                "delta_rotation" => [],
+                "elapsed_time" => [],
+            ),
+            Dict(
+                "number_of_cylinders" => 4,
+                "number_of_views" => 1,
+                "delta_fx" => [],
+                "delta_fy" => [],
+                "delta_cx" => [],
+                "delta_cy" => [],
+                "delta_rotation" => [],
+                "elapsed_time" => [],
+            ),
+        ])
+
+        for _ in 1:8
+            intrinsics = [
+                rand_in_range(2500.0, 2700.0) 0.0 rand_in_range(950.0, 970.0);   # fₓ, skew, cₓ
+                0.0 rand_in_range(1400.0, 1600.0) rand_in_range(530.0, 550.0);   # 0, fᵧ, cᵧ
+                0.0 0.0 1.0                                                      # bottom row
+            ]
+
+            cylinders = arbitrary_rig_four()
+
+            cameras = []
+            for _ in 1:4
+                position, rotation = random_camera_lookingat_center()
+                camera = CameraProperties()
+                camera.position = position
+                camera.quaternion_rotation = rotation
+                camera.intrinsic = intrinsics
+                push!(cameras, camera)
+            end
+
+            scene = SceneData()
+            scene.figure = initfigure()
+            scene.cylinders = cylinders
+            scene.instances = map(camera -> begin
+                instance = InstanceConfiguration()
+                instance.camera = camera
+                return instance
+            end, cameras)
+
+            push!(scenes, scene)
+        end
+
+        #region true solutions for original problems
+        for scene in scenes
+            true_intrinsics = scene.instances[1].camera.intrinsic ./ 3000.0
+            rotations = map(instance -> begin
+                rot = Rotations.params(QuatRotation(instance.camera.rotation_matrix))
+                rot = rot / rot[1]
+                rot = rot[2:4]
+                return rot
+            end, scene.instances)
+
+            # Merge all rotations into a single vector
+            merged_rotations = vcat(rotations...)
+
+            true_solution = [
+                true_intrinsics[1, 1],
+                true_intrinsics[2, 2],
+                true_intrinsics[1, 3],
+                true_intrinsics[2, 3],
+                merged_rotations...,
+            ]
+            push!(true_solutions, true_solution)
+        end
+        #endregion
+
+        offset = 2.0
+
+        for config in cylinder_view_configurations
+            delta_fx = []
+            delta_fy = []
+            delta_cx = []
+            delta_cy = []
+            delta_rotation = []
+            elapsed_time = []
+
+            solved_instances_line_parametric = 0
+            solved_paths_line_parametric = 0
+            tracked_paths_line_parametric = 0
+
+            number_of_cylinders = config["number_of_cylinders"]
+            number_of_views = config["number_of_views"]
+
+            for (i, _scene) in enumerate(scenes)
+                display("Processing scene: $i, configuration: $(config["number_of_cylinders"]) cylinders, $(config["number_of_views"]) views")
+
+                scene = SceneData()
+                scene.figure = initfigure()
+                scene.cylinders = _scene.cylinders[1:number_of_cylinders]
+                scene.instances = deepcopy(_scene.instances[1:number_of_views])
+                for instance in scene.instances
+                    instance.conics_contours = get_view(scene.cylinders, instance.camera)
+                end
+                problems = problems_from_scene(scene)
+                _, parameters = intrinsic_rotation_system_setup(problems; intrinsic_configuration)
+
+                offsetted_scene = SceneData()
+                offsetted_scene.figure = initfigure()
+                offsetted_scene.cylinders = scene.cylinders
+
+                offsetted_intrinsics = scene.instances[1].camera.intrinsic + [
+                    (rand(Float64) * 50.0 - 25.0) 0.0 (rand(Float64) * 10.0 - 5.0);   # fₓ, skew, cₓ
+                    0.0 (rand(Float64) * 50.0 - 25.0) (rand(Float64) * 10.0 - 5.0);   # 0, fᵧ, cᵧ
+                    0.0 0.0 0.0                                                      # bottom row
+                ]
+
+                offsetted_scene.instances = map((instance) -> begin
+                    offsetted_camera = CameraProperties()
+                    offsetted_camera.intrinsic = offsetted_intrinsics
+                    random_direction = normalize(randn(3))
+                    offsetted_camera.position = instance.camera.position + offset * random_direction
+                    rotation = lookat_quaternion(offsetted_camera.position, [0.0, 0.0, 0.0])
+                    offsetted_camera.quaternion_rotation = rotation
+                    view = get_view(offsetted_scene.cylinders, offsetted_camera)
+                    instance = InstanceConfiguration()
+                    instance.camera = offsetted_camera
+                    instance.conics_contours = view
+                    return instance
+                end, scene.instances)
+
+                offsetted_problems = problems_from_scene(offsetted_scene)
+
+                rotation_intrinsic_system, offsetted_parameters = intrinsic_rotation_system_setup(offsetted_problems;
+                    intrinsic_configuration
+                )
+
+                #region Computing original sol
+                rotations = map(instance -> begin
+                    rot = Rotations.params(QuatRotation(instance.camera.rotation_matrix))
+                    rot = rot / rot[1]
+                    rot = rot[2:4]
+                    return rot
+                end, offsetted_scene.instances)
+
+                # Merge all rotations into a single vector
+                merged_rotations = vcat(rotations...)
+                known_solution = [
+                    offsetted_scene.instances[1].camera.intrinsic[1, 1] / 3000.0,
+                    offsetted_scene.instances[1].camera.intrinsic[2, 2] / 3000.0,
+                    offsetted_scene.instances[1].camera.intrinsic[1, 3] / 3000.0,
+                    offsetted_scene.instances[1].camera.intrinsic[2, 3] / 3000.0,
+                    merged_rotations...,
+                ]
+                #endregion
+
+                monodromy_solutions = solutions(
+                    monodromy_solve(
+                        rotation_intrinsic_system,
+                        [known_solution],
+                        offsetted_parameters;
+                        show_progress=false,
+                    )
+                )
+
+                line_parametric_result = nothing
+                t = @elapsed begin
+                    line_parametric_result = solve(
+                        GeometricHomotopy(
+                            rotation_intrinsic_system,
+                            start_parameters=offsetted_parameters,
+                            target_parameters=parameters,
+                        ),
+                        monodromy_solutions;
+                        show_progress=false
+                    )
+                end
+
+                display("Found $(nsolutions(line_parametric_result)) solutions with line parametric homotopy")
+                display("Of which $(nreal(line_parametric_result)) are real")
+
+                if (nreal(line_parametric_result) == 0)
+                    display("No solutions found with line parametric homotopy, skipping this instance.")
+                    continue
+                end
+
+                solved_paths_line_parametric += nsolutions(line_parametric_result)
+                tracked_paths_line_parametric += nsolutions(line_parametric_result) + nfailed(line_parametric_result)
+
+                true_solution = true_solutions[i][1:(4+3*config["number_of_views"])]
+
+                # Get the solution with the smallest distance to the true solution
+                closest_solution_index = findmin([norm(true_solution - sol) for sol in real_solutions(line_parametric_result)])[2]
+                closest_solution = real_solutions(line_parametric_result)[closest_solution_index]
+
+                deltas = closest_solution - true_solution
+                deltas = [abs(delta / true_value) for (delta, true_value) in zip(deltas, true_solution)]
+
+                push!(delta_fx, deltas[1])
+                push!(delta_fy, deltas[2])
+                push!(delta_cx, deltas[3])
+                push!(delta_cy, deltas[4])
+                push!(delta_rotation, mean(deltas[5:(4+3*config["number_of_views"])]))
+                push!(elapsed_time, t)
+
+                display("Deltas for closest solution: $(deltas)")
+
+                if any(sol -> isapprox(true_solution, sol; atol=1e-2), real_solutions(line_parametric_result))
+                    solved_instances_line_parametric += 1
+                end
+
+            end
+
+            display("Offset: $offset")
+            display("Solved instances with line parametric homotopy: $solved_instances_line_parametric / $(length(scenes))")
+            display("Solved paths with line parametric homotopy: $solved_paths_line_parametric / $tracked_paths_line_parametric")
+
+            config["delta_fx"]= delta_fx
+            config["delta_fy"]= delta_fy
+            config["delta_cx"]= delta_cx
+            config["delta_cy"]= delta_cy
+            config["delta_rotation"]= delta_rotation
+            config["elapsed_time"]= elapsed_time
+
+            serialize("./tmp/scene_config_results.jls", cylinder_view_configurations)
+        end
+
+        serialize("./tmp/scene_config_results.jls", cylinder_view_configurations)
+    end
+
+    function csv_escape(value)
+        value_str = string(value)
+        if occursin('"', value_str)
+            value_str = replace(value_str, '"' => "\"\"")
+        end
+        if occursin(',', value_str) || occursin('\n', value_str) || occursin('"', value_str)
+            return "\"$(value_str)\""
+        end
+        return value_str
+    end
+
+    function export_scene_config_results(results_path="./tmp/scene_config_results.jls"; csv_output_path="./tmp/scene_config_results.csv")
+        cylinder_view_configurations = deserialize(results_path)
+        display(cylinder_view_configurations)
+
+        print_scene_config_results(cylinder_view_configurations)
+
+        header, data = scene_config_results_table_data(cylinder_view_configurations)
+        open(csv_output_path, "w") do io
+            println(io, join(header, ","))
+            for i in axes(data, 1)
+                row = [csv_escape(data[i, j]) for j in axes(data, 2)]
+                println(io, join(row, ","))
+            end
+        end
+
+        display("Scene configuration results exported to $(csv_output_path)")
     end
 
     function compare_parameter_homotopies()

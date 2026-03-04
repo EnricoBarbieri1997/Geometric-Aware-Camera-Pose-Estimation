@@ -1,10 +1,11 @@
 module Printing
-    export print_camera_differences, print_error_analysis, print_relative_motion_errors, create_single_noise_result, save_results_to_json
+    export print_camera_differences, print_error_analysis, print_relative_motion_errors, create_single_noise_result, save_results_to_json, scene_config_results_table_data, print_scene_config_results
 
     using ..Utils: normalized_diff, vector_difference, matrix_difference, rotations_difference, translations_difference, intrinsic_difference
     using PrettyTables, JSON
     using Rotations: params as rotations_params
     using LinearAlgebra: norm
+    using Statistics: mean
 
     transparent_first_col = Highlighter(
             (data, i, j) -> (j == 1),
@@ -260,6 +261,70 @@ module Printing
         open(filename, "w") do io
             JSON.print(io, results, 2)
         end
+    end
+
+    function metric_value(configuration::AbstractDict, keys::Vector{String})
+        for key in keys
+            if haskey(configuration, key)
+                value = configuration[key]
+                if value isa Number
+                    return Float64(value)
+                end
+                if value isa AbstractVector
+                    if isempty(value)
+                        return NaN
+                    end
+                    numeric_values = [Float64(v) for v in value if v isa Number]
+                    return isempty(numeric_values) ? NaN : mean(numeric_values)
+                end
+                return NaN
+            end
+        end
+        return NaN
+    end
+
+    function scene_config_results_table_data(configurations::AbstractVector)
+        header = [
+            "Configuration",
+            "Relative error f_x",
+            "Relative error f_y",
+            "Relative error c_x",
+            "Relative error c_y",
+            "Relative error R",
+            "Success rate",
+            "Elapsed time (s)",
+        ]
+
+        data = Matrix{Any}(undef, length(configurations), length(header))
+        for (i, configuration) in enumerate(configurations)
+            number_of_cylinders = get(configuration, "number_of_cylinders", "?")
+            number_of_views = get(configuration, "number_of_views", "?")
+
+            display(get(configuration, "delta_fx", []))
+
+            data[i, 1] = "$(number_of_cylinders) Cylinders, $(number_of_views) View"
+            data[i, 2] = metric_value(configuration, ["delta_fx"])
+            data[i, 3] = metric_value(configuration, ["delta_fy"])
+            data[i, 4] = metric_value(configuration, ["delta_cx"])
+            data[i, 5] = metric_value(configuration, ["delta_cy"])
+            data[i, 6] = metric_value(configuration, ["delta_rotation", "delta_r"])
+            data[i, 7] = size(configuration["delta_fx"])[1] / 8 * 100
+            data[i, 8] = metric_value(configuration, ["elapsed_time"])
+        end
+
+        return header, data
+    end
+
+    function print_scene_config_results(configurations::AbstractVector)
+        header, data = scene_config_results_table_data(configurations)
+        pretty_table(
+            data;
+            header,
+            formatters=ft_printf("%.6e", 2:8),
+            header_crayon=crayon"yellow bold",
+            text_crayon=crayon"white",
+            tf=tf_unicode_rounded,
+        )
     end
 
 end

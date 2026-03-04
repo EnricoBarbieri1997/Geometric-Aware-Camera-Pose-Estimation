@@ -231,7 +231,7 @@ function get_cylinder_contours(cylinder::CylinderProperties, camera::CameraPrope
 end
 
 function get_view(cylinders, camera)
-    conics_contours = Array{Float64}(undef, 3, 2, 3)
+    conics_contours = Array{Float64}(undef, length(cylinders), 2, 3)
     for (i, cylinder) in enumerate(cylinders)
         lines = get_cylinder_contours(
             cylinder,
