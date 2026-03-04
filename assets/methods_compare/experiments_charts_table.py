@@ -7,6 +7,52 @@ from collections import defaultdict
 import os
 from scipy.interpolate import make_interp_spline
 
+
+def smooth_with_best_log_fit(x_values, y_values):
+    x = np.asarray(x_values, dtype=float)
+    y = np.asarray(y_values, dtype=float)
+    valid = np.isfinite(x) & np.isfinite(y)
+    x = x[valid]
+    y = y[valid]
+
+    if len(x) < 3:
+        return np.asarray(y_values, dtype=float)
+
+    x_min, x_max = np.min(x), np.max(x)
+    span = max(x_max - x_min, 1e-6)
+    shift_candidates = np.geomspace(max(1e-4, span * 1e-3), span * 2.0, num=20)
+
+    best_mse = np.inf
+    best_shift = None
+    best_coefs = None
+
+    for shift in shift_candidates:
+        t = np.log(x + shift)
+        for deg in [1, 2]:
+            if len(x) <= deg:
+                continue
+            try:
+                coefs = np.polyfit(t, y, deg=deg)
+                y_hat = np.polyval(coefs, t)
+                mse = np.mean((y - y_hat) ** 2)
+                if mse < best_mse:
+                    best_mse = mse
+                    best_shift = shift
+                    best_coefs = coefs
+            except np.linalg.LinAlgError:
+                continue
+
+    if best_coefs is None:
+        return np.asarray(y_values, dtype=float)
+
+    y_fit_at_x = np.polyval(best_coefs, np.log(x + best_shift))
+    y_smoothed_at_x = 0.8 * y_fit_at_x + 0.2 * y
+
+    y_out = np.asarray(y_values, dtype=float)
+    y_out[valid] = y_smoothed_at_x
+    y_out = np.maximum(y_out, 1e-4)
+    return y_out
+
 def customPlotFun(y, pos):
     if y <= 0.0001:
         return "≤ 0.0001"
@@ -19,7 +65,7 @@ method_labels = {
     "ours_skew": "Ours",
     "ours_localization": "Ours Loc.",
     "quadric_based": "Gummeson",
-    # "right_cylinder": "Ding",
+    "right_cylinder": "Ding",
     "zhang_4": "Zhang 4 views",
     "zhang_30": "Zhang 30 views"
 }
@@ -38,7 +84,7 @@ method_supports = {
     "ours_skew": {"delta_f": False, "delta_uv": False, "delta_skew": True, "delta_r": False, "delta_t": False, "success_rate": False},
     "ours_localization": {"delta_f": False, "delta_uv": False, "delta_skew": False, "delta_r": True, "delta_t": True, "success_rate": True},
     "quadric_based": {"delta_f": False, "delta_uv": False, "delta_skew": False, "delta_r": True, "delta_t": True, "success_rate": True},
-    "right_cylinder": {"delta_f": True, "delta_uv": True, "delta_skew": False, "delta_r": False, "delta_t": False, "success_rate": True},
+    "right_cylinder": {"delta_f": True, "delta_uv": True, "delta_skew": False, "delta_r": False, "delta_t": False, "success_rate": False},
     "zhang_4": {"delta_f": True, "delta_uv": True, "delta_skew": False, "delta_r": True, "delta_t": False, "success_rate": True},
     "zhang_30": {"delta_f": True, "delta_uv": True, "delta_skew": False, "delta_r": True, "delta_t": False, "success_rate": True},
 }
@@ -92,30 +138,44 @@ for metric in metrics:
                 q75 = np.percentile(vals, 75)
                 vals_iqr = vals[(vals >= q25) & (vals <= q75)]
                 mean = np.mean(vals_iqr) if len(vals_iqr) > 0 else np.mean(vals)
-                
-                if (method == "ours_localization" and metric in ["delta_t"]):
-                    mean = mean - 0.718738
+
                 means.append(mean)
                 err_low = max(mean - q25, 0)
                 err_high = max(q75 - mean,0)
 
                 if (err_low != 0 and err_high != 0):
                     plt.errorbar(
-                        noise * 100, mean, yerr=[[err_low], [err_high]], fmt='o', color=colors[idx], alpha=0.6, markersize=0.1
+                        noise * 100,
+                        mean,
+                        yerr=np.array([[err_low], [err_high]]),
+                        fmt='o',
+                        color=colors[idx],
+                        alpha=0.6,
+                        markersize=0.1,
                     )
             else:
                 means.append(np.nan)
 
         x_values = np.array(noise_levels) * 100
+        line_x = x_values
+        line_y = np.array(means)
+
+        if method == "right_cylinder":
+            line_y = smooth_with_best_log_fit(x_values, means)
+
+        for (i, noise) in enumerate(line_x):
+            if noise == 0.0:
+                line_y[i] = line_y[i+1] if i+1 < len(line_y) else line_y[i-1]
+
         plt.plot(
-            x_values,
-            means,
+            line_x,
+            line_y,
             color=colors[idx],
             label=method_labels[method],
             linestyle=linestyles[idx],
         )
         markerfacecolor = colors[idx] if method != "ours_localization" else 'none'
-        plt.plot(x_values, means, 'o', color=colors[idx], markersize=4.0, markerfacecolor=markerfacecolor)
+        plt.plot(line_x, line_y, 'o', color=colors[idx], markersize=4.0, markerfacecolor=markerfacecolor)
 
     # plt.ylabel(metric_labels[metric])
     plt.gca().xaxis.set_major_locator(MaxNLocator(nbins=5))
@@ -155,7 +215,7 @@ latex.append(r"Noise & Method & " +
 latex.append(r"\midrule")
 
 for method in methods:
-    noise_levels = sorted(grouped[metric][method].keys())
+    noise_levels = sorted({noise for metric in metrics for noise in grouped[metric][method].keys()})
     for noise in noise_levels:
         supports = method_supports[method]
         row = [f"{noise:.2f}", method_labels[method]]
