@@ -5,9 +5,9 @@ import numpy as np
 
 WINDOW_NAME = "Primitive Selector"
 
-STATE_FILE = "../test_scenes/pipes/views.json"  # Change this to select different state files
+STATE_FILE = "../test_scenes/markers/views.json"  # Change this to select different state files
 
-IMAGE_PATH = "../test_scenes/pipes/edges"
+IMAGE_PATH = "../test_scenes/markers/edges"
 IMAGES = sorted([
     os.path.join(IMAGE_PATH, f)
     for f in os.listdir(IMAGE_PATH)
