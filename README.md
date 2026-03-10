@@ -1,5 +1,36 @@
 # Project structure
 
+## using CylindersBasedCameraResectioning
+
+# Comparisons
+
+## Standard parametric vs Geometric parametric
+
+- CylindersBasedCameraResectioning.Lab.compare_parameter_homotopies()
+
+## Geometric homotopy for different intrinsic configurations
+
+- Run tests
+CylindersBasedCameraResectioning.Lab.compare_execution_times()
+- Visualize results
+CylindersBasedCameraResectioning.Lab.export_scene_config_results()
+
+# Synthetic tests
+- Generate and run tests, this are saved in "./tmp/reports"
+CylindersBasedCameraResectioning.Report.multiple_seeds_multiple_configuration()
+- Merge reports into a single file
+CylindersBasedCameraResectioning.Report.merge_reports("./tmp/reports/*", "./tmp/reports_merged.jls")
+- View summarized results for the run, the second parameter is the noise configuration if changed. Other named parameters can be set if tests were run under non default configurations (eg: number_of_samples=1)
+CylindersBasedCameraResectioning.Report.report_error_analysis("./tmp/reports_merged.jls", collect(0.0:0.0005:0.04);)
+
+# Synthetic rendered
+
+- CylindersBasedCameraResectioning.hot_pipes()
+
+# Real scene
+
+- CylindersBasedCameraResectioning.roller_coaster()
+
 ## CylindersBasedCameraResectioning.jl
 This is the file that should be run to the the experiment. No console parameters are required. It is divided into:
 
