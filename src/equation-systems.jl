@@ -228,7 +228,9 @@ function build_intrinsic_rotation_conic_system(
     return a
 end
 
-function build_intrinsic_rotation_translation_conic_system(problem::Problems.CylinderCameraContoursProblem)
+function build_intrinsic_rotation_translation_conic_system(
+    problem::Problems.CylinderCameraContoursProblem;
+)
     lines_count = 3
     @var tx ty tz
     @var lines[1:lines_count, 1:3]
@@ -240,12 +242,25 @@ function build_intrinsic_rotation_translation_conic_system(problem::Problems.Cyl
         use_rotation_as_is=true
     )
 
+    picked_dualquadrics = zeros(Float64, lines_count, 4, 4)
+    picked_dualquadrics_count = 0
+    picking_index = 1
+
+    while picked_dualquadrics_count < lines_count
+        picked_dualquadrics_count += 1
+        picked_dualquadrics[picked_dualquadrics_count, :, :] = problem.dualquadrics[picking_index, :, :]
+        picking_index += 2
+        if picking_index > size(problem.dualquadrics)[1]
+            picking_index = 2
+        end
+    end
+
     system_to_solve = []
     parameters::Vector{HomotopyContinuation.ModelKit.Variable} = []
     for i in 1:lines_count
-        index = (i - 1) * 2 + 1
-        equation = (lines[i, :]' * P * problem.dualquadrics[index, :, :] * P' * lines[i, :]) / (IMAGE_HEIGHT * IMAGE_WIDTH)
+        equation = (lines[i, :]' * P * picked_dualquadrics[i, :, :] * P' * lines[i, :]) / (IMAGE_HEIGHT * IMAGE_WIDTH)
         parameters = stack_homotopy_parameters(parameters, lines[i, :])
+        push!(system_to_solve, equation)
     end
 
     return System(system_to_solve, variables=[tx, ty, tz], parameters=parameters)
@@ -312,12 +327,19 @@ function build_intrinsic_rotation_conic_system(
 
     return System(diff, variables=variables, parameters=parameters)
 end
-end
 
-module SingleProblem
-function build_intrinsic_rotation_conic_system(lines_values::Matrix{<:Number})
-end
-function build_intrinsic_rotation_translation_conic_system(intrinsic, rotation, lines_values)
+function build_intrinsic_rotation_translation_conic_system(
+    problem::Problems.CylinderCameraContoursProblem
+)
+    sys = EquationSystems.build_intrinsic_rotation_translation_conic_system(problem)
+    expressions = sys.expressions
+    minimizer = sum(expressions .^ 2)
+    variables = sys.variables
+    parameters = sys.parameters
+
+    diff = expand.(differentiate(minimizer, variables))
+
+    return System(diff, variables=variables, parameters=parameters)
 end
 end
 end

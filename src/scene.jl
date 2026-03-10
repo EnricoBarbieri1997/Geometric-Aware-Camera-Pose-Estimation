@@ -9,7 +9,7 @@ module Scene
 	using ..EquationSystems: stack_homotopy_parameters, build_intrinsic_rotation_conic_system, build_intrinsic_rotation_translation_conic_system, build_intrinsic_rotation_translation_conic_system_calibrated
 	using ..EquationSystems.Problems: CylinderCameraContoursProblem, CylinderCameraContoursProblemValidationData
 	using ..EquationSystems.Problems.IntrinsicParameters: Configurations as IntrinsicParametersConfigurations, has as isIntrinsicEnabled
-	using ..EquationSystems.Minimization: build_intrinsic_rotation_conic_system as build_intrinsic_rotation_conic_system_minimization
+	using ..EquationSystems.Minimization: build_intrinsic_rotation_conic_system as build_intrinsic_rotation_conic_system_minimization, build_intrinsic_rotation_translation_conic_system as build_intrinsic_rotation_translation_conic_system_minimization
 	using ..Utils
 	using ..Scene
 	using ..Cylinder: CylinderProperties, standard_and_dual as standard_and_dual_cylinder
@@ -148,7 +148,6 @@ module Scene
 				principal_point_y,
 				skew,
 			))
-
 			for i in 1:number_of_instances
 					instance = InstanceConfiguration()
 					position, rotation_matrix = random_camera_lookingat_center()
@@ -616,7 +615,7 @@ module Scene
 					intrinsic_solution_index += 1
 			end
 
-			if (isIntrinsicEnabled.fₓ(intrinsic_configuration) || isIntrinsicEnabled.fᵧ(intrinsic_configuration))
+			if (isIntrinsicEnabled.fₓ(intrinsic_configuration))
 				focal_length_x = focal_length_x / factor
 			end
 			if (isIntrinsicEnabled.fᵧ(intrinsic_configuration))
@@ -633,7 +632,7 @@ module Scene
 			end
 
 			# Spurious solutions
-			if (factor ≃ 0 || focal_length_x ≃ 0 || focal_length_y ≃ 0)
+			if (focal_length_x ≃ 0 || focal_length_y ≃ 0)
 				throw(ArgumentError("Spurious solution"))
 			end
 
@@ -691,6 +690,7 @@ module Scene
 			if (minimization)
 				rotation_intrinsic_system = build_intrinsic_rotation_conic_system_minimization(
 					problems;
+					equation_combinations = equation_combinations,
 				)
 			else
 				rotation_intrinsic_system = build_intrinsic_rotation_conic_system(
@@ -757,11 +757,14 @@ module Scene
 			excluded_solutions = [],
 	)
 			solution_error = start_error
-			solutions_to_try = [real(sol) for sol in solutions(result) if !any(isnan, real(sol))]
+			solutions_to_try = real_solutions(result) # [real(sol) for sol in solutions(result) if !any(isnan, real(sol))]
 			display("Number of solutions to try: $(length(solutions_to_try))")
 			all_possible_solutions = []
 			best_solution = nothing
 			starting_camera = problems[1].camera
+			if (!isnothing(scene))
+				starting_camera = scene.instances[1].camera
+			end
 			for solution in solutions_to_try
 					if (any(x -> x ≃ solution, excluded_solutions))
 						continue
@@ -837,7 +840,8 @@ module Scene
 			return solution_error, all_possible_solutions, best_solution
 	end
 
-	function intrinsic_rotation_translation_system_setup(problem; calibrate = false)
+	function intrinsic_rotation_translation_system_setup(problem; calibrate = false, minimization = false)
+			translation_system = nothing
 			if (calibrate)
 				translation_system = build_intrinsic_rotation_translation_conic_system_calibrated(
 					problem
@@ -856,17 +860,30 @@ module Scene
 				end
 				parameters = stack_homotopy_parameters(lines[1:3, 1:3]')
 			else
-				translation_system = build_intrinsic_rotation_translation_conic_system(
-					problem
-				)
-				lines_to_use = problem.lines[[1, 3, 5], 1:3]
+				if (minimization)
+					translation_system = build_intrinsic_rotation_translation_conic_system_minimization(
+						problem
+					)
+				else
+					translation_system = build_intrinsic_rotation_translation_conic_system(
+						problem
+					)
+				end
+				lines_to_use_indexes = []
+				current_line_to_use_index = 1
+				while length(lines_to_use_indexes) < 3
+					push!(lines_to_use_indexes, current_line_to_use_index)
+					current_line_to_use_index += 2
+					if current_line_to_use_index > size(problem.lines, 1)
+						current_line_to_use_index = 2
+					end
+				end
+				lines_to_use = problem.lines[lines_to_use_indexes, 1:3]
 				parameters = []
 				parameters = stack_homotopy_parameters(
 					parameters,
 					lines_to_use'
 				)
-				display(problem.lines)
-				display(parameters)
 			end
 
 			return translation_system, parameters
@@ -1267,7 +1284,7 @@ module Scene
 		tryied_solutons = 0
 		problems_to_solve = nothing
 		best_solution = nothing
-		while (!valid_solution_found && tryied_solutons < length(real_solutions(result)))
+		# while (!valid_solution_found && tryied_solutons < length(real_solutions(result)))
 			valid_solution_found = true
 			tryied_solutons += 1
 			problems_to_solve = deepcopy(problems)
@@ -1281,25 +1298,29 @@ module Scene
 			)
 
 			for (i, problem) in enumerate(problems_to_solve)
-				display("Problem $i")
 				translation_system, parameters = intrinsic_rotation_translation_system_setup(
 					problem;
-					calibrate = false
+					calibrate = false,
+					minimization = true,
 				)
 				try
 					translation_result = solve(
 							translation_system;
 							target_parameters = parameters,
 							start_system = :total_degree,
+            				show_progress=false,
 					)
 					@info translation_result
 
+					reference_instance = nothing
+					if (!isnothing(scene))
+						reference_instance = scene.instances[i]
+					end
 					_, best_translation_solution = best_intrinsic_rotation_translation_system_solution!(
 						translation_result,
 						problem;
-						scene,
 						use_plain_errors = true,
-						reference_instance = scene.instances[i],
+						reference_instance = reference_instance,
 					)
 
 					if (!isnothing(validation_cylinders))
@@ -1322,7 +1343,7 @@ module Scene
 					valid_solution_found = false
 				end
 			end
-		end
+		# end
 
 		if (valid_solution_found)
 			for (i, problem) in enumerate(problems)

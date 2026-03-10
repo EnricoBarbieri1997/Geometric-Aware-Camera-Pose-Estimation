@@ -6,8 +6,8 @@ module CylindersBasedCameraResectioning
     include("includes.jl")
 
     using ..Cylinder: cylinder_from_center_axis_radius, points_at_infinity_dualquadrics
-	using ..Scene: SceneData, InstanceConfiguration, ParametersSolutionsPair, averaged_solution!, best_overall_solution!, best_overall_solution_by_steps!, best_intrinsic_rotation_translation_system_solution!, camera_from_solution, create_scene_instances_and_problems, scene_instances_and_problems_from_files, intrinsic_rotation_system_setup, intrinsic_rotation_translation_system_setup, plot_interactive_scene, plot_reconstructed_scene, split_intrinsic_rotation_parameters, plot_scene, best_intrinsic_rotation_system_solution!
-    using ..Camera: CameraProperties, CameraViewPair
+	using ..Scene: SceneData, InstanceConfiguration, ParametersSolutionsPair, averaged_solution!, best_overall_solution!, best_overall_solution_by_steps!, best_intrinsic_rotation_translation_system_solution!, camera_from_solution, create_scene_instances_and_problems, scene_instances_and_problems_from_files, intrinsic_rotation_system_setup, intrinsic_rotation_translation_system_setup, plot_interactive_scene, plot_reconstructed_scene, split_intrinsic_rotation_parameters, plot_scene, best_intrinsic_rotation_system_solution!, add_noise_to_line
+    using ..Camera: CameraProperties, CameraViewPair, lookat_quaternion
     using ..Geometry: get_view
 	using ..EquationSystems: stack_homotopy_parameters, variables_jacobian_rank, joint_jacobian_rank
     using ..EquationSystems.Problems: CylinderCameraContoursProblem, CylinderCameraContoursProblemValidationData
@@ -17,8 +17,10 @@ module CylindersBasedCameraResectioning
     using ..Homotopies: ParameterHomotopy as MyParameterHomotopy
     using ..IO: read_point_cloud_zup, read_cylinders_zup, read_camera_from_matrices, read_cylinder_line_views
     using ..Utils: lines_clp_to_stack
+    using ..Homotopies: GeometricHomotopy
 
-    using HomotopyContinuation, Observables, Random, Serialization
+    using HomotopyContinuation, Observables, Random, Serialization, LinearAlgebra
+    using Combinatorics: permutations as perms
 
     function main()
         intrinsic_configuration = IntrinsicParametersConfigurations.none
@@ -332,57 +334,57 @@ module CylindersBasedCameraResectioning
         )
         intrinsic_configuration = problems[1].intrinsic_configuration
 
-        equation_combinations = [1, 3, 5, 7, 9, 2, 4, 6]
+        noise = 1.0
+        for (i, instance) in enumerate(scene.instances)
+            instance.conics_contours = get_view(scene.cylinders, instance.camera)
+            for j in 1:size(instance.conics_contours, 1)
+                instance.conics_contours[j, 1, :] = add_noise_to_line(instance.conics_contours[j, 1, :], noise)
+                instance.conics_contours[j, 2, :] = add_noise_to_line(instance.conics_contours[j, 2, :], noise)
+                instance.conics_contours[j, 1, :] /= instance.conics_contours[j, 1, 3]
+                instance.conics_contours[j, 2, :] /= instance.conics_contours[j, 2, 3]
+                display("View $i, cylinder $j")
+                display(instance.conics_contours[j, :, :])
+            end
+            problems[i].lines = lines_clp_to_stack(instance.conics_contours)
+        end
+
+        # save_2d_figures("assets/test_scenes/markers/figures/", scene, problems; prefix = "initial_", scene_file_path = "./assets/test_scenes/markers/scene.json")
+
+        equation_combinations = [1, 3, 5, 7, 9, 2, 4, 6, 8, 10]
 
         rotation_intrinsic_system, parameters = intrinsic_rotation_system_setup(problems;
             intrinsic_configuration,
             equation_combinations,
-            minimization=true,
-        )
-        # display(parameters)
-
-        display(scene.figure)
-        # return
-
-        solver = starts = nothing
-
-        solver, starts = solver_startsolutions(
-            rotation_intrinsic_system;
-            target_parameters = parameters,
-            start_system = :total_degree,
+            minimization=false,
         )
 
-        chunk_size = 500000
-        numberof_start_solutions = length(starts)
-        display("Number of start solutions: $numberof_start_solutions. Number of iterations needed: $(ceil(Int, numberof_start_solutions / chunk_size))")
-        for start in Iterators.partition(starts, chunk_size)
-            result = solve(
-                solver,
-                start;
-            )
-            @info result
+    #    result = solve(
+    #         rotation_intrinsic_system;
+    #         target_parameters = parameters,
+    #         start_system = :total_degree,
+    #     )
 
-            serialize("./tmp/markers_minimization_results.jls", result)
-            save_results_to_json("./tmp/markers_minimization_results.json", [
-                Dict(
-                    "solutions" => real_solutions(result),
-                )
-            ])
+    #     serialize(
+    #         "tmp/markers_result.jld",
+    #         result
+    #     )
 
-            best_intrinsic_rotation_system_solution!(
-				result,
-				problems;
-				start_error=Inf,
-				intrinsic_configuration,
-				scene,
-			)
-        end
+        result = deserialize("tmp/markers_result.jld")
+        best_overall_solution_by_steps!(
+            result,
+            problems;
+            start_error=Inf,
+            intrinsic_configuration,
+            scene,
+        )
 
         for (i, instance) in enumerate(scene.instances)
             display("View $i")
             print_camera_differences(instance.camera, problems[i].camera)
             display("--------------------")
         end
+
+        print_relative_motion_errors(scene, problems)
     end
 
     function pipes()
@@ -693,6 +695,17 @@ module CylindersBasedCameraResectioning
             get_view(cylinders, camera)
         end, [camera1, camera2])
 
+        # noise = 0.01
+
+        # for view in views
+        #     for j in 1:size(view, 1)
+        #         view[j, 1, :] = add_noise_to_line(view[j, 1, :], noise)
+        #         view[j, 2, :] = add_noise_to_line(view[j, 2, :], noise)
+        #         view[j, 1, :] /= view[j, 1, 3]
+        #         view[j, 2, :] /= view[j, 2, 3]
+        #     end
+        # end
+
         camera_view_pairs = [
             CameraViewPair(1, camera1, views[1]),
             CameraViewPair(2, camera2, views[2]),
@@ -732,19 +745,157 @@ module CylindersBasedCameraResectioning
             push!(problems, problem)
         end
 
-        plot_scene(scene, problems)
+        trials = 0
+        result = nothing
+        while trials < 100
+            display("Trial $trials")
+            trials += 1
+            init_scene = SceneData()
+            init_scene.figure = initfigure()
+            init_scene.cylinders = cylinders
 
-        rotation_intrinsic_system, parameters = intrinsic_rotation_system_setup(
-            problems;
-            minimization=false,
-            intrinsic_configuration,
-        )
+            intrinsic_init = [
+                2500.0 0.0 961.2;
+                0.0 2100.0 538.0;
+                0.0 0.0 1.0;
+            ]
+            random_direction = randn(3)
+            random_direction /= norm(random_direction)
+            position = 20.0 * random_direction
+            rotation = lookat_quaternion(position, [0.0, 0.0, 0.0])
 
-        result = solve(
-            rotation_intrinsic_system;
-            target_parameters=parameters,
-            start_system=:total_degree,
-        )
+            camera1 = CameraProperties()
+            camera1.intrinsic = intrinsic_init
+            camera1.position = position
+            camera1.quaternion_rotation = rotation
+
+            position = position + [0.0, -30.0, 0.0]
+            rotation = lookat_quaternion(position, [0.0, 0.0, 0.0])
+            camera2 = CameraProperties()
+            camera2.intrinsic = intrinsic_init
+            camera2.position = position
+            camera2.quaternion_rotation = rotation
+
+            init_camera_view_pairs = [
+                CameraViewPair(1, camera1, get_view(cylinders, camera1)),
+                CameraViewPair(2, camera2, get_view(cylinders, camera2)),
+            ]
+
+            init_instances = map(camera_view_pair -> begin
+                instance = InstanceConfiguration()
+                instance.camera = camera_view_pair.camera
+                instance.conics_contours = camera_view_pair.view
+                return instance
+            end, init_camera_view_pairs)
+
+            init_scene.instances = init_instances
+
+            init_camera_view_pairs = [
+                CameraViewPair(1, camera1, get_view(cylinders, camera1)),
+                CameraViewPair(2, camera2, get_view(cylinders, camera2)),
+            ]
+
+            init_problems::Vector{CylinderCameraContoursProblem} = []
+            validation_data = CylinderCameraContoursProblemValidationData(
+                Matrix{Float64}(undef, 0, 3),
+                Matrix{Float64}(undef, 0, 3),
+                Array{Float64}(undef, 0, 4, 4),
+            )
+            for (i, camera_view_pair) in enumerate(init_camera_view_pairs)
+                lines = lines_clp_to_stack(camera_view_pair.view)
+
+                problem = CylinderCameraContoursProblem(
+                    CameraProperties(),
+                    lines,
+                    lines,
+                    points_at_infinity,
+                    dualquadrics,
+                    validation_data,
+                    UInt8(intrinsic_configuration)
+                )
+                push!(init_problems, problem)
+            end
+
+            #region Computing original sol
+            rotations = map(instance -> begin
+                rot = Rotations.params(QuatRotation(instance.camera.rotation_matrix))
+                rot = rot / rot[1]
+                rot = rot[2:4]
+                return rot
+            end, init_scene.instances)
+
+            # Merge all rotations into a single vector
+            merged_rotations = vcat(rotations...)
+            known_solution = [
+                init_scene.instances[1].camera.intrinsic[1, 1] / 3000.0,
+                init_scene.instances[1].camera.intrinsic[2, 2] / 3000.0,
+                init_scene.instances[1].camera.intrinsic[1, 3] / 3000.0,
+                init_scene.instances[1].camera.intrinsic[2, 3] / 3000.0,
+                merged_rotations...,
+            ]
+            #endregion
+
+            rotation_intrinsic_system = target_parameters = start_parameters = nothing
+            
+            combinations_iterator = perms([(2:6)..., (7:11)...], 10)
+            for equation_combinations in combinations_iterator
+                _rotation_intrinsic_system, _target_parameters = intrinsic_rotation_system_setup(
+                    problems;
+                    intrinsic_configuration,
+                    minimization=true,
+                    equation_combinations,
+                )
+                _, _start_parameters = intrinsic_rotation_system_setup(
+                    init_problems;
+                    intrinsic_configuration,
+                    minimization=true,
+                    equation_combinations,
+                )
+
+                e = evaluate(_rotation_intrinsic_system, known_solution, _start_parameters)
+                r = rank(jacobian(_rotation_intrinsic_system, known_solution, _start_parameters))
+
+                display("Trying combination: $equation_combinations, error: $(norm(e)), rank: $r")
+                display("Trying combination: $equation_combinations, error: $(norm(e)), rank: $r")
+
+                if all(abs.(e) .< 1e-10) && r == length(known_solution)
+                    display("Found start solution")
+                    rotation_intrinsic_system = _rotation_intrinsic_system
+                    target_parameters = _target_parameters
+                    start_parameters = _start_parameters
+                    break
+                end
+            end
+
+            monodromy_solutions = solutions(
+                monodromy_solve(
+                    rotation_intrinsic_system,
+                    [known_solution],
+                    start_parameters;
+                    show_progress=false,
+                )
+            )
+
+            if length(monodromy_solutions) == 0
+                continue
+            end
+
+            result = solve(
+                GeometricHomotopy(
+                    rotation_intrinsic_system,
+                    start_parameters,
+                    target_parameters,
+                ),
+                monodromy_solutions;
+                show_progress=true
+            )
+
+            if real_solutions(result) > 32
+                break
+            end
+        end
+
+        display("Performed $(trials) trials")
 
         @info result
 

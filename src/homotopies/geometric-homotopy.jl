@@ -137,7 +137,16 @@ function tp!(H::GeometricHomotopy, tinput::Union{ComplexF64,Float64})
         p1 = transform_point * [0.0, -line_start[3]/line_start[2], 1.0]
         p2 = transform_point * [1000.0, -(line_start[1]*1000.0 + line_start[3])/line_start[2], 1.0]
         t_calculated = cross(p1, p2)
-        parameters[index:index+2] = t_calculated
+        try
+            parameters[index:index+2] = t_calculated
+        catch e
+            display("Error calculating parameters for line $i at time $t, $tinput")
+            display("Line start: $line_start")
+            display("Angle: $angle radians, or $(rad2deg(angle)) degrees")
+            display("Intersection point: $intersection")
+            display("Calculated parameters: $t_calculated")
+            rethrow(e)
+        end
     end
 
     @inbounds for i = 1:length(H.taylor_pt)

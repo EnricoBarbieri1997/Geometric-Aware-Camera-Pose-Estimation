@@ -53,7 +53,7 @@ function multiple_seeds_multiple_configuration(;
 )
   Random.seed!(940)
 
-  number_of_seeds = 5
+  number_of_seeds = 2 # 5
   configurations = [
     IntrinsicParametersConfigurations.none,
     # IntrinsicParametersConfigurations.skew,
@@ -111,7 +111,7 @@ function multiple_seeds_multiple_configuration(;
   seeds = Vector{Int}(undef, number_of_seeds)
   current_noise_results = Vector{Union{ReportData,Exception,Nothing}}(undef, number_of_seeds)
 
-  for configuration in configurations
+  for configuration in reverse(configurations)
     possible_scene_configurations = get(cylinder_views_per_config, configuration, [(2, 1)])
     for scene_configuration in possible_scene_configurations
       number_of_cylinders, number_of_instances = scene_configuration
@@ -148,7 +148,9 @@ function multiple_seeds_multiple_configuration(;
               problems,
             )
 
-            rotation_intrinsic_system, parameters = intrinsic_rotation_system_setup(problems)
+            rotation_intrinsic_system, parameters = intrinsic_rotation_system_setup(problems;
+              intrinsic_configuration=configuration,
+            )
 
             solver, starts = solver_startsolutions(
               rotation_intrinsic_system,

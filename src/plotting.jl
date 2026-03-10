@@ -55,11 +55,11 @@ module Plotting
         # Base.showerror(stdout, error("Plotting not available in this environment."))
     end
 
-    function save_2d_figures(path, scene, problems; prefix="")
+    function save_2d_figures(path, scene, problems; prefix="", scene_file_path="")
         # Base.showerror(stdout, error("Plotting not available in this environment."))
     end
 
-    const PROVIDE_IMPLEMENTATION = !@isdefined(TESTS) && GUI_ENABLED
+    const PROVIDE_IMPLEMENTATION = !Base.isdefined(Main, :TESTS) && GUI_ENABLED
 
     if PROVIDE_IMPLEMENTATION && Base.find_package("GLMakie") !== nothing
         include("plotting-real.jl")
