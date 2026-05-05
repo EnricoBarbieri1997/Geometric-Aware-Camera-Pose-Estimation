@@ -8,6 +8,9 @@ import os
 from scipy.interpolate import make_interp_spline
 
 
+Y_HIGH_END_STRETCH_GAMMA = 0.3
+
+
 def smooth_with_best_log_fit(x_values, y_values):
     x = np.asarray(x_values, dtype=float)
     y = np.asarray(y_values, dtype=float)
@@ -58,6 +61,16 @@ def customPlotFun(y, pos):
         return "≤ 0.0001"
     else:
         return f"{y:.5f}".rstrip('0').rstrip('.')
+
+
+def high_end_stretch_forward(y, gamma=Y_HIGH_END_STRETCH_GAMMA):
+    y = np.asarray(y, dtype=float)
+    return np.power(np.clip(y, 0.0, None), gamma)
+
+
+def high_end_stretch_inverse(y, gamma=Y_HIGH_END_STRETCH_GAMMA):
+    y = np.asarray(y, dtype=float)
+    return np.power(np.clip(y, 0.0, None), 1.0 / gamma)
 
 # Label maps
 method_labels = {
@@ -130,13 +143,13 @@ for metric in metrics:
         for noise in noise_levels:
             vals = grouped[metric][method][noise]
             if vals:
-                vals = np.array([max(v, 0.0001) for v in vals])
+                vals = np.array([max(v, 0) for v in vals])  # Ensure non-negative
                 if metric == "delta_skew":
                     vals = vals / 10
                 variance = np.var(vals)
                 q25 = np.percentile(vals, 25)
                 q75 = np.percentile(vals, 75)
-                vals_iqr = vals[(vals >= q25) & (vals <= q75)]
+                vals_iqr = vals # vals[(vals >= q25) & (vals <= q75)]
                 mean = np.mean(vals_iqr) if len(vals_iqr) > 0 else np.mean(vals)
 
                 means.append(mean)
@@ -163,9 +176,9 @@ for metric in metrics:
         if method == "right_cylinder":
             line_y = smooth_with_best_log_fit(x_values, means)
 
-        for (i, noise) in enumerate(line_x):
-            if noise == 0.0:
-                line_y[i] = line_y[i+1] if i+1 < len(line_y) else line_y[i-1]
+        # for (i, noise) in enumerate(line_x):
+        #     if noise == 0.0:
+        #         line_y[i] = line_y[i+1] if i+1 < len(line_y) else line_y[i-1]
 
         plt.plot(
             line_x,
@@ -183,7 +196,14 @@ for metric in metrics:
     for label in plt.gca().yaxis.get_ticklabels():
         label.set_verticalalignment('top')
     if metric in ["delta_r", "delta_t", "delta_uv", "delta_f", "delta_skew"]:
-        plt.yscale("log")
+        plt.yscale(
+            "function",
+            functions=(
+                high_end_stretch_forward,
+                high_end_stretch_inverse,
+            ),
+        )
+        plt.ylim(bottom=0)
         # plt.gca().yaxis.set_major_locator(LogLocator(base=10.0, subs=[1.0]))
         # plt.gca().yaxis.set_major_formatter(FuncFormatter(customPlotFun))
     if metric in ["delta_skew"]:

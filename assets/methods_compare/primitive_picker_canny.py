@@ -17,7 +17,6 @@ canny_edges = None
 
 OUTPUT_FILE = "../test_scenes/pipes/views_2.json"
 
-
 def on_mouse(event, x, y, flags, param):
     global drawing, current_color, current_line, img_display, canny_edges
     shift_pressed = (flags & cv2.EVENT_FLAG_SHIFTKEY) != 0
