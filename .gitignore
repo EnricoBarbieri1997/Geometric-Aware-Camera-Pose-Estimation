@@ -49,3 +49,5 @@ assets/**/*.mtl
 assets/article/build
 assets/homotopy_animation.blend
 assets/homotopy_animation.blend1
+
+ceres_solver/build
