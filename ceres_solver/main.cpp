@@ -184,23 +184,32 @@ int main(int argc, char** argv) {
     row("cx", true_cx, start_cx, intr[2]);
     row("cy", true_cy, start_cy, intr[3]);
 
-    std::cout << "───────────────────────────────────────────────────────────\n";
-    std::cout << "  Rotation errors (angular distance in degrees)\n";
-    std::cout << "───────────────────────────────────────────────────────────\n";
-    std::cout << W << "view" << W << "start→true" << W << "solved→true\n";
-    std::cout << "───────────────────────────────────────────────────────────\n";
-
+    const char* aa_labels[3] = {"rx", "ry", "rz"};
     for (int v = 0; v < n_views; ++v) {
-        auto& t_src  = data["true"]["rotations"][v]["angle_axis"];
-        auto& s_src  = data["start"]["rotations"][v]["angle_axis"];
+        auto& t_src = data["true"]["rotations"][v]["angle_axis"];
+        auto& s_src = data["start"]["rotations"][v]["angle_axis"];
         double aa_true[3]  = {t_src[0], t_src[1], t_src[2]};
         double aa_start[3] = {s_src[0], s_src[1], s_src[2]};
 
-        double err_start  = rotation_error_deg(aa_true, aa_start);
-        double err_solved = rotation_error_deg(aa_true, aa[v].data());
+        std::cout << "───────────────────────────────────────────────────────────\n";
+        std::cout << "  Rotation (angle-axis, rad)  -- view " << v << "\n";
+        std::cout << "───────────────────────────────────────────────────────────\n";
+        std::cout << W << "param" << W << "true" << W << "start"
+                  << W << "solved" << W << "|err|\n";
+        std::cout << "───────────────────────────────────────────────────────────\n";
+        for (int k = 0; k < 3; ++k) {
+            double err = std::abs(aa[v][k] - aa_true[k]);
+            std::cout << W << aa_labels[k]
+                      << W << aa_true[k]
+                      << W << aa_start[k]
+                      << W << aa[v][k]
+                      << W << err << "\n";
+        }
 
-        std::cout << W << v << W << err_start << "°"
-                  << W << err_solved << "°\n";
+        double ang_start  = rotation_error_deg(aa_true, aa_start);
+        double ang_solved = rotation_error_deg(aa_true, aa[v].data());
+        std::cout << "  Angular error:  start " << ang_start
+                  << " deg   solved " << ang_solved << " deg\n";
     }
     std::cout << "═══════════════════════════════════════════════════════════\n";
 

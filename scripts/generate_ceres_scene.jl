@@ -2,12 +2,13 @@
 """
 Generate synthetic scene data for the Ceres solver comparison.
 
-Outputs ceres_solver/scene_data.json with:
-  - 3 cylinders (same rig as compare_parameter_homotopies)
-  - 2 camera views with ground-truth silhouette lines
-  - Perturbed starting cameras (position offset gamma, rotation offset beta)
+Outputs:
+  ceres_solver/scene_data.json        (no noise)
+  ceres_solver/scene_data_noisy.json  (with --noise <pixels>)
 
-Usage: julia scripts/generate_ceres_scene.jl
+Usage:
+  julia scripts/generate_ceres_scene.jl
+  julia scripts/generate_ceres_scene.jl --noise 1.0
 """
 
 ENV["GUI_ENABLED"] = "false"
@@ -20,10 +21,23 @@ using Random
 using JSON
 using Rotations
 
-const CylM  = CylindersBasedCameraResectioning.Cylinder
-const CamM  = CylindersBasedCameraResectioning.Camera
-const GeomM = CylindersBasedCameraResectioning.Geometry
-const UtilM = CylindersBasedCameraResectioning.Utils
+const CylM   = CylindersBasedCameraResectioning.Cylinder
+const CamM   = CylindersBasedCameraResectioning.Camera
+const GeomM  = CylindersBasedCameraResectioning.Geometry
+const UtilM  = CylindersBasedCameraResectioning.Utils
+const SceneM = CylindersBasedCameraResectioning.Scene
+
+# ─── CLI arguments ────────────────────────────────────────────────────────────
+
+noise = let
+    val = 0.0
+    for (i, arg) in enumerate(ARGS)
+        if arg == "--noise" && i < length(ARGS)
+            val = parse(Float64, ARGS[i + 1])
+        end
+    end
+    val
+end
 
 # ─── Scene generation ────────────────────────────────────────────────────────
 
@@ -59,9 +73,9 @@ stacked_views = [UtilM.lines_clp_to_stack(v) for v in views]
 # Cylinder axes in world space – shape (2*n_cylinders, 3)
 pts_inf, _ = CylM.points_at_infinity_dualquadrics(cylinders)
 
-# ─── Verify equations ────────────────────────────────────────────────────────
+# ─── Verify noiseless equations ───────────────────────────────────────────────
 
-println("Verifying  l' * K * R * d = 0  for true parameters:")
+println("Verifying  l' * K * R * d = 0  for true parameters (before noise):")
 for (vi, lines) in enumerate(stacked_views)
     R = Float64.(collect(cameras[vi].rotation_matrix))
     for li in axes(lines, 1)
@@ -71,6 +85,22 @@ for (vi, lines) in enumerate(stacked_views)
         @assert abs(res) < 1e-6 "View $vi line $li: |residual| = $(abs(res))"
     end
     println("  View $vi: $(size(lines, 1)) residuals < 1e-6 ✓")
+end
+
+# ─── Apply noise to line observations ────────────────────────────────────────
+
+if noise > 0.0
+    println("\nApplying noise = $noise pixels to line observations:")
+    for (vi, lines) in enumerate(stacked_views)
+        for li in axes(lines, 1)
+            noisy = SceneM.add_noise_to_line(lines[li, :], noise)
+            lines[li, :] = normalize(noisy)
+        end
+        R = Float64.(collect(cameras[vi].rotation_matrix))
+        residuals_after = [abs(dot(lines[li, :], K_true * R * pts_inf[li, :]))
+                           for li in axes(lines, 1)]
+        println("  View $vi: max |residual| after noise = $(round(maximum(residuals_after), sigdigits=3))")
+    end
 end
 
 # ─── Perturbed starting solution ─────────────────────────────────────────────
@@ -163,7 +193,8 @@ scene_data = Dict(
 
 out_dir = joinpath(dirname(dirname(abspath(@__FILE__))), "ceres_solver")
 isdir(out_dir) || mkdir(out_dir)
-out_path = joinpath(out_dir, "scene_data.json")
+out_filename = noise > 0.0 ? "scene_data_noisy.json" : "scene_data.json"
+out_path = joinpath(out_dir, out_filename)
 open(out_path, "w") do f
     JSON.print(f, scene_data, 2)
 end
@@ -174,6 +205,7 @@ println("\nScene data written to $out_path")
 println("\nPerturbation parameters:")
 println("  gamma (position offset) = $gamma")
 println("  beta  (rotation offset) = $(beta)°")
+println("  noise (line obs, pixels) = $noise")
 println("\nIntrinsic offsets (start − true):")
 println("  Δfx = $(round(perturbed_K[1,1]-K_true[1,1], digits=2))")
 println("  Δfy = $(round(perturbed_K[2,2]-K_true[2,2], digits=2))")

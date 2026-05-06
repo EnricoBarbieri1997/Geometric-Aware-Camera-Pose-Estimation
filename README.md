@@ -4,6 +4,26 @@
 
 # Comparisons
 
+## Ceres nonlinear least squares (Gauss-Helmert algebraic error)
+
+Minimises `∑ (l' K R d)²` over shared intrinsics and per-view rotations using Ceres Levenberg-Marquardt, equivalent to MATLAB's `lsqnonlin`. Requires `brew install ceres-solver nlohmann-json`. Build once:
+
+```bash
+cd ceres_solver && mkdir -p build && cd build && cmake .. && make
+```
+
+Generate a synthetic scene (2 views, 3 cylinders) and run the solver:
+
+```bash
+# Without noise
+julia --project=. scripts/generate_ceres_scene.jl
+./ceres_solver/build/calibrate ceres_solver/scene_data.json
+
+# With 1-pixel line noise
+julia --project=. scripts/generate_ceres_scene.jl --noise 1.0
+./ceres_solver/build/calibrate ceres_solver/scene_data_noisy.json
+```
+
 ## Standard parametric vs Geometric parametric
 
 - CylindersBasedCameraResectioning.Lab.compare_parameter_homotopies()
