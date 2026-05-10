@@ -24,6 +24,19 @@ julia --project=. scripts/generate_ceres_scene.jl --noise 1.0
 ./ceres_solver/build/calibrate ceres_solver/scene_data_noisy.json
 ```
 
+## Geometric-parametric homotopy (Julia)
+
+Runs the same `fₓ fᵧ cₓ cᵧ` geometric homotopy as `Lab.compare_parameter_homotopies` on the JSON scene exported above and prints a table identical in format to the Ceres output.
+
+The geometric homotopy solves the algebraic system `l'KRd=0` exactly and requires noise-free silhouette lines (the polynomial system has no real solutions for noisy lines). Use the noiseless scene for this comparison:
+
+```bash
+julia --project=. scripts/generate_ceres_scene.jl
+julia --project=. scripts/compare_homotopy.jl ceres_solver/scene_data.json
+```
+
+For the noisy comparison, use the Ceres solver (see above), which minimises a least-squares residual and is robust to noise.
+
 ## Standard parametric vs Geometric parametric
 
 - CylindersBasedCameraResectioning.Lab.compare_parameter_homotopies()

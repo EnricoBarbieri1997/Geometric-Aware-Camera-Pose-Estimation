@@ -105,8 +105,8 @@ end
 
 # ─── Perturbed starting solution ─────────────────────────────────────────────
 
-gamma = 3.0    # position-offset magnitude (matching compare_parameter_homotopies)
-beta  = 5.0    # additional rotation offset in degrees
+gamma = 100.0    # position-offset magnitude (matching compare_parameter_homotopies)
+beta  = gamma # 100.0    # additional rotation offset in degrees
 
 perturbed_K = K_true + [
     (rand() * 50.0 - 25.0)  0.0  (rand() * 10.0 - 5.0);
@@ -128,6 +128,10 @@ perturbed_cameras = map(cameras) do cam
     pcam.quaternion_rotation = extra * pcam.quaternion_rotation
     pcam
 end
+
+# Silhouette lines for perturbed cameras – used as start lines for Julia homotopy
+start_views = [GeomM.get_view(cylinders, pcam) for pcam in perturbed_cameras]
+start_stacked_views = [UtilM.lines_clp_to_stack(v) for v in start_views]
 
 # ─── Helper: rotation matrix → angle-axis vector ─────────────────────────────
 
@@ -156,11 +160,13 @@ end
 
 residuals_json = []
 for (vi, lines) in enumerate(stacked_views)
+    start_lines = start_stacked_views[vi]
     for li in axes(lines, 1)
         push!(residuals_json, Dict(
             "view" => vi - 1,          # 0-indexed for C++
             "line" => lines[li, :],
-            "axis" => pts_inf[li, :]
+            "axis" => pts_inf[li, :],
+            "start_line" => start_lines[li, :]
         ))
     end
 end

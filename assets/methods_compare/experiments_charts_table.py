@@ -80,7 +80,8 @@ method_labels = {
     "quadric_based": "Gummeson",
     "right_cylinder": "Ding",
     "zhang_4": "Zhang 4 views",
-    "zhang_30": "Zhang 30 views"
+    "zhang_30": "Zhang 30 views",
+    "ceres": "Ceres"
 }
 
 metric_labels = {
@@ -100,12 +101,13 @@ method_supports = {
     "right_cylinder": {"delta_f": True, "delta_uv": True, "delta_skew": False, "delta_r": False, "delta_t": False, "success_rate": False},
     "zhang_4": {"delta_f": True, "delta_uv": True, "delta_skew": False, "delta_r": True, "delta_t": True, "success_rate": False},
     "zhang_30": {"delta_f": True, "delta_uv": True, "delta_skew": False, "delta_r": True, "delta_t": True, "success_rate": False},
+    "ceres": {"delta_f": True, "delta_uv": True, "delta_skew": True, "delta_r": True, "delta_t": False, "success_rate": True},
 }
 
 methods = list(method_labels.keys())
 metrics = list(metric_labels.keys())
-colors = ["blue", "blue", "purple", "green", "orange", "red"]
-linestyles = ["-", "-", "--", "--", "-.", ":", ":"]
+colors = ["blue", "blue", "purple", "green", "orange", "red", "brown"]
+linestyles = ["-", "-", "--", "--", "-.", ":", ":", "--"]
 
 # Load data
 with open("./synthetic/results.json") as f:
@@ -149,7 +151,7 @@ for metric in metrics:
                 variance = np.var(vals)
                 q25 = np.percentile(vals, 25)
                 q75 = np.percentile(vals, 75)
-                vals_iqr = vals # vals[(vals >= q25) & (vals <= q75)]
+                vals_iqr = vals
                 mean = np.mean(vals_iqr) if len(vals_iqr) > 0 else np.mean(vals)
 
                 means.append(mean)
