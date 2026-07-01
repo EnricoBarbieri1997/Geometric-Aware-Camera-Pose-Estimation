@@ -557,7 +557,7 @@ module Lab
         scenes = []
         true_solutions = []
 
-        for _ in 1:64
+        for _ in 1:1
             intrinsics = [
                 rand_in_range(2500.0, 2700.0) 0.0 rand_in_range(950.0, 970.0);   # fₓ, skew, cₓ
                 0.0 rand_in_range(1400.0, 1600.0) rand_in_range(530.0, 550.0);   # 0, fᵧ, cᵧ

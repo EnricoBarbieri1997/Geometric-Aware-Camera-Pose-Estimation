@@ -2,7 +2,7 @@
 	export almostequal, ≃, rand_in_range, quat_from_rotmatrix, normalized_diff, vector_difference, matrix_difference, intrinsic_difference, rotations_difference, eulerangles_from_rotationmatrix, translations_difference, isvalid_startsolution, lines_clp_to_stack, get_view_CC_VP_P
 
 
-	using LinearAlgebra: Adjoint, diagm, norm, normalize, svdvals, tr
+	using LinearAlgebra: Adjoint, diagm, dot, norm, normalize, svdvals, tr
 	using Rotations
 	using Random
 	using HomotopyContinuation: jacobian
@@ -411,5 +411,12 @@
 		cylinder_count = size(lines_clp, 1)
 		line_count = cylinder_count * 2
 		return reshape(permutedims(lines_clp, (2, 1, 3)), line_count, 3)
+	end
+
+	function angle_between_3D_directions(d1::Vector{Float64}, d2::Vector{Float64})::Float64
+		v1 = d1[1:3]
+		v2 = d2[1:3]
+		cosθ = abs(dot(v1, v2)) / (norm(v1) * norm(v2))
+    	return acos(cosθ)  # returns angle in radians
 	end
 end
