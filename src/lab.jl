@@ -7,7 +7,7 @@ module Lab
 
     using ..Scene: SceneData, InstanceConfiguration, intrinsic_rotation_system_setup
     using ..Camera: CameraProperties, CameraViewPair, random_camera_lookingat_center, lookat_quaternion
-    using ..Geometry: get_view
+    using ..Geometry: get_view, Line
     using ..IO: read_point_cloud_zup, read_cylinders_zup, read_camera_from_matrices
     using ..Plotting: initfigure, plot_3dcylinders, plot_3dpoints, plot_3dcamera
     using ..Cylinder: cylinder_from_center_axis_radius, points_at_infinity_dualquadrics
@@ -15,7 +15,7 @@ module Lab
     using ..EquationSystems.Problems: CylinderCameraContoursProblem, CylinderCameraContoursProblemValidationData
     using ..EquationSystems.Problems.IntrinsicParameters: Configurations as IntrinsicParametersConfigurations
     using ..Utils: rand_in_range, lines_clp_to_stack
-    using ..Homotopies: GeometricHomotopy
+    using ..Homotopies: GeometricHomotopy, InfiniteHomographyHomotopy
     using ..Printing: print_scene_config_results, scene_config_results_table_data
 
     using Random
@@ -753,5 +753,27 @@ module Lab
 
             display("--------------------------------------------------")
         end
+    end
+
+    function infinite_homography_homotopy()
+        # All elments are in homogeneous coordinates, so the last coordinate is 1 for points and 0 for vanishing points
+
+        number_of_lines = 4
+        vanishing_points = [
+            [randn(3); 0] for _ in 1:number_of_lines
+        ]
+        origins = [
+            [randn(3); 1] for _ in 1:number_of_lines
+        ]
+
+        lines = [
+            Line(vanishing_points[i], origins[i]) for i in 1:number_of_lines
+        ]
+
+        cameras = [
+            random_camera_lookingat_center() for _ in 1:2
+        ]
+
+        view1 = [] # TODO
     end
 end

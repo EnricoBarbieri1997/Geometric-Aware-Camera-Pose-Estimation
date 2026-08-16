@@ -1,5 +1,5 @@
 module Geometry
-export Plane, Line, Point, Circle, TangentLineNotFound, homogeneous_line_from_points, issame_line, rotation_between_lines, cylinder_rotation_from_axis, homogeneous_to_line, line_to_homogenous, homogeneous_line_intercept, homogeneous_anglebetween, project_point_into_line, plane_basis, project_point_into_plane, get_tangentpoints_circle_point, get_cylinder_contours, get_cylinder_contours_raw, get_view
+export Plane, Line, Point, Circle, TangentLineNotFound, homogeneous_line_from_points, issame_line, rotation_between_lines, cylinder_rotation_from_axis, homogeneous_to_line, line_to_homogenous, homogeneous_line_intercept, homogeneous_anglebetween, project_point_into_line, plane_basis, project_point_into_plane, get_tangentpoints_circle_point, get_cylinder_contours, get_cylinder_contours_raw, get_view, compute_Hinf
 
 using ..CylindersBasedCameraResectioning: ASSERTS_ENABLED
 using ..Utils
@@ -347,5 +347,72 @@ function get_cylinder_contours_raw(CC, VP, P)
 
     ll1, ll2 = linesfromconic(cc, vp)
     return ll1, ll2
+end
+
+"""
+    hartley_normalize(pts)
+
+Normalize 2D points so centroid is at origin and average distance is √2.
+pts is a Vector of 2-element vectors (or Nx2 matrix).
+Returns normalized points and the 3x3 transform T such that
+p_normalized = T * p_homogeneous.
+"""
+function hartley_normalize(pts::AbstractMatrix)
+    # pts: N x 2
+    centroid = vec(sum(pts, dims=1)) ./ size(pts, 1)
+    shifted = pts .- centroid'
+    dists = sqrt.(sum(shifted.^2, dims=2))
+    mean_dist = sum(dists) / length(dists)
+    scale = sqrt(2) / mean_dist
+
+    T = [scale 0.0 -scale*centroid[1];
+         0.0 scale -scale*centroid[2];
+         0.0 0.0 1.0]
+
+    N = size(pts, 1)
+    pts_h = hcat(pts, ones(N))          # N x 3, homogeneous
+    pts_norm_h = (T * pts_h')'          # N x 3
+    pts_norm = pts_norm_h[:, 1:2] ./ pts_norm_h[:, 3]  # back to inhomogeneous
+
+    return pts_norm, T
+end
+
+"""
+    compute_Hinf(pts1, pts2)
+
+Compute the infinite homography H∞ mapping pts1 -> pts2
+(vanishing point correspondences), using normalized DLT.
+pts1, pts2: N x 2 matrices (N >= 4).
+Returns 3x3 matrix H such that pts2_h ≅ H * pts1_h.
+"""
+function compute_Hinf(pts1::AbstractMatrix, pts2::AbstractMatrix)
+    @assert size(pts1, 1) == size(pts2, 1) "Point sets must have same length"
+    @assert size(pts1, 1) >= 4 "Need at least 4 correspondences"
+
+    n = size(pts1, 1)
+
+    # Normalize both point sets
+    pts1n, T1 = hartley_normalize(pts1)
+    pts2n, T2 = hartley_normalize(pts2)
+
+    # Build the DLT matrix A (2n x 9)
+    A = zeros(2n, 9)
+    for i in 1:n
+        x, y   = pts1n[i, 1], pts1n[i, 2]
+        xp, yp = pts2n[i, 1], pts2n[i, 2]
+
+        A[2i-1, :] = [0, 0, 0, -x, -y, -1, yp*x, yp*y, yp]
+        A[2i,   :] = [x, y, 1, 0, 0, 0, -xp*x, -xp*y, -xp]
+    end
+
+    # Solve A h = 0 via SVD -> smallest singular vector
+    F = svd(A)
+    h = F.V[:, end]          # last column of V = solution
+    Hn = reshape(h, 3, 3)'   # reshape row-major (Julia reshape is column-major, so transpose)
+
+    # Denormalize: H = T2^-1 * Hn * T1
+    H = inv(T2) * Hn * T1
+
+    return H ./ H[3, 3]      # normalize so H[3,3] = 1
 end
 end
