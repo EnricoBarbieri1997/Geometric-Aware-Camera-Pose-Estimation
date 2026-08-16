@@ -7,7 +7,7 @@ module Lab
 
     using ..Scene: SceneData, InstanceConfiguration, intrinsic_rotation_system_setup
     using ..Camera: CameraProperties, CameraViewPair, random_camera_lookingat_center, lookat_quaternion
-    using ..Geometry: get_view, Line
+    using ..Geometry: get_view, Line, compute_Hinf
     using ..IO: read_point_cloud_zup, read_cylinders_zup, read_camera_from_matrices
     using ..Plotting: initfigure, plot_3dcylinders, plot_3dpoints, plot_3dcamera
     using ..Cylinder: cylinder_from_center_axis_radius, points_at_infinity_dualquadrics
@@ -756,24 +756,86 @@ module Lab
     end
 
     function infinite_homography_homotopy()
-        # All elments are in homogeneous coordinates, so the last coordinate is 1 for points and 0 for vanishing points
+        # All elements are in homogeneous coordinates:
+        # - Points have w=1: [x, y, z, 1]
+        # - Vanishing points (directions/points at infinity) have w=0: [dx, dy, dz, 0]
 
         number_of_lines = 4
-        vanishing_points = [
-            [randn(3); 0] for _ in 1:number_of_lines
-        ]
-        origins = [
-            [randn(3); 1] for _ in 1:number_of_lines
-        ]
 
+        # 4 random vanishing points (3D directions, stored as 4D homogeneous with w=0)
+        vanishing_points = hcat([[normalize(randn(3)); 0.0] for _ in 1:number_of_lines]...)  # 4 x number_of_lines
+        display("Vanishing points (4 x $number_of_lines):")
+        display(vanishing_points)
+
+        # 4 random line origins (3D points, stored as 4D homogeneous with w=1)
+        origins = hcat([[randn(3); 1.0] for _ in 1:number_of_lines]...)  # 4 x number_of_lines
+        display("Line origins (4 x $number_of_lines):")
+        display(origins)
+
+        # Create Line objects (origin + direction)
         lines = [
-            Line(vanishing_points[i], origins[i]) for i in 1:number_of_lines
+            Line(origins[1:3, i], vanishing_points[1:3, i]) for i in 1:number_of_lines
+        ]
+        display("Lines:")
+        display(lines)
+
+        # Create 2 random cameras with shared intrinsics
+        intrinsics = [
+            rand_in_range(2500.0, 2700.0) 0.0 rand_in_range(950.0, 970.0);   # fₓ, skew, cₓ
+            0.0 rand_in_range(1400.0, 1600.0) rand_in_range(530.0, 550.0);   # 0, fᵧ, cᵧ
+            0.0 0.0 1.0                                                      # bottom row
         ]
 
-        cameras = [
-            random_camera_lookingat_center() for _ in 1:2
-        ]
+        cameras = CameraProperties[]
+        for _ in 1:2
+            position, rotation = random_camera_lookingat_center()
+            camera = CameraProperties()
+            camera.position = position
+            camera.quaternion_rotation = rotation
+            camera.intrinsic = intrinsics
+            push!(cameras, camera)
+        end
 
-        view1 = [] # TODO
+        display("Camera 1 position: $(cameras[1].position)")
+        display("Camera 2 position: $(cameras[2].position)")
+
+        # Project vanishing points through each camera
+        # For a vanishing point v = [d; 0], projection is P * v where P is 3x4
+        # Result is a 3D homogeneous 2D point [x, y, w] -> inhomogeneous [x/w, y/w]
+        function project_vanishing_points(camera, vps)
+            n = size(vps, 2)
+            pts_2d = zeros(n, 2)
+            for i in 1:n
+                projected = camera.matrix * vps[:, i]  # 3D homogeneous 2D point
+                pts_2d[i, :] = projected[1:2] ./ projected[3]  # to inhomogeneous
+            end
+            return pts_2d
+        end
+
+        view1 = project_vanishing_points(cameras[1], vanishing_points)  # N x 2
+        view2 = project_vanishing_points(cameras[2], vanishing_points)  # N x 2
+
+        display("View 1 (projected vanishing points, $number_of_lines x 2):")
+        display(view1)
+        display("View 2 (projected vanishing points, $number_of_lines x 2):")
+        display(view2)
+
+        # Compute H_∞ using DLT from the two views
+        Hinf = compute_Hinf(view1, view2)
+        display("Computed H_∞ (3x3):")
+        display(Hinf)
+
+        # Verify: H_∞ * view1_h ≈ view2_h (in homogeneous coordinates)
+        display("Verification (H_∞ * view1 ≈ view2):")
+        for i in 1:number_of_lines
+            p1_h = [view1[i, :]; 1.0]
+            p2_h = [view2[i, :]; 1.0]
+            p2_pred = Hinf * p1_h
+            p2_pred_inhom = p2_pred[1:2] ./ p2_pred[3]
+            error = norm(p2_pred_inhom - view2[i, :])
+            display("Point $i: error = $error")
+        end
+
+        # return Hinf, view1, view2, cameras, vanishing_points
     end
 end
