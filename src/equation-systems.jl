@@ -175,10 +175,6 @@ function build_intrinsic_rotation_conic_system(
     IAC_constraints = []
 
     for (index_p, problem) in enumerate(problems)
-        display("AAA")
-        display(problem.lines)
-        display(problem.points_at_infinity)
-        display("BBB")
         lines_count = size(problem.lines)[1]
         used_lines = []
         vanishing_points_pointsatinifinity_pairs = []
@@ -192,9 +188,7 @@ function build_intrinsic_rotation_conic_system(
             point_at_infinity = problem.points_at_infinity[index_l, :]
             matching_line_indexes = []
             for index_l2 in index_l:lines_count
-                display("Comparing $(problem.points_at_infinity[index_l2, :] == point_at_infinity)")
                 if (index_l2 != index_l) && (problem.points_at_infinity[index_l2, :] == point_at_infinity)
-                    display("Found matching line for line $index_l: $index_l2")
                     push!(matching_line_indexes, index_l2)
                 end
             end
@@ -227,9 +221,6 @@ function build_intrinsic_rotation_conic_system(
             end
         end
     end
-
-    display("IAC constraints: $(length(IAC_constraints))")
-    display("IAC constraints: $(IAC_constraints)")
 
     push!(system_to_solve, IAC_constraints...)
 
