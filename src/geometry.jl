@@ -372,7 +372,7 @@ function hartley_normalize(pts::AbstractMatrix)
     N = size(pts, 1)
     pts_h = hcat(pts, ones(N))          # N x 3, homogeneous
     pts_norm_h = (T * pts_h')'          # N x 3
-    pts_norm = pts_norm_h[:, 1:2] ./ pts_norm_h[:, 3]  # back to inhomogeneous
+    pts_norm = pts_norm_h[:, 1:2] ./ pts_norm_h[:, 3:3]  # back to inhomogeneous (3:3 keeps as Nx1 matrix for broadcasting)
 
     return pts_norm, T
 end
@@ -391,11 +391,9 @@ function compute_Hinf(pts1::AbstractMatrix, pts2::AbstractMatrix)
 
     n = size(pts1, 1)
 
-    # Normalize both point sets
     pts1n, T1 = hartley_normalize(pts1)
     pts2n, T2 = hartley_normalize(pts2)
 
-    # Build the DLT matrix A (2n x 9)
     A = zeros(2n, 9)
     for i in 1:n
         x, y   = pts1n[i, 1], pts1n[i, 2]
@@ -405,14 +403,11 @@ function compute_Hinf(pts1::AbstractMatrix, pts2::AbstractMatrix)
         A[2i,   :] = [x, y, 1, 0, 0, 0, -xp*x, -xp*y, -xp]
     end
 
-    # Solve A h = 0 via SVD -> smallest singular vector
-    F = svd(A)
-    h = F.V[:, end]          # last column of V = solution
-    Hn = reshape(h, 3, 3)'   # reshape row-major (Julia reshape is column-major, so transpose)
+    F = svd(A, full=true)   # <-- must be full=true when 2n < 9 (i.e. n = 4)
+    h = F.V[:, end]
+    Hn = reshape(h, 3, 3)'
 
-    # Denormalize: H = T2^-1 * Hn * T1
     H = inv(T2) * Hn * T1
-
-    return H ./ H[3, 3]      # normalize so H[3,3] = 1
+    return H ./ H[3, 3]
 end
 end

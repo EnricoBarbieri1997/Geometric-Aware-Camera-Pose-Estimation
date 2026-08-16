@@ -756,6 +756,8 @@ module Lab
     end
 
     function infinite_homography_homotopy()
+        random_seed = 84564
+        Random.seed!(random_seed)
         # All elements are in homogeneous coordinates:
         # - Points have w=1: [x, y, z, 1]
         # - Vanishing points (directions/points at infinity) have w=0: [dx, dy, dz, 0]
@@ -820,22 +822,42 @@ module Lab
         display("View 2 (projected vanishing points, $number_of_lines x 2):")
         display(view2)
 
-        # Compute H_∞ using DLT from the two views
-        Hinf = compute_Hinf(view1, view2)
-        display("Computed H_∞ (3x3):")
-        display(Hinf)
+        # Compute ground truth H_∞ = K₂ * R₂ * R₁' * K₁⁻¹
+        K1 = cameras[1].intrinsic
+        K2 = cameras[2].intrinsic
+        R1 = cameras[1].rotation_matrix
+        R2 = cameras[2].rotation_matrix
 
-        # Verify: H_∞ * view1_h ≈ view2_h (in homogeneous coordinates)
-        display("Verification (H_∞ * view1 ≈ view2):")
+        Hinf_true = K2 * R2 * R1' * inv(K1)
+        Hinf_true = Hinf_true ./ Hinf_true[3, 3]  # normalize
+        display("Ground truth H_∞ (3x3):")
+        display(Hinf_true)
+
+        # Verify ground truth works
+        display("Verification with ground truth H_∞:")
         for i in 1:number_of_lines
             p1_h = [view1[i, :]; 1.0]
-            p2_h = [view2[i, :]; 1.0]
-            p2_pred = Hinf * p1_h
+            p2_pred = Hinf_true * p1_h
             p2_pred_inhom = p2_pred[1:2] ./ p2_pred[3]
             error = norm(p2_pred_inhom - view2[i, :])
             display("Point $i: error = $error")
         end
 
-        # return Hinf, view1, view2, cameras, vanishing_points
+        # Compute H_∞ using DLT from the two views
+        Hinf_dlt = compute_Hinf(view1, view2)
+        display("DLT-computed H_∞ (3x3):")
+        display(Hinf_dlt)
+
+        # Verify DLT result
+        display("Verification with DLT H_∞:")
+        for i in 1:number_of_lines
+            p1_h = [view1[i, :]; 1.0]
+            p2_pred = Hinf_dlt * p1_h
+            p2_pred_inhom = p2_pred[1:2] ./ p2_pred[3]
+            error = norm(p2_pred_inhom - view2[i, :])
+            display("Point $i: error = $error")
+        end
+
+        # return Hinf_true, Hinf_dlt, view1, view2, cameras, vanishing_points
     end
 end
