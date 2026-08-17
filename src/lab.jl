@@ -2,7 +2,7 @@ module Lab
     using HomotopyContinuation
     using DelimitedFiles
     using StatsBase
-    using LinearAlgebra
+    using LinearAlgebra: norm, normalize, dot, cross
     using Rotations
 
     using ..Scene: SceneData, InstanceConfiguration, intrinsic_rotation_system_setup
@@ -15,7 +15,8 @@ module Lab
     using ..EquationSystems.Problems: CylinderCameraContoursProblem, CylinderCameraContoursProblemValidationData
     using ..EquationSystems.Problems.IntrinsicParameters: Configurations as IntrinsicParametersConfigurations
     using ..Utils: rand_in_range, lines_clp_to_stack
-    using ..Homotopies: GeometricHomotopy, InfiniteHomographyHomotopy
+    using ..Homotopies: GeometricHomotopy, InfiniteHomographyHomotopy, interpolate_line, verify_line_through_vanishing_point
+    using ..Homotopies
     using ..Printing: print_scene_config_results, scene_config_results_table_data
 
     using Random
@@ -758,28 +759,18 @@ module Lab
     function infinite_homography_homotopy()
         random_seed = 84564
         Random.seed!(random_seed)
-        # All elements are in homogeneous coordinates:
-        # - Points have w=1: [x, y, z, 1]
-        # - Vanishing points (directions/points at infinity) have w=0: [dx, dy, dz, 0]
 
-        number_of_lines = 4
+        # 4 vanishing points needed to compute H_∞ via DLT (4 correspondences)
+        # But the homotopy system uses only 2 lines (that intersect at a point)
+        n_vps_for_hinf = 4
+        n_lines_for_system = 2
 
-        # 4 random vanishing points (3D directions, stored as 4D homogeneous with w=0)
-        vanishing_points = hcat([[normalize(randn(3)); 0.0] for _ in 1:number_of_lines]...)  # 4 x number_of_lines
-        display("Vanishing points (4 x $number_of_lines):")
-        display(vanishing_points)
-
-        # 4 random line origins (3D points, stored as 4D homogeneous with w=1)
-        origins = hcat([[randn(3); 1.0] for _ in 1:number_of_lines]...)  # 4 x number_of_lines
-        display("Line origins (4 x $number_of_lines):")
-        display(origins)
-
-        # Create Line objects (origin + direction)
-        lines = [
-            Line(origins[1:3, i], vanishing_points[1:3, i]) for i in 1:number_of_lines
-        ]
-        display("Lines:")
-        display(lines)
+        # 4 random 3D vanishing points (directions)
+        vanishing_points_3d = [normalize(randn(3)) for _ in 1:n_vps_for_hinf]
+        display("3D Vanishing points (directions) for H_∞ computation:")
+        for (i, vp) in enumerate(vanishing_points_3d)
+            display("  VP $i: $vp")
+        end
 
         # Create 2 random cameras with shared intrinsics
         intrinsics = [
@@ -801,63 +792,151 @@ module Lab
         display("Camera 1 position: $(cameras[1].position)")
         display("Camera 2 position: $(cameras[2].position)")
 
-        # Project vanishing points through each camera
-        # For a vanishing point v = [d; 0], projection is P * v where P is 3x4
-        # Result is a 3D homogeneous 2D point [x, y, w] -> inhomogeneous [x/w, y/w]
-        function project_vanishing_points(camera, vps)
-            n = size(vps, 2)
-            pts_2d = zeros(n, 2)
-            for i in 1:n
-                projected = camera.matrix * vps[:, i]  # 3D homogeneous 2D point
-                pts_2d[i, :] = projected[1:2] ./ projected[3]  # to inhomogeneous
+        # Project vanishing points (3D directions) through each camera
+        function project_vp(camera, dir_3d)
+            vp_4d = [dir_3d; 0.0]
+            projected = camera.matrix * vp_4d  # 3D homogeneous 2D point
+            return normalize(projected)  # Keep as homogeneous 3-vector
+        end
+
+        # Get all 4 vanishing points in each view (for H_∞ computation)
+        all_vps_view1 = [project_vp(cameras[1], d) for d in vanishing_points_3d]
+        all_vps_view2 = [project_vp(cameras[2], d) for d in vanishing_points_3d]
+
+        display("All vanishing points in view 1 (for H_∞):")
+        for (i, vp) in enumerate(all_vps_view1)
+            display("  VP $i: $vp")
+        end
+
+        # Compute H_∞ using DLT from all 4 vanishing point correspondences
+        pts1 = vcat([v[1:2]' ./ v[3] for v in all_vps_view1]...)  # N x 2 (inhomogeneous)
+        pts2 = vcat([v[1:2]' ./ v[3] for v in all_vps_view2]...)  # N x 2 (inhomogeneous)
+        Hinf = compute_Hinf(pts1, pts2)
+        display("H_∞ (computed via DLT from 4 correspondences):")
+        display(Hinf)
+
+        # Verify H_∞ maps vanishing points correctly
+        display("Verification: H_∞ maps VP1 -> VP2:")
+        for i in 1:n_vps_for_hinf
+            vp2_pred = Hinf * all_vps_view1[i]
+            vp2_pred = normalize(vp2_pred)
+            similarity = abs(dot(vp2_pred, all_vps_view2[i]))
+            display("  VP $i: similarity = $similarity (should be ≈1)")
+        end
+
+        # Select 2 vanishing points for the system (the lines that will intersect)
+        # Use first 2 vanishing points
+        vps_view1 = all_vps_view1[1:n_lines_for_system]
+        vps_view2 = all_vps_view2[1:n_lines_for_system]
+
+        display("Vanishing points for system (2 lines):")
+        for (i, vp) in enumerate(vps_view1)
+            display("  VP $i view1: $vp")
+            display("  VP $i view2: $(vps_view2[i])")
+        end
+
+        # Create random lines through each of the 2 vanishing points in each view
+        function random_line_through_point(v)
+            random_vec = normalize(randn(3))
+            line = cross(v, random_vec)
+            return normalize(line)
+        end
+
+        lines_view1 = [random_line_through_point(vps_view1[i]) for i in 1:n_lines_for_system]
+        lines_view2 = [random_line_through_point(vps_view2[i]) for i in 1:n_lines_for_system]
+
+        display("Lines for system (2 per view):")
+        for (i, l) in enumerate(lines_view1)
+            incidence = dot(l, vps_view1[i])
+            display("  Line $i view1: $l (incidence: $incidence)")
+        end
+        for (i, l) in enumerate(lines_view2)
+            incidence = dot(l, vps_view2[i])
+            display("  Line $i view2: $l (incidence: $incidence)")
+        end
+
+        # Compute intersection point of the 2 lines in each view
+        intersection_view1 = cross(lines_view1[1], lines_view1[2])
+        intersection_view1 = intersection_view1 ./ intersection_view1[3]
+        intersection_view2 = cross(lines_view2[1], lines_view2[2])
+        intersection_view2 = intersection_view2 ./ intersection_view2[3]
+
+        display("Intersection of 2 lines in view1: $intersection_view1")
+        display("Intersection of 2 lines in view2: $intersection_view2")
+
+        # Flatten lines to parameter vectors (2 lines = 6 parameters)
+        p = vcat(lines_view1...)  # start parameters (view 1)
+        q = vcat(lines_view2...)  # target parameters (view 2)
+
+        display("Start parameters (2 lines from view 1): $p")
+        display("Target parameters (2 lines from view 2): $q")
+
+        # Create a polynomial system with 2 equations (point lies on both lines)
+        # Variables: x, y (2D point coordinates)
+        # Equations: l1·[x,y,1] = 0, l2·[x,y,1] = 0
+        @var x y
+        @var l1[1:3] l2[1:3]
+        eq1 = l1[1]*x + l1[2]*y + l1[3]
+        eq2 = l2[1]*x + l2[2]*y + l2[3]
+        F = System([eq1, eq2]; variables=[x, y], parameters=[l1; l2])
+
+        display("Polynomial system (2 lines intersecting):")
+        display(F)
+
+        # Create the InfiniteHomographyHomotopy
+        display("Creating InfiniteHomographyHomotopy...")
+        homotopy = InfiniteHomographyHomotopy(
+            F,
+            p,
+            q,
+            Hinf,
+            vps_view1  # 2 vanishing points for the 2 lines
+        )
+
+        # Test line interpolation at various t values
+        t_values = [0.0, 0.25, 0.5, 0.75, 1.0]
+        display("Testing line interpolation:")
+
+        for t in t_values
+            display("  t = $t:")
+            for i in 1:n_lines_for_system
+                # Get interpolated line
+                line_t = Homotopies.interpolate_line(homotopy, i, t)
+
+                # Compute interpolated vanishing point: v_t = H_t * v_0
+                H_t = Homotopies.matrix_exp(t * homotopy.log_H_inf)
+                v_t = normalize(H_t * vps_view1[i])
+
+                # Check incidence: ℓ_tᵀ * v_t should be ≈ 0
+                incidence = abs(dot(line_t, v_t))
+                display("    Line $i: incidence error = $incidence")
+
+                # Verify boundary conditions
+                if t == 0.0
+                    similarity = abs(dot(line_t, normalize(lines_view1[i])))
+                    display("    Line $i: similarity to start = $similarity")
+                elseif t == 1.0
+                    similarity = abs(dot(line_t, normalize(lines_view2[i])))
+                    display("    Line $i: similarity to target = $similarity")
+                end
             end
-            return pts_2d
+
+            # Show the intersection point at this t
+            Homotopies.tp!(homotopy, t)
+            line1_t = real.(homotopy.pt[1:3])
+            line2_t = real.(homotopy.pt[4:6])
+            intersection_t = cross(line1_t, line2_t)
+            intersection_t = intersection_t ./ intersection_t[3]
+            display("    Intersection point at t=$t: $(intersection_t[1:2])")
         end
 
-        view1 = project_vanishing_points(cameras[1], vanishing_points)  # N x 2
-        view2 = project_vanishing_points(cameras[2], vanishing_points)  # N x 2
+        # Solve the system at t=0 and t=1 to verify
+        display("Solving system at boundaries:")
+        solution_start = intersection_view1[1:2]
+        solution_target = intersection_view2[1:2]
+        display("  Solution at t=0 (view1 intersection): $solution_start")
+        display("  Solution at t=1 (view2 intersection): $solution_target")
 
-        display("View 1 (projected vanishing points, $number_of_lines x 2):")
-        display(view1)
-        display("View 2 (projected vanishing points, $number_of_lines x 2):")
-        display(view2)
-
-        # Compute ground truth H_∞ = K₂ * R₂ * R₁' * K₁⁻¹
-        K1 = cameras[1].intrinsic
-        K2 = cameras[2].intrinsic
-        R1 = cameras[1].rotation_matrix
-        R2 = cameras[2].rotation_matrix
-
-        Hinf_true = K2 * R2 * R1' * inv(K1)
-        Hinf_true = Hinf_true ./ Hinf_true[3, 3]  # normalize
-        display("Ground truth H_∞ (3x3):")
-        display(Hinf_true)
-
-        # Verify ground truth works
-        display("Verification with ground truth H_∞:")
-        for i in 1:number_of_lines
-            p1_h = [view1[i, :]; 1.0]
-            p2_pred = Hinf_true * p1_h
-            p2_pred_inhom = p2_pred[1:2] ./ p2_pred[3]
-            error = norm(p2_pred_inhom - view2[i, :])
-            display("Point $i: error = $error")
-        end
-
-        # Compute H_∞ using DLT from the two views
-        Hinf_dlt = compute_Hinf(view1, view2)
-        display("DLT-computed H_∞ (3x3):")
-        display(Hinf_dlt)
-
-        # Verify DLT result
-        display("Verification with DLT H_∞:")
-        for i in 1:number_of_lines
-            p1_h = [view1[i, :]; 1.0]
-            p2_pred = Hinf_dlt * p1_h
-            p2_pred_inhom = p2_pred[1:2] ./ p2_pred[3]
-            error = norm(p2_pred_inhom - view2[i, :])
-            display("Point $i: error = $error")
-        end
-
-        # return Hinf_true, Hinf_dlt, view1, view2, cameras, vanishing_points
+        return homotopy, cameras, vps_view1, vps_view2, lines_view1, lines_view2, Hinf
     end
 end

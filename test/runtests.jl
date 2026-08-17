@@ -21,4 +21,7 @@ using Test
     @testset "Equation Systems" begin
         include("equation_system_tests.jl")
     end
+    @testset "Homotopies" begin
+        include("homotopy_tests.jl")
+    end
 end
