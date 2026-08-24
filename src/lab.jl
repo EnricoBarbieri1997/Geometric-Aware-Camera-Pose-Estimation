@@ -792,16 +792,16 @@ module Lab
         display("Camera 1 position: $(cameras[1].position)")
         display("Camera 2 position: $(cameras[2].position)")
 
-        # Project vanishing points (3D directions) through each camera
-        function project_vp(camera, dir_3d)
-            vp_4d = [dir_3d; 0.0]
-            projected = camera.matrix * vp_4d  # 3D homogeneous 2D point
-            return normalize(projected)  # Keep as homogeneous 3-vector
+        # Project 3D points to each view (homogeneous coordinates)
+        function project_point(camera, pt_3d)
+            pt_4d = [pt_3d; 1.0]
+            projected = camera.matrix * pt_4d
+            return projected  # Keep as homogeneous 3-vector
         end
 
         # Get all 4 vanishing points in each view (for H_∞ computation)
-        all_vps_view1 = [project_vp(cameras[1], d) for d in vanishing_points_3d]
-        all_vps_view2 = [project_vp(cameras[2], d) for d in vanishing_points_3d]
+        all_vps_view1 = [project_point(cameras[1], d) for d in vanishing_points_3d]
+        all_vps_view2 = [project_point(cameras[2], d) for d in vanishing_points_3d]
 
         display("All vanishing points in view 1 (for H_∞):")
         for (i, vp) in enumerate(all_vps_view1)
@@ -835,24 +835,43 @@ module Lab
             display("  VP $i view2: $(vps_view2[i])")
         end
 
-        # Create random lines through each of the 2 vanishing points in each view
-        function random_line_through_point(v)
-            random_vec = normalize(randn(3))
-            line = cross(v, random_vec)
-            return normalize(line)
+        # Create lines by projecting real 3D points
+        # For each line: create a random 3D point, project to both views,
+        # then the line passes through the VP and the projected point
+        points_3d = [randn(3) for _ in 1:n_lines_for_system]
+        display("Random 3D points for lines:")
+        for (i, pt) in enumerate(points_3d)
+            display("  Point $i: $pt")
         end
 
-        lines_view1 = [random_line_through_point(vps_view1[i]) for i in 1:n_lines_for_system]
-        lines_view2 = [random_line_through_point(vps_view2[i]) for i in 1:n_lines_for_system]
+        points_view1 = [project_point(cameras[1], pt) for pt in points_3d]
+        points_view2 = [project_point(cameras[2], pt) for pt in points_3d]
 
-        display("Lines for system (2 per view):")
+        display("Projected points in view1:")
+        for (i, pt) in enumerate(points_view1)
+            pt_inhom = pt[1:2] ./ pt[3]
+            display("  Point $i: $pt_inhom")
+        end
+        display("Projected points in view2:")
+        for (i, pt) in enumerate(points_view2)
+            pt_inhom = pt[1:2] ./ pt[3]
+            display("  Point $i: $pt_inhom")
+        end
+
+        # Create lines: line through VP and projected point (cross product of two points = line)
+        lines_view1 = [normalize(cross(vps_view1[i], points_view1[i])) for i in 1:n_lines_for_system]
+        lines_view2 = [normalize(cross(vps_view2[i], points_view2[i])) for i in 1:n_lines_for_system]
+
+        display("Lines for system (2 per view, through VP and projected 3D point):")
         for (i, l) in enumerate(lines_view1)
-            incidence = dot(l, vps_view1[i])
-            display("  Line $i view1: $l (incidence: $incidence)")
+            incidence_vp = dot(l, vps_view1[i])
+            incidence_pt = dot(l, points_view1[i])
+            display("  Line $i view1: $l (incidence VP: $incidence_vp, incidence point: $incidence_pt)")
         end
         for (i, l) in enumerate(lines_view2)
-            incidence = dot(l, vps_view2[i])
-            display("  Line $i view2: $l (incidence: $incidence)")
+            incidence_vp = dot(l, vps_view2[i])
+            incidence_pt = dot(l, points_view2[i])
+            display("  Line $i view2: $l (incidence VP: $incidence_vp, incidence point: $incidence_pt)")
         end
 
         # Compute intersection point of the 2 lines in each view
@@ -861,8 +880,8 @@ module Lab
         intersection_view2 = cross(lines_view2[1], lines_view2[2])
         intersection_view2 = intersection_view2 ./ intersection_view2[3]
 
-        display("Intersection of 2 lines in view1: $intersection_view1")
-        display("Intersection of 2 lines in view2: $intersection_view2")
+        display("Intersection of 2 lines in view1: $(intersection_view1[1:2])")
+        display("Intersection of 2 lines in view2: $(intersection_view2[1:2])")
 
         # Flatten lines to parameter vectors (2 lines = 6 parameters)
         p = vcat(lines_view1...)  # start parameters (view 1)
@@ -893,49 +912,57 @@ module Lab
             vps_view1  # 2 vanishing points for the 2 lines
         )
 
-        # Test line interpolation at various t values
-        t_values = [0.0, 0.25, 0.5, 0.75, 1.0]
-        display("Testing line interpolation:")
+        solve(
+            homotopy,
+            [
+                intersection_view1[1:2],
+            ];
+            show_progress=true
+        )
 
-        for t in t_values
-            display("  t = $t:")
-            for i in 1:n_lines_for_system
-                # Get interpolated line
-                line_t = Homotopies.interpolate_line(homotopy, i, t)
+        # # Test line interpolation at various t values
+        # t_values = [0.0, 0.25, 0.5, 0.75, 1.0]
+        # display("Testing line interpolation:")
 
-                # Compute interpolated vanishing point: v_t = H_t * v_0
-                H_t = Homotopies.matrix_exp(t * homotopy.log_H_inf)
-                v_t = normalize(H_t * vps_view1[i])
+        # for t in t_values
+        #     display("  t = $t:")
+        #     for i in 1:n_lines_for_system
+        #         # Get interpolated line
+        #         line_t = Homotopies.interpolate_line(homotopy, i, t)
 
-                # Check incidence: ℓ_tᵀ * v_t should be ≈ 0
-                incidence = abs(dot(line_t, v_t))
-                display("    Line $i: incidence error = $incidence")
+        #         # Compute interpolated vanishing point: v_t = H_t * v_0
+        #         H_t = Homotopies.matrix_exp(t * homotopy.log_H_inf)
+        #         v_t = normalize(H_t * vps_view1[i])
 
-                # Verify boundary conditions
-                if t == 0.0
-                    similarity = abs(dot(line_t, normalize(lines_view1[i])))
-                    display("    Line $i: similarity to start = $similarity")
-                elseif t == 1.0
-                    similarity = abs(dot(line_t, normalize(lines_view2[i])))
-                    display("    Line $i: similarity to target = $similarity")
-                end
-            end
+        #         # Check incidence: ℓ_tᵀ * v_t should be ≈ 0
+        #         incidence = abs(dot(line_t, v_t))
+        #         display("    Line $i: incidence error = $incidence")
 
-            # Show the intersection point at this t
-            Homotopies.tp!(homotopy, t)
-            line1_t = real.(homotopy.pt[1:3])
-            line2_t = real.(homotopy.pt[4:6])
-            intersection_t = cross(line1_t, line2_t)
-            intersection_t = intersection_t ./ intersection_t[3]
-            display("    Intersection point at t=$t: $(intersection_t[1:2])")
-        end
+        #         # Verify boundary conditions
+        #         if t == 0.0
+        #             similarity = abs(dot(line_t, normalize(lines_view1[i])))
+        #             display("    Line $i: similarity to start = $similarity")
+        #         elseif t == 1.0
+        #             similarity = abs(dot(line_t, normalize(lines_view2[i])))
+        #             display("    Line $i: similarity to target = $similarity")
+        #         end
+        #     end
 
-        # Solve the system at t=0 and t=1 to verify
-        display("Solving system at boundaries:")
-        solution_start = intersection_view1[1:2]
-        solution_target = intersection_view2[1:2]
-        display("  Solution at t=0 (view1 intersection): $solution_start")
-        display("  Solution at t=1 (view2 intersection): $solution_target")
+        #     # Show the intersection point at this t
+        #     Homotopies.tp!(homotopy, t)
+        #     line1_t = real.(homotopy.pt[1:3])
+        #     line2_t = real.(homotopy.pt[4:6])
+        #     intersection_t = cross(line1_t, line2_t)
+        #     intersection_t = intersection_t ./ intersection_t[3]
+        #     display("    Intersection point at t=$t: $(intersection_t[1:2])")
+        # end
+
+        # # Solve the system at t=0 and t=1 to verify
+        # display("Solving system at boundaries:")
+        # solution_start = intersection_view1[1:2]
+        # solution_target = intersection_view2[1:2]
+        # display("  Solution at t=0 (view1 intersection): $solution_start")
+        # display("  Solution at t=1 (view2 intersection): $solution_target")
 
         return homotopy, cameras, vps_view1, vps_view2, lines_view1, lines_view2, Hinf
     end
