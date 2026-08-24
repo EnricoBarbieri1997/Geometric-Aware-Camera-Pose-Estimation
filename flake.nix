@@ -55,6 +55,8 @@
             echo "WAYLAND_DISPLAY=$WAYLAND_DISPLAY"
             echo "GLFW_USE_WAYLAND=$GLFW_USE_WAYLAND"
             echo "EGL_PLATFORM=$EGL_PLATFORM"
+
+            exec zsh
           '';
         };
       }
