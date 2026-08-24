@@ -150,8 +150,8 @@ function InfiniteHomographyHomotopy(
 
     # Precompute homography matrices
     H_inf_f = Matrix{Float64}(H_inf)
-    H_inf_inv = inv(H_inf_f)
-    H_inf_invT = H_inf_inv'
+    H_inf_inv = Matrix{Float64}(inv(H_inf_f))
+    H_inf_invT = Matrix{Float64}(H_inf_inv')
     log_H_inf = matrix_log(H_inf_f)
 
     # Precompute per-line data

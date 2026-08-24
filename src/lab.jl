@@ -912,13 +912,31 @@ module Lab
             vps_view1  # 2 vanishing points for the 2 lines
         )
 
-        solve(
+        result = solve(
             homotopy,
             [
                 intersection_view1[1:2],
             ];
             show_progress=true
         )
+
+        sols = real_solutions(result)
+        display("Found $(nsolutions(result)) solutions for the intersection point:")
+
+        for (i, sol) in enumerate(sols)
+            display("  Solution $i: $(sol)")
+            # Verify that the solution lies on both lines in view 2
+            l1 = lines_view2[1]
+            l2 = lines_view2[2]
+            incidence1 = abs(dot(l1, [sol; 1.0]))
+            incidence2 = abs(dot(l2, [sol; 1.0]))
+            display("    Incidence with line 1 in view 2: $incidence1 (should be ≈0)")
+            display("    Incidence with line 2 in view 2: $incidence2 (should be ≈0)")
+        end
+
+        display(intersection_view2[1:2])
+
+        return sols
 
         # # Test line interpolation at various t values
         # t_values = [0.0, 0.25, 0.5, 0.75, 1.0]
@@ -964,6 +982,6 @@ module Lab
         # display("  Solution at t=0 (view1 intersection): $solution_start")
         # display("  Solution at t=1 (view2 intersection): $solution_target")
 
-        return homotopy, cameras, vps_view1, vps_view2, lines_view1, lines_view2, Hinf
+        # return homotopy, cameras, vps_view1, vps_view2, lines_view1, lines_view2, Hinf
     end
 end
